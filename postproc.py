@@ -550,6 +550,25 @@ def makedatafiles(format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fak
         alltime += yawn
         if alltime>maxtime:
             break
+
+###This code is to determine if a data file has more than one data points.###
+def checkDatFile(exposure_file):
+    file_under_scrutiny=open(exposure_file)
+    DatCount=0
+    Continue='Yes'
+    List=file_under_scrutiny.readlines()
+    file_under_scrutiny.close()
+    #print(List)
+    for string in List:
+        part=string.split(' ')
+        #print(part)
+        if part[0]=='OBS:':
+            DatCount+=1
+    if DatCount==1:
+       Continue='No'
+    return Continue
+
+
  
 def combinedatafiles(master,fitsname,datadir):
     season = os.environ.get('SEASON')
@@ -616,14 +635,45 @@ def combinedatafiles(master,fitsname,datadir):
         h_zmag = lines[19].split()[4]
 
         mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
-
+        #print ('this is photflag:', photflag, type(photflag))
         band = np.genfromtxt(datfile,dtype='string',skip_header=53,usecols=(2,),unpack=True)
+        print(datfile)
+        ###NFS: Code to ensure that each of the components of bakedPotato are np.ndarrays.###
+        bakedPotato=[mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
+        print(len(bakedPotato))
+        epicBakedPotato=[]
+        
+        for ingredient in bakedPotato:
+            if not isinstance(ingredient, np.ndarray):
+                inferiorIngredient=np.ndarray(1)
+                print(inferiorIngredient)
+                inferiorIngredient[0]=ingredient
+                epicBakedPotato.append(inferiorIngredient)
+            else:
+                epicBakedPotato.append(ingredient)
 
-        if all(x==12288 for x in photflag):
-            allgood=allgood+1
+        mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,obji=epicBakedPotato[0],epicBakedPotato[1],epicBakedPotato[2],epicBakedPotato[3],epicBakedPotato[4],epicBakedPotato[5],epicBakedPotato[6],epicBakedPotato[7],epicBakedPotato[8],epicBakedPotato[9],epicBakedPotato[10],epicBakedPotato[11],epicBakedPotato[12],epicBakedPotato[13],epicBakedPotato[14],epicBakedPotato[15],epicBakedPotato[16],epicBakedPotato[17]
 
+        #if isinstance(photflag, np.ndarray):
+        if all([x==12288 for x in photflag]):
+            allgood+=1
+        #else:
+         #   pf=np.ndarray(1)
+          #  pf[0]=photflag
+           # photflag=pf
+            #if all([x==12288 for x in photflag]):
+             #   allgood+=1
+        
+       # print(mjd,type(mjd),'this is mjd')
+        #if not isinstance(mjd, np.ndarray):
+         #   mjd1=np.ndarray(1)
+          #  mjd1[0]=mjd
+           # mjd=mjd1
         n = len(mjd)
-
+       # print(n)
+        #print(type(mjd))
+    
+        
         ra = np.empty(n)
         ra.fill(raval)
         dec = np.empty(n)
@@ -656,41 +706,76 @@ def combinedatafiles(master,fitsname,datadir):
         for j in range(n):
             DATAFILE.append(filename)
 
-        for k in range(n):
-            RA.append(ra[k])
-            DEC.append(dec[k])
-            CAND_ID.append(cand[k])
-            SN_ID.append(sn_id[k])
+        ###Here Insert checkDatFile###
+        if checkDatFile(datfile) == 'No':
+            BAND.append(band)
+            OBJID.append(objid)
+            for k in range(n):
+                RA.append(ra[k])
+                DEC.append(dec[k])
+                CAND_ID.append(cand[k])
+                SN_ID.append(sn_id[k])
+                HOSTID.append(hostid[k])
+                PHOTOZ.append(photoz[k])
+                PHOTOZERR.append(photozerr[k])
+                SPECZ.append(specz[k])
+                SPECZERR.append(speczerr[k])
+                HOSTSEP.append(hostsep[k])
+                HOST_GMAG.append(hgmag[k])
+                HOST_RMAG.append(hrmag[k])
+                HOST_IMAG.append(himag[k])
+                HOST_ZMAG.append(hzmag[k])
+                FIELD.append(field[k])
+                FLUXCAL.append(fluxcal[k])
+                FLUXCALERR.append(fluxcalerr[k])
+                PHOTFLAG.append(photflag[k])
+                PHOTPROB.append(photprob[k])
+                ZPFLUX.append(zpflux[k])
+                PSF.append(psf[k])
+                SKYSIG.append(skysig[k])
+                SKYSIG_T.append(skysig_t[k])
+                GAIN.append(gain[k])
+                XPIX.append(xpix[k])
+                YPIX.append(ypix[k])
+                NITE.append(nite[k])
+                EXPNUM.append(expnum[k])
+                CCDNUM.append(ccdnum[k])
+                
+        else:
+            for k in range(n):
+                RA.append(ra[k])
+                DEC.append(dec[k])
+                CAND_ID.append(cand[k])
+                SN_ID.append(sn_id[k])
+                HOSTID.append(hostid[k])
+                PHOTOZ.append(photoz[k])
+                PHOTOZERR.append(photozerr[k])
+                SPECZ.append(specz[k])
+                SPECZERR.append(speczerr[k])
+                HOSTSEP.append(hostsep[k])
+                HOST_GMAG.append(hgmag[k])
+                HOST_RMAG.append(hrmag[k])
+                HOST_IMAG.append(himag[k])
+                HOST_ZMAG.append(hzmag[k])
+                MJD.append(mjd[k])
+                BAND.append(band[k])
+                FIELD.append(field[k])
+                FLUXCAL.append(fluxcal[k])
+                FLUXCALERR.append(fluxcalerr[k])
+                PHOTFLAG.append(photflag[k])
+                PHOTPROB.append(photprob[k])
+                ZPFLUX.append(zpflux[k])
+                PSF.append(psf[k])
+                SKYSIG.append(skysig[k])
+                SKYSIG_T.append(skysig_t[k])
+                GAIN.append(gain[k])
+                XPIX.append(xpix[k])
+                YPIX.append(ypix[k])
+                NITE.append(nite[k])
+                EXPNUM.append(expnum[k])
+                CCDNUM.append(ccdnum[k])
+                OBJID.append(objid[k])
 
-            HOSTID.append(hostid[k])
-            PHOTOZ.append(photoz[k])
-            PHOTOZERR.append(photozerr[k])
-            SPECZ.append(specz[k])
-            SPECZERR.append(speczerr[k])
-            HOSTSEP.append(hostsep[k])
-            HOST_GMAG.append(hgmag[k])
-            HOST_RMAG.append(hrmag[k])
-            HOST_IMAG.append(himag[k])
-            HOST_ZMAG.append(hzmag[k])
-
-            MJD.append(mjd[k])
-            BAND.append(band[k])
-            FIELD.append(field[k])
-            FLUXCAL.append(fluxcal[k])
-            FLUXCALERR.append(fluxcalerr[k])
-            PHOTFLAG.append(photflag[k])
-            PHOTPROB.append(photprob[k])
-            ZPFLUX.append(zpflux[k])
-            PSF.append(psf[k])
-            SKYSIG.append(skysig[k])
-            SKYSIG_T.append(skysig_t[k])
-            GAIN.append(gain[k])
-            XPIX.append(xpix[k])
-            YPIX.append(ypix[k])
-            NITE.append(nite[k])
-            EXPNUM.append(expnum[k])
-            CCDNUM.append(ccdnum[k])
-            OBJID.append(objid[k])
     print 'allgood = %d' % allgood
     print
 #    print len(RA)
@@ -1115,7 +1200,6 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
         plt.clf()
     return rdf,lcdir
 
-
 def createhtml(fitsname,realdf,master,lcdir):
     rootdir = os.environ.get('ROOTDIR')
     expdir = os.path.join(rootdir,'exp')
@@ -1234,3 +1318,17 @@ def createhtml(fitsname,realdf,master,lcdir):
         cdf = sdf.loc[sdf['SNID']==c]
         
 
+def makeHTML(location_of_youLonelyGifsAndFits):
+    htmlYeah=open('theProtoATC.html','w+')
+    location_of_youLonelyGifsAndFits=str(location_of_youLonelyGifsAndFits)
+    allTheGifs=glob.glob(location_of_youLonelyGifsAndFits+'/*.gif')
+    #allTheFits=glob.glob('/yourLonelyGifsAndFits/*.fits')                    
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<title> Plots from GW170814\n, Season 416 </title>\n','</head>\n','<body>']
+    bottomLines=['</body>\n','</head>']
+    written=htmlYeah(topLines)
+    for gif in allTheGifs:
+        imgLocation=location_of_youLonelyGifsAndFits+gif
+        lines=['<h1>What Is Going on Here?</h1>\n','<p>Description of what is going on here.</p>\n','<h2>'+gif+'</h2>\n','<p>\n','< img src='imgLocation'/>\n','</p>\n','<p>Description of it</p>\n','</body>\n','</head>']
+        write = written.writelines(lines)
+    wrote=write.writelines(bottomLines)
+    return "A html file with lots of gifs has been created. You should check it out."
