@@ -724,7 +724,7 @@ def combinedatafiles(master,fitsname,datadir):
         #print(datfile)
         ###NFS: Code to ensure that each of the components of bakedPotato are np.ndarrays.###
         ####Put elements from text into list
-        bakedPotato=[mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
+        bakedPotato=[objid,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
         #print(len(bakedPotato))
         epicBakedPotato=[]
         
@@ -737,7 +737,7 @@ def combinedatafiles(master,fitsname,datadir):
             else:
                 epicBakedPotato.append(ingredient)
 
-        mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,obji=epicBakedPotato[0],epicBakedPotato[1],epicBakedPotato[2],epicBakedPotato[3],epicBakedPotato[4],epicBakedPotato[5],epicBakedPotato[6],epicBakedPotato[7],epicBakedPotato[8],epicBakedPotato[9],epicBakedPotato[10],epicBakedPotato[11],epicBakedPotato[12],epicBakedPotato[13],epicBakedPotato[14],epicBakedPotato[15],epicBakedPotato[16],epicBakedPotato[17]####Return elements to their original names
+        objid,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,obji=epicBakedPotato[0],epicBakedPotato[1],epicBakedPotato[2],epicBakedPotato[3],epicBakedPotato[4],epicBakedPotato[5],epicBakedPotato[6],epicBakedPotato[7],epicBakedPotato[8],epicBakedPotato[9],epicBakedPotato[10],epicBakedPotato[11],epicBakedPotato[12],epicBakedPotato[13],epicBakedPotato[14],epicBakedPotato[15],epicBakedPotato[16],epicBakedPotato[17],epicBakedPotato[18]####Return elements to their original names
 
         #if isinstance(photflag, np.ndarray):
         if all([int(x)==12288 for x in photflag]):
