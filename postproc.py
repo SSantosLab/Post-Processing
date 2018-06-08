@@ -1,4 +1,5 @@
 import os
+import tarfile
 import sys
 import time
 import math
@@ -15,6 +16,7 @@ from astropy.table import Table
 import fitsio
 import psycopg2
 import fnmatch
+import configparser
 
 def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema):
 ### set environment variables for things that will be used often
@@ -550,9 +552,81 @@ def makedatafiles(format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fak
         alltime += yawn
         if alltime>maxtime:
             break
+###The following two functions are heavily based on a tutorial
+def gif_files(members):
+    for tarinfo in members:
+        if os.path.splitext(tarinfo.name)[1] == ".gif":
+            yield tarinfo
+def fits_files(members):
+    for tarinfo in members:
+        if os.path.splitext(tarinfo.name)[1] == ".fits":
+            yield tarinfo
+###
 
-###This code is to determine if a data file has more than one data points.###
+####Make an html file full of git files
+def makeHTML(tar):
+    ###get tar files
+    ####Get the distinguishing number at the end of the tar file
+    tarsplit=tar.split('/')
+    tarlen=len(tarsplit)
+    quality=tarsplit[tarlen-1]
+    definingQuality=quality.split('.')[0] #stamp
+    specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
+    ####Use or make a dir in which to put the tar files
+    if not os.path.isdir(specificGifAndFitsDir):
+        os.makedirs(specificGifAndFitsDir)
+    lilTar=tarfile.open(tar)
+    lilTar.extractall(members=gif_files(lilTar), path = specificGifAndFitsDir)
+    #lilTar.extractall(members=fits_files(lilTar), path = specificGifAndFitsDir)
+    
+    ###create html
+    Name='theProtoATC'+definingQuality+'.html'
+    htmlYeah=open(Name,'w+')
+    allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
+    gifDict={}
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<title> Plots from'+definingQuality+'</title>\
+\n','</head>\n','<body>']
+    bottomLines=['</body>\n','</head>']
+    ####Create the beginning text for an html file
+    for tag in topLines:
+        htmlYeah.write(tag)
+    htmlYeah.close()
+    ####Group template, difference, and search images of observation together by number at end of file name 
+    for File in allTheGifs:
+        value=''
+        for char in File:
+            try:
+                char=int(char)
+            except:
+                pass
+            if isinstance(char,int):
+                value+=str(char)
+        if not value in gifDict.keys():
+            aList=[]
+            gifDict[value]=aList
+        gifDict[value].append(File)
+    htmlYeah=open(Name,'a')
+    ####Create body text and embed images
+    for tag in topLines:
+        htmlYeah.write(tag)
+    htmlYeah.close()
+    htmlYeah=open(Name,'a')
+    for gifSet in list(gifDict.values()):
+        gifSet.sort()
+        #imgLocation=GifAndFitsDir+gif                                              
+        lines=['<h1>What Is Going on Here?</h1>\n','<p>It is a gif!</p>\n','<h2>'+gifSet[0]+'</h2>\n','<p>\n','<img src=\''+gifSet[0]+'\' width="200" height="200"/>\n','</p>\n','<p\>The diffimage</p>\n','<h2>'+gifSet[1]+'</h2>\n','<p>\n','<img src=\''+gifSet[1]+'\' width="200" height="200\
+"/>\n','</p>\n','<p\>The searchimage</p>\n','<h2>'+gifSet[2]+'</h2>\n','<p>\n','<img src=\''+gifSet[2]+'\' width="200" height="200\
+"/>\n','</p>\n','<p\>The tempimage</p>\n']
+        for line in lines:
+            htmlYeah.write(line)
+    for line in bottomLines:
+        htmlYeah.write(line)
+    htmlYeah.close()
+    return
+
+###determines whether a dat file contains more than one data point. Unnecesasry, though, because you can just do a np.getfromtext and determine the length of the resulting array.
 def checkDatFile(exposure_file):
+    print('datfile Name', exposure_file,'datfile Type', type(exposure_file))
     file_under_scrutiny=open(exposure_file)
     DatCount=0
     Continue='Yes'
@@ -568,11 +642,16 @@ def checkDatFile(exposure_file):
        Continue='No'
     return Continue
 
-
  
 def combinedatafiles(master,fitsname,datadir):
+    
+    config = configparser.ConfigParser()
+    config.read('postproc.ini')
+    mySEASON=config.get('general','season')
+
     season = os.environ.get('SEASON')
     season = str(season)
+    print(season)
     print 'Starting combinedatafiles'
     #mlist = Table.read(master)
     #masdf = mlist.to_pandas()
@@ -609,6 +688,7 @@ def combinedatafiles(master,fitsname,datadir):
 
     c=0
     allgood=0
+    tarFilesList=[]
     for d in dats:
         c=c+1
         if c%1000==0:
@@ -634,29 +714,35 @@ def combinedatafiles(master,fitsname,datadir):
         h_imag = lines[19].split()[3]
         h_zmag = lines[19].split()[4]
 
-        mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        objid,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        #print(mjd, type(mjd),'this is mjd prior to making potatos')
+        #print(ccdnum, type(ccdnum),'this is ccdnum prior to making potatos')
         #print ('this is photflag:', photflag, type(photflag))
         band = np.genfromtxt(datfile,dtype='string',skip_header=53,usecols=(2,),unpack=True)
-        print(datfile)
+        #print(band,field,nite,expnum,ccdnum)
+        #tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
+        #print(datfile)
         ###NFS: Code to ensure that each of the components of bakedPotato are np.ndarrays.###
+        ####Put elements from text into list
         bakedPotato=[mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
-        print(len(bakedPotato))
+        #print(len(bakedPotato))
         epicBakedPotato=[]
         
         for ingredient in bakedPotato:
-            if not isinstance(ingredient, np.ndarray):
-                inferiorIngredient=np.ndarray(1)
+            if not isinstance(ingredient, np.ndarray):####If element is not np.ndarray
+                inferiorIngredient=np.ndarray(1)####generate a size 1 array
                 print(inferiorIngredient)
-                inferiorIngredient[0]=ingredient
+                inferiorIngredient[0]=ingredient####and plug the element in
                 epicBakedPotato.append(inferiorIngredient)
             else:
                 epicBakedPotato.append(ingredient)
 
-        mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,obji=epicBakedPotato[0],epicBakedPotato[1],epicBakedPotato[2],epicBakedPotato[3],epicBakedPotato[4],epicBakedPotato[5],epicBakedPotato[6],epicBakedPotato[7],epicBakedPotato[8],epicBakedPotato[9],epicBakedPotato[10],epicBakedPotato[11],epicBakedPotato[12],epicBakedPotato[13],epicBakedPotato[14],epicBakedPotato[15],epicBakedPotato[16],epicBakedPotato[17]
+        mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,obji=epicBakedPotato[0],epicBakedPotato[1],epicBakedPotato[2],epicBakedPotato[3],epicBakedPotato[4],epicBakedPotato[5],epicBakedPotato[6],epicBakedPotato[7],epicBakedPotato[8],epicBakedPotato[9],epicBakedPotato[10],epicBakedPotato[11],epicBakedPotato[12],epicBakedPotato[13],epicBakedPotato[14],epicBakedPotato[15],epicBakedPotato[16],epicBakedPotato[17]####Return elements to their original names
 
         #if isinstance(photflag, np.ndarray):
-        if all([x==12288 for x in photflag]):
+        if all([int(x)==12288 for x in photflag]):
             allgood+=1
+        #print(photflag)
         #else:
          #   pf=np.ndarray(1)
           #  pf[0]=photflag
@@ -664,13 +750,8 @@ def combinedatafiles(master,fitsname,datadir):
             #if all([x==12288 for x in photflag]):
              #   allgood+=1
         
-       # print(mjd,type(mjd),'this is mjd')
-        #if not isinstance(mjd, np.ndarray):
-         #   mjd1=np.ndarray(1)
-          #  mjd1[0]=mjd
-           # mjd=mjd1
         n = len(mjd)
-       # print(n)
+        #print(n,'This is n!')
         #print(type(mjd))
     
         
@@ -707,7 +788,9 @@ def combinedatafiles(master,fitsname,datadir):
             DATAFILE.append(filename)
 
         ###Here Insert checkDatFile###
-        if checkDatFile(datfile) == 'No':
+        print('This is objid', objid, 'and its type is',type(obji))
+        if len(objid) == 1:
+            print('Did not pass checkDatFile')
             BAND.append(band)
             OBJID.append(objid)
             for k in range(n):
@@ -741,6 +824,13 @@ def combinedatafiles(master,fitsname,datadir):
                 EXPNUM.append(expnum[k])
                 CCDNUM.append(ccdnum[k])
                 
+               # nitek=nite[k]
+               # expnumk=expnum[k]
+               # seasonk=
+               # bandk=band[k]
+               # ccdnumk=ccdnum[k]
+               # tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
+                
         else:
             for k in range(n):
                 RA.append(ra[k])
@@ -772,9 +862,39 @@ def combinedatafiles(master,fitsname,datadir):
                 XPIX.append(xpix[k])
                 YPIX.append(ypix[k])
                 NITE.append(nite[k])
+         #       print(NITE)
+          #      print(nite[k])
+           #     print(EXPNUM)
                 EXPNUM.append(expnum[k])
+            #    print(EXPNUM)
+             #   print(expnum[k])
                 CCDNUM.append(ccdnum[k])
+                #print('CCDNUM',CCDNUM)
+                #print('ccdnum[k]',ccdnum[k])
                 OBJID.append(objid[k])
+                #print('OBJID',OBJID)
+                #print('objid[k]',objid[k])
+
+                nitek=str(int(nite[k]))
+                #print(type(nitek),nitek)
+                expnumk=str(int(expnum[k])) 
+                #print(type(expnumk),expnumk)
+                bandk=band[k]
+                #print(type(bandk),bandk)
+                ccdnumk=str(int(ccdnum[k]))
+                #print(type(ccdnumk),ccdnumk)
+
+                tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')              
+                print('Type of tarFiles',type(tarFiles))
+                if tarFiles not in tarFilesList:
+                    tarFilesList.append(tarFiles)
+                    try:
+                        tarFile=tarFiles[0]
+                        anHTML=makeHTML(tarFile)
+                    except IndexError:
+                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+                print('length of tarFilesList',len(tarFilesList))
+                print(tarFiles)
 
     print 'allgood = %d' % allgood
     print
@@ -1318,17 +1438,3 @@ def createhtml(fitsname,realdf,master,lcdir):
         cdf = sdf.loc[sdf['SNID']==c]
         
 
-def makeHTML(location_of_youLonelyGifsAndFits):
-    htmlYeah=open('theProtoATC.html','w+')
-    location_of_youLonelyGifsAndFits=str(location_of_youLonelyGifsAndFits)
-    allTheGifs=glob.glob(location_of_youLonelyGifsAndFits+'/*.gif')
-    #allTheFits=glob.glob('/yourLonelyGifsAndFits/*.fits')                    
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<title> Plots from GW170814\n, Season 416 </title>\n','</head>\n','<body>']
-    bottomLines=['</body>\n','</head>']
-    written=htmlYeah(topLines)
-    for gif in allTheGifs:
-        imgLocation=location_of_youLonelyGifsAndFits+gif
-        lines=['<h1>What Is Going on Here?</h1>\n','<p>Description of what is going on here.</p>\n','<h2>'+gif+'</h2>\n','<p>\n','< img src='imgLocation'/>\n','</p>\n','<p>Description of it</p>\n','</body>\n','</head>']
-        write = written.writelines(lines)
-    wrote=write.writelines(bottomLines)
-    return "A html file with lots of gifs has been created. You should check it out."
