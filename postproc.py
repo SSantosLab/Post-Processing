@@ -18,6 +18,7 @@ import psycopg2
 import fnmatch
 import configparser
 
+
 def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema):
 ### set environment variables for things that will be used often
     os.environ['ROOTDIR']=rootdir
@@ -564,7 +565,7 @@ def fits_files(members):
 ###
 
 ####Make an html file full of git files
-def makeHTML(tar):
+def makeHTML(tar, Name):
     ###get tar files
     ####Get the distinguishing number at the end of the tar file
     tarsplit=tar.split('/')
@@ -580,17 +581,16 @@ def makeHTML(tar):
     #lilTar.extractall(members=fits_files(lilTar), path = specificGifAndFitsDir)
     
     ###create html
-    Name='theProtoATC'+definingQuality+'.html'
-    htmlYeah=open(Name,'w+')
+    #Name='theProtoATC'+definingQuality+'.html'
+    #htmlYeah=open(Name,'a')
     allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
     gifDict={}
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<title> Plots from'+definingQuality+'</title>\
-\n','</head>\n','<body>']
-    bottomLines=['</body>\n','</head>']
+    #topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<title> Plots from'+definingQuality+'</title>\\n','</head>\n','<body>']
+    #bottomLines=['</body>\n','</head>']
     ####Create the beginning text for an html file
-    for tag in topLines:
-        htmlYeah.write(tag)
-    htmlYeah.close()
+    #for tag in topLines:
+     #   htmlYeah.write(tag)
+    #htmlYeah.close()
     ####Group template, difference, and search images of observation together by number at end of file name 
     for File in allTheGifs:
         value=''
@@ -605,11 +605,11 @@ def makeHTML(tar):
             aList=[]
             gifDict[value]=aList
         gifDict[value].append(File)
-    htmlYeah=open(Name,'a')
+    #htmlYeah=open(Name,'a')
     ####Create body text and embed images
-    for tag in topLines:
-        htmlYeah.write(tag)
-    htmlYeah.close()
+    #for tag in topLines:
+     #   htmlYeah.write(tag)
+   # htmlYeah.close()
     htmlYeah=open(Name,'a')
     for gifSet in list(gifDict.values()):
         gifSet.sort()
@@ -619,10 +619,79 @@ def makeHTML(tar):
 "/>\n','</p>\n','<p\>The tempimage</p>\n']
         for line in lines:
             htmlYeah.write(line)
-    for line in bottomLines:
-        htmlYeah.write(line)
+    #omLines:
+    #te(line)
+    #
     htmlYeah.close()
     return
+
+
+###DO NOT USE. NOW OBSOLETE
+def makePrestigiousHTML(DatFileTarList,datfile):
+    theDat=datfile.split('/')[-1].split('.')[0]
+    Name='theProtoATC'+theDat+'.html'
+    htmlYeah=open(Name,'w+')
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<title> Plots from'+theDat+'</title>\n','<h1>This is the title for'+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>','<div class="nav-wrapper">','<nav class="nav-menu">','<ul class="clearfix">']
+    bottomLines=['</body>\n','</head>']
+
+    for tag in topLines:
+        htmlYeah.write(tag)
+    htmlYeah.close()
+
+    htmlYeah=open(Name,'a')
+    for tar in DatFileTarList:
+        tar=tar[0]
+        tarsplit=tar.split('/')
+        tarlen=len(tarsplit)
+        quality=tarsplit[tarlen-1]
+        definingQuality=quality.split('.')[0] #stamp
+        menuBarText=['<li><a href="'+definingQuality+'">'+definingQuality+'</a></li>']
+    menuBarBottomText=['</div>','</nav>','</ul>']
+    html.close()
+
+    htmlYeah=open(Name,'a')
+    for tar in DatFileTarList:
+        tarsplit=tar.split('/')
+        tarlen=len(tarsplit)
+        quality=tarsplit[tarlen-1]
+        definingQuality=quality.split('.')[0] #stamp
+        specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
+####Use or make a dir in which to put the tar files
+        if not os.path.isdir(specificGifAndFitsDir):
+            os.makedirs(specificGifAndFitsDir)
+        lilTar=tarfile.open(tar)
+        lilTar.extractall(members=gif_files(lilTar), path = specificGifAndFitsDir)
+        allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
+        gifDict={}
+
+        for File in allTheGifs:
+            value=''
+            for char in File:
+                try:
+                    char=int(char)
+                except:
+                    pass
+                if isinstance(char,int):
+                    value+=str(char)
+            if not value in gifDict.keys():
+                aList=[]
+                gifDict[value]=aList
+            gifDict[value].append(File)
+        htmlYeah=open(Name,'a')
+        for gifSet in list(gifDict.values()):
+            gifSet.sort()
+            lines='<a name="'+definingQuality+'"></a>\n',['<h1>What Is Going on Here?</h1>\n','<p>It is a gif!</p>\n','<h2\>'+gifSet[0]+'</h2>\n','<p>\n','<img src=\''+gifSet[0]+'\' width="200" height="200"/>\n','</p>\n','<p\>The diffimage</p>\n','<h2>'+gifSet[1]+'</h2>\n','<p>\n','<img src=\''+gifSet[1]+'\' width="200" height="200"/>\n','</p>\n','<p\>The searchimage</p>\n','<h2>'+gifSet[2]+'</h2>\n','<p>\n','<img src=\''+gifSet[2]+'\' width="200" height="200"/>\n','</p>\n','<p\>The tempimage</p>\n']
+            for line in lines:
+                htmlYeah.write(line)
+        for line in bottomLines:
+            htmlYeah.write(line)
+        htmlYeah.close()
+    return
+
+
+
+
+
 
 ###determines whether a dat file contains more than one data point. Unnecesasry, though, because you can just do a np.getfromtext and determine the length of the resulting array.
 def checkDatFile(exposure_file):
@@ -688,7 +757,6 @@ def combinedatafiles(master,fitsname,datadir):
 
     c=0
     allgood=0
-    tarFilesList=[]
     for d in dats:
         c=c+1
         if c%1000==0:
@@ -699,6 +767,24 @@ def combinedatafiles(master,fitsname,datadir):
         f = open(datfile,'r+')
         lines = f.readlines()
         f.close()
+
+
+        tarFilesList=[]
+        theDat=datfile.split('/')[-1].split('.')[0]
+        Name='theProtoATC'+theDat+'.html'
+        htmlYeah=open(Name,'w+')
+        topLines=['<!DOCTYPE HTML>\n','<html>\n','<OBJECT data="menuBar.html"></OBJECT>','<head>','<title> Plots from'+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>','<div class="nav-wrapper">','<nav class="nav-menu">','<ul class="clearfix">']
+        bottomLines=['</body>\n','</head>']
+        for tag in topLines:
+            htmlYeah.write(tag)
+        htmlYeah.close()
+        menuBarTopText=['<nav class="nav-menu">','<ul class="clearfix">']
+        menuBar=open('menuBar.html','w+')
+
+        for component in menuBarTopText:
+            menuBar.write(component)
+        menuBar.close()
+        
 
         snid = lines[1].split()[1]
         raval = lines[8].split()[1]
@@ -721,7 +807,7 @@ def combinedatafiles(master,fitsname,datadir):
         band = np.genfromtxt(datfile,dtype='string',skip_header=53,usecols=(2,),unpack=True)
         #print(band,field,nite,expnum,ccdnum)
         #tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
-        #print(datfile)
+        print(datfile)
         ###NFS: Code to ensure that each of the components of bakedPotato are np.ndarrays.###
         ####Put elements from text into list
         bakedPotato=[objid,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
@@ -823,13 +909,16 @@ def combinedatafiles(master,fitsname,datadir):
                 NITE.append(nite[k])
                 EXPNUM.append(expnum[k])
                 CCDNUM.append(ccdnum[k])
-                
-               # nitek=nite[k]
-               # expnumk=expnum[k]
-               # seasonk=
-               # bandk=band[k]
-               # ccdnumk=ccdnum[k]
-               # tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
+
+                tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
+                print('Type of tarFiles',type(tarFiles))
+                if tarFiles not in tarFilesList:
+                    tarFilesList.append(tarFiles)
+                    try:
+                        tarFile=tarFiles[0]
+                        anHTML=makeHTML(tarFile,Name)
+                    except IndexError:
+                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
                 
         else:
             for k in range(n):
@@ -884,17 +973,31 @@ def combinedatafiles(master,fitsname,datadir):
                 ccdnumk=str(int(ccdnum[k]))
                 #print(type(ccdnumk),ccdnumk)
 
-                tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')              
+                tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
                 print('Type of tarFiles',type(tarFiles))
                 if tarFiles not in tarFilesList:
                     tarFilesList.append(tarFiles)
                     try:
                         tarFile=tarFiles[0]
-                        anHTML=makeHTML(tarFile)
+                        anHTML=makeHTML(tarFile,Name)
                     except IndexError:
                         print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
-                print('length of tarFilesList',len(tarFilesList))
-                print(tarFiles)
+
+    htmlYeah=open(Name,'a')
+    for line in bottomLines:
+        htmlYeah.write(line)
+    htmlYeah.close()
+
+
+#try:
+#    tarFile=tarFiles[0]
+#    anHTML=makeHTML(tarFile)
+#except IndexError:
+#    print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+#t('length of tarFilesList',len(tarFilesList))
+#t(tarFiles)
+#
+    #    anHTML=makePrestigiousHTML(DatFileTarList,datfile)
 
     print 'allgood = %d' % allgood
     print
