@@ -742,19 +742,6 @@ def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList,MjdList):
 
 def ZapHTML(Dict,OMDict,theDat): #list of tar files that correspond to observations
     Name='theProtoATC'+theDat+'.html'
-#    for File in tar:
-#       value=''
-#        for char in File:
-#            try:
-#                char=int(char)
-#            except:
-#                pass
-#            if isinstance(char,int):
-#                value+=str(char)
-#        if not value in gifDict.keys():
-#            aList=[]
-#            gifDict[value]=aList
-#        gifDict[value].append(File)
     htmlYeah=open(Name,'w+')
     topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>']
     for tag in topLines:
@@ -771,10 +758,20 @@ def ZapHTML(Dict,OMDict,theDat): #list of tar files that correspond to observati
             IdentifyingInfo=Dict[key][i].split('/')[0].split('_')[0]+Dict[key][i].split('/')[0].split('_')[1]+Dict[key][i].split('/')[0].split('_')[2]+Dict[key][i].split('/')[0].split('_')[3]
             Info=IdentifyingInfo[16:-1]
             htmlYeah=open(Name,'a')
-            lines=['<h1>Observation OBJID: '+key+'</h1><h1>Observation MJD: '+mjd+'</h1>\n','<h2>'+Info+'</h2>\n','<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="200" height="200"/></span>','</div>']
+            lines=['<h1>Observation OBJID: '+key+'</h1><h2>MJD: '+mjd+'</h2>\n','<h2>'+Info+'</h2>\n','<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="200" height="200"/></span>','</div>']
             for line in lines:
                 htmlYeah.write(line)
             htmlYeah.close()
+    htmlYeah=open(Name,'a')
+    someLines='<h1>Evolution Matrix</h1>'
+    htmlYeah.write(someLines)
+    for key in list(Dict.keys()):
+        Dict[key].sort
+        for i in range(0,len(Dict[key]),3):
+            newLines=['<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="100" height="100"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="100" height="100"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="100" height="100"/></span>','</div>']
+            for line in newLines:
+                htmlYeah.write(line)
+    htmlYeah.close()
     htmlYeah=open(Name,'a')
     bottomLines=['</body>\n','</head>']
     for line in bottomLines:
