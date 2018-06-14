@@ -614,9 +614,7 @@ def makeHTML(tar, Name):
     for gifSet in list(gifDict.values()):
         gifSet.sort()
         #imgLocation=GifAndFitsDir+gif                                              
-        lines=['<h1>What Is Going on Here?</h1>\n','<p>It is a gif!</p>\n','<h2>'+gifSet[0]+'</h2>\n','<p>\n','<img src=\''+gifSet[0]+'\' width="200" height="200"/>\n','</p>\n','<p\>The diffimage</p>\n','<h2>'+gifSet[1]+'</h2>\n','<p>\n','<img src=\''+gifSet[1]+'\' width="200" height="200\
-"/>\n','</p>\n','<p\>The searchimage</p>\n','<h2>'+gifSet[2]+'</h2>\n','<p>\n','<img src=\''+gifSet[2]+'\' width="200" height="200\
-"/>\n','</p>\n','<p\>The tempimage</p>\n']
+        lines=['<h1>What Is Going on Here?</h1>\n','<p>It is a gif!</p>\n','<div id="gifs">','<span title='+gifSet[0]+'>','<img src=\''+gifSet[0]+'\' alt='+gifSet[0]+' width="200" height="200"/></span>\n','<span title='+gifSet[1]+'>','<img src=\''+gifSet[1]+'\' alt='+gifSet[1]+' width="200" height="200"/></span>\n','<span title='+gifSet[2]+'>','<img src=\''+gifSet[2]+'\' alt='+gifSet[2]+'width="200" height="200"/></span>\n','</div>']
         for line in lines:
             htmlYeah.write(line)
     #omLines:
@@ -631,7 +629,7 @@ def makePrestigiousHTML(DatFileTarList,datfile):
     theDat=datfile.split('/')[-1].split('.')[0]
     Name='theProtoATC'+theDat+'.html'
     htmlYeah=open(Name,'w+')
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<title> Plots from'+theDat+'</title>\n','<h1>This is the title for'+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>','<div class="nav-wrapper">','<nav class="nav-menu">','<ul class="clearfix">']
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from'+theDat+'</title>\n','<h1>This is the title for'+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>','<div class="nav-wrapper">','<nav class="nav-menu">','<ul class="clearfix">']
     bottomLines=['</body>\n','</head>']
 
     for tag in topLines:
@@ -661,9 +659,9 @@ def makePrestigiousHTML(DatFileTarList,datfile):
             os.makedirs(specificGifAndFitsDir)
         lilTar=tarfile.open(tar)
         lilTar.extractall(members=gif_files(lilTar), path = specificGifAndFitsDir)
+        print('here is the type of lilTar',type(lilTar))
         allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
         gifDict={}
-
         for File in allTheGifs:
             value=''
             for char in File:
@@ -687,7 +685,127 @@ def makePrestigiousHTML(DatFileTarList,datfile):
             htmlYeah.write(line)
         htmlYeah.close()
     return
+def ExtracTarFiles(tar):
+    ###get tar files                                                           
+    ####Get the distinguishing number at the end of the tar file               
+    tarsplit=tar.split('/')
+    tarlen=len(tarsplit)
+    quality=tarsplit[tarlen-1]
+    definingQuality=quality.split('.')[0] #stamp                               
+    specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
+    ####Use or make a dir in which to put the tar files                        
+    if not os.path.isdir(specificGifAndFitsDir):
+        os.makedirs(specificGifAndFitsDir)
+    lilTar=tarfile.open(tar)
+    lilTar.extractall(members=gif_files(lilTar), path = specificGifAndFitsDir)
+    allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
+    print('in extract stuff', type(allTheGifs),len(allTheGifs), allTheGifs[0])
+    return allTheGifs
 
+
+
+
+def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList,MjdList):
+    ObjidDict={}
+    ObjidMjdDict={}
+    print('you just entered the twilight zone.')
+    for n in range(len(ObjidList)):
+        ObjidDict[str(int(ObjidList[n]))]=[]
+        ObjidMjdDict[str(int(ObjidList[n]))]=str(MjdList[n])
+    for File in tarFileFoundforDat:
+        #print(File)
+        NumID=''
+        for char in File.split('/')[-1].split('.')[0]:
+            try:
+                char=int(char)
+            except:
+                pass
+            if isinstance(char,int):
+                NumID+=str(char)
+        #NumID=int(NumID)
+        #print(NumID)
+        if NumID in list(ObjidDict.keys()):
+            print('Match!')
+            preHappy=[]
+            preHappy.append(File)
+            print('this is preHappy',preHappy)
+            happyList=ObjidDict[NumID]+preHappy
+            ObjidDict[NumID]=happyList
+
+    return ObjidDict,ObjidMjdDict
+
+
+
+
+
+
+
+def ZapHTML(Dict,OMDict,theDat): #list of tar files that correspond to observations
+    Name='theProtoATC'+theDat+'.html'
+#    for File in tar:
+#       value=''
+#        for char in File:
+#            try:
+#                char=int(char)
+#            except:
+#                pass
+#            if isinstance(char,int):
+#                value+=str(char)
+#        if not value in gifDict.keys():
+#            aList=[]
+#            gifDict[value]=aList
+#        gifDict[value].append(File)
+    htmlYeah=open(Name,'w+')
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>']
+    for tag in topLines:
+        htmlYeah.write(tag)
+    htmlYeah.close()
+    
+    for key in list(Dict.keys()):
+        mjd=OMDict[key]
+        Dict[key].sort
+        print('this is Key!',key)
+        print(len(Dict[key]))
+        for i in range(0,len(Dict[key]),3):
+            keyHole=key[16:-1]
+            IdentifyingInfo=Dict[key][i].split('/')[0].split('_')[0]+Dict[key][i].split('/')[0].split('_')[1]+Dict[key][i].split('/')[0].split('_')[2]+Dict[key][i].split('/')[0].split('_')[3]
+            Info=IdentifyingInfo[16:-1]
+            htmlYeah=open(Name,'a')
+            lines=['<h1>Observation OBJID: '+key+'</h1><h1>Observation MJD: '+mjd+'</h1>\n','<h2>'+Info+'</h2>\n','<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="200" height="200"/></span>','</div>']
+            for line in lines:
+                htmlYeah.write(line)
+            htmlYeah.close()
+    htmlYeah=open(Name,'a')
+    bottomLines=['</body>\n','</head>']
+    for line in bottomLines:
+        htmlYeah.write(line)
+    htmlYeah.close()
+
+    return
+
+
+
+
+def FindTarsforObjids(ListOtarFiles,ListOobjids): #Takes a list of all the tar found for dat file and the list of objids for the dat file                     
+    ListOunusedTarFiles=[] #List of tarFiles not pertaining to an observation in current data file                                                            
+    ListOTarsforDat=[] #List of tarFiles corresponding to observations in data file                                                                           
+    for File in ListOtarFiles:
+        preNumID=File.split('.')[-1].split('/')[0]
+        NumID=''
+        for char in File:
+            try:
+                char=int(char)
+            except:
+                pass
+            if isinstance(char,int):
+                NumID+=str(char)
+        NumID=int(NumID) #Find the number                                      
+        if any(ListOobjids)==NumID:
+            ListOTarsforDat.append(File)
+        else:
+            ListOunusedTarFiles
+
+    return ListOTarsforDat
 
 
 
@@ -757,34 +875,23 @@ def combinedatafiles(master,fitsname,datadir):
 
     c=0
     allgood=0
+    
     for d in dats:
         c=c+1
         if c%1000==0:
             print c
-            #break                                                                                         
+            #break                                                             
+        
+        tarFileFoundforDat=[]
+        print('len O tars found',len(tarFileFoundforDat))
+        GiantTarList=[]
         filename = d.split('\n')[0]
         datfile = os.path.join(path,filename)
         f = open(datfile,'r+')
         lines = f.readlines()
         f.close()
-
-
-        tarFilesList=[]
-        theDat=datfile.split('/')[-1].split('.')[0]
-        Name='theProtoATC'+theDat+'.html'
-        htmlYeah=open(Name,'w+')
-        topLines=['<!DOCTYPE HTML>\n','<html>\n','<OBJECT data="menuBar.html"></OBJECT>','<head>','<title> Plots from'+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>','<div class="nav-wrapper">','<nav class="nav-menu">','<ul class="clearfix">']
-        bottomLines=['</body>\n','</head>']
-        for tag in topLines:
-            htmlYeah.write(tag)
-        htmlYeah.close()
-        menuBarTopText=['<nav class="nav-menu">','<ul class="clearfix">']
-        menuBar=open('menuBar.html','w+')
-
-        for component in menuBarTopText:
-            menuBar.write(component)
-        menuBar.close()
         
+        GoodTarFiles=[]
 
         snid = lines[1].split()[1]
         raval = lines[8].split()[1]
@@ -800,7 +907,7 @@ def combinedatafiles(master,fitsname,datadir):
         h_imag = lines[19].split()[3]
         h_zmag = lines[19].split()[4]
 
-        objid,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
         #print(mjd, type(mjd),'this is mjd prior to making potatos')
         #print(ccdnum, type(ccdnum),'this is ccdnum prior to making potatos')
         #print ('this is photflag:', photflag, type(photflag))
@@ -808,9 +915,10 @@ def combinedatafiles(master,fitsname,datadir):
         #print(band,field,nite,expnum,ccdnum)
         #tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
         print(datfile)
+        theDat=datfile.split('/')[-1].split('.')[0]
         ###NFS: Code to ensure that each of the components of bakedPotato are np.ndarrays.###
         ####Put elements from text into list
-        bakedPotato=[objid,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
+        bakedPotato=[obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
         #print(len(bakedPotato))
         epicBakedPotato=[]
         
@@ -823,7 +931,7 @@ def combinedatafiles(master,fitsname,datadir):
             else:
                 epicBakedPotato.append(ingredient)
 
-        objid,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,obji=epicBakedPotato[0],epicBakedPotato[1],epicBakedPotato[2],epicBakedPotato[3],epicBakedPotato[4],epicBakedPotato[5],epicBakedPotato[6],epicBakedPotato[7],epicBakedPotato[8],epicBakedPotato[9],epicBakedPotato[10],epicBakedPotato[11],epicBakedPotato[12],epicBakedPotato[13],epicBakedPotato[14],epicBakedPotato[15],epicBakedPotato[16],epicBakedPotato[17],epicBakedPotato[18]####Return elements to their original names
+        obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid=epicBakedPotato[0],epicBakedPotato[1],epicBakedPotato[2],epicBakedPotato[3],epicBakedPotato[4],epicBakedPotato[5],epicBakedPotato[6],epicBakedPotato[7],epicBakedPotato[8],epicBakedPotato[9],epicBakedPotato[10],epicBakedPotato[11],epicBakedPotato[12],epicBakedPotato[13],epicBakedPotato[14],epicBakedPotato[15],epicBakedPotato[16],epicBakedPotato[17],epicBakedPotato[18]####Return elements to their original names
 
         #if isinstance(photflag, np.ndarray):
         if all([int(x)==12288 for x in photflag]):
@@ -874,8 +982,8 @@ def combinedatafiles(master,fitsname,datadir):
             DATAFILE.append(filename)
 
         ###Here Insert checkDatFile###
-        print('This is objid', objid, 'and its type is',type(obji))
-        if len(objid) == 1:
+        #print('This is obs', obs, 'and its type is',type(obs))
+        if len(obs) == 1:
             print('Did not pass checkDatFile')
             BAND.append(band)
             OBJID.append(objid)
@@ -895,6 +1003,7 @@ def combinedatafiles(master,fitsname,datadir):
                 HOST_IMAG.append(himag[k])
                 HOST_ZMAG.append(hzmag[k])
                 FIELD.append(field[k])
+                print('Field!',field[k])
                 FLUXCAL.append(fluxcal[k])
                 FLUXCALERR.append(fluxcalerr[k])
                 PHOTFLAG.append(photflag[k])
@@ -911,15 +1020,42 @@ def combinedatafiles(master,fitsname,datadir):
                 CCDNUM.append(ccdnum[k])
 
                 tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
-                print('Type of tarFiles',type(tarFiles))
-                if tarFiles not in tarFilesList:
-                    tarFilesList.append(tarFiles)
-                    try:
-                        tarFile=tarFiles[0]
-                        anHTML=makeHTML(tarFile,Name)
-                    except IndexError:
-                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
-                
+                #print(tarFiles)
+                try:
+                    tarFiles=tarFiles[0]
+                    if tarFiles not in GiantTarList:
+                        GiantTarList.append(tarFiles)
+                        tarFileFoundforDat+=ExtracTarFiles(tarFiles)
+                   #t:
+                   #t('/')
+                   #
+                   #n-1]
+                   #y.split('.')[0] #stamp           
+                   #'GifAndFits'+definingQuality+'/'
+                   #ndFitsDir+'/*.gif')
+                   #))
+                   #jids(tars,objid)
+                   #(goodTars))
+                   #
+                        
+                    
+ #r)
+ #))
+ #jids(tars,objid)
+ #(goodTars))
+ #
+                except IndexError:
+                    print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+
+#                #print('Type of tarFiles',type(tarFiles))
+#                if tarFiles not in GiantTarList:
+#                    Gian.append(tarFiles)
+#                    try:
+#                        tarFile=tarFiles[0]
+#                        anHTML=makeHTML(tarFile,Name)
+#                    except IndexError:
+#                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+#                
         else:
             for k in range(n):
                 RA.append(ra[k])
@@ -939,6 +1075,7 @@ def combinedatafiles(master,fitsname,datadir):
                 MJD.append(mjd[k])
                 BAND.append(band[k])
                 FIELD.append(field[k])
+                print('Field!',field[k])
                 FLUXCAL.append(fluxcal[k])
                 FLUXCALERR.append(fluxcalerr[k])
                 PHOTFLAG.append(photflag[k])
@@ -974,20 +1111,60 @@ def combinedatafiles(master,fitsname,datadir):
                 #print(type(ccdnumk),ccdnumk)
 
                 tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
-                print('Type of tarFiles',type(tarFiles))
-                if tarFiles not in tarFilesList:
-                    tarFilesList.append(tarFiles)
-                    try:
-                        tarFile=tarFiles[0]
-                        anHTML=makeHTML(tarFile,Name)
-                    except IndexError:
-                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+                print(tarFiles)
 
-    htmlYeah=open(Name,'a')
-    for line in bottomLines:
-        htmlYeah.write(line)
-    htmlYeah.close()
+                try:
+                    tarFiles=tarFiles[0]
+                    if tarFiles not in GiantTarList:
+                        print('Here!!')
+                        GiantTarList.append(tarFiles)
+                        tarFileFoundforDat+=ExtracTarFiles(tarFiles)
+                   #t:
+                   #t('/')
+                   #
+                   #n-1]
+                   #y.split('.')[0] #stamp           
+                   #'GifAndFits'+definingQuality+'/'
+                   #ndFitsDir+'/*.gif')
+                   #))
+                   #jids(tars,objid)
+                   #(goodTars))
+                   #
 
+                        #rFiles)
+                        #))
+                        #jids(tars,objid)
+                        #(goodTars))
+                        #
+                except IndexError:
+                    print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+
+
+
+
+#
+#   #print('Type of tarFiles',type(tarFiles))
+#                if tarFiles not in tarFilesList:
+#                    tarFilesList.append(tarFiles)
+#                    try:
+#                        tarFile=tarFiles[0]
+#                        anHTML=makeHTML(tarFile,Name)
+#                    except IndexError:
+#                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+#
+
+        ####MakeDictHere####
+        ObjidDict,ObjidMjidDict=MakeDictforObjidsHere(tarFileFoundforDat,objid,mjd)
+        ####MakeHTMLwithDict####
+        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat)
+        #
+        #)
+        #
+# htmlYeah=open(Name,'a')
+# for line in bottomLines:
+#     htmlYeah.write(line)
+# htmlYeah.close()
+#
 
 #try:
 #    tarFile=tarFiles[0]
