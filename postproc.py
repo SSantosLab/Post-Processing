@@ -1018,7 +1018,7 @@ def combinedatafiles(master,fitsname,datadir):
                 EXPNUM.append(expnum[k])
                 CCDNUM.append(ccdnum[k])
                 
-                if objid=='0':
+                if objid==np.float64(0):
                     print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
@@ -1099,7 +1099,7 @@ def combinedatafiles(master,fitsname,datadir):
                 ccdnumk=str(int(ccdnum[k]))
 
                 print(type(objid[k]),'This is objid!')
-                if objid[k]=='0':
+                if objid[k]==np.float64(0):
                     print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
