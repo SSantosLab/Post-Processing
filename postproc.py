@@ -740,10 +740,10 @@ def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList,MjdList):
 
 
 
-def ZapHTML(Dict,OMDict,theDat): #list of tar files that correspond to observations
+def ZapHTML(Dict,OMDict,theDat,datInfo): #Dict with obs and associated gifs, dict with OBJIDS and associated MJDS,list of tar files that correspond to observations, list=[snid,raval,decval]
     Name='theProtoATC'+theDat+'.html'
     htmlYeah=open(Name,'w+')
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>']
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about. </p>','<p>SNID='+str(datInfo[0])+'><p>RA='+str(datInfo[1])+'</p><p>DEC='+str(datInfo[2])+'</p>HOST_ID<p>PHOTO_Z</p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p>']
     for tag in topLines:
         htmlYeah.write(tag)
     htmlYeah.close()
@@ -763,7 +763,7 @@ def ZapHTML(Dict,OMDict,theDat): #list of tar files that correspond to observati
                 htmlYeah.write(line)
             htmlYeah.close()
     htmlYeah=open(Name,'a')
-    someLines='<h1>Evolution Matrix</h1>'
+    someLines='<h1>Collected Observations</h1>'
     htmlYeah.write(someLines)
     for key in list(Dict.keys()):
         Dict[key].sort
@@ -903,6 +903,8 @@ def combinedatafiles(master,fitsname,datadir):
         h_rmag = lines[19].split()[2]
         h_imag = lines[19].split()[3]
         h_zmag = lines[19].split()[4]
+
+        datInfo=[snid,raval,decval,host_id,photo_z,photo_zerr,spec_z,spec_zerr,host_sep,h_gmag,h_rmag,h_imag,h_zmag]
 
         obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
         #print(mjd, type(mjd),'this is mjd prior to making potatos')
@@ -1153,7 +1155,7 @@ def combinedatafiles(master,fitsname,datadir):
         ####MakeDictHere####
         ObjidDict,ObjidMjidDict=MakeDictforObjidsHere(tarFileFoundforDat,objid,mjd)
         ####MakeHTMLwithDict####
-        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat)
+        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat,datInfo)
         #
         #)
         #
