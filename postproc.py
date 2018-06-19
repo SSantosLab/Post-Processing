@@ -737,13 +737,70 @@ def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList,MjdList):
 
 
 
+def ErrorMag(flux,fluxerror):
+    magnitudeError=[]
+    dmdflux=1/(flux)
+    almostError=(dmdflux**2)*fluxerror
+    Error=almostError**(.5)
+    magnitudeError.append(Error)
+    return magnitudeError
 
 
 
-def ZapHTML(Dict,OMDict,theDat,datInfo): #Dict with obs and associated gifs, dict with OBJIDS and associated MJDS,list of tar files that correspond to observations, list=[snid,raval,decval]
+
+
+def makeLightCurves(datFile,lines):
+    Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=53,usecols=(4,5,1,15,18),unpack=True)
+    band=[]
+    Bands=[]
+    for line in lines:
+        if line.split(' ')[0]=='OBS:':
+            bandy=str(line.split(' ')[5])
+            band.append(bandy)
+            if bandy not in Bands:
+                Bands.append(bandy)
+    Mag=[]
+    Time=Nite-Nite[0]
+    bandDict={}
+    for b in Bands:
+        bandDict[b]=[[],[],[]] #mag,time,magerr
+    
+    for i in range(len(Objid)):
+        if Objid[i] != 0.0:
+            m=-2.5*np.log10(Flux[i])+27.5
+            magErr=ErrorMag(Flux[i],FluxErr[i])
+            bandDict[band[i]][0].append(m)
+            bandDict[band[i]][1].append(Time[i])
+            bandDict[band[i]][2].append(magErr)
+            
+    fig, ax = plt.subplots()
+    
+    for b in bandDict.keys():
+        yerr=np.asarray(bandDict[b][2])
+        plt.plot(np.asarray(bandDict[b][1]),np.asarray(bandDict[b][0]),'o',label=b+" band")
+        #band skip po
+    
+    plt.xlabel('Time (days)')
+    plt.ylabel('Magnitude')
+    ax.grid()
+    ax.invert_yaxis()
+    ax.legend()
+    #plt.show()
+    
+    LightCurveName='LightCurve_'+datFile.split('.')[1].split('/')[-1]+'.png'
+    fig.savefig(LightCurveName)
+    return LightCurveName
+
+
+
+
+
+
+
+def ZapHTML(Dict,OMDict,theDat,datInfo,LightCurveName): #Dict with obs and associated gifs, dict with OBJIDS and associated MJDS,list of tar files that correspond to observations, list=[snid,raval,decval]
     Name='theProtoATC'+theDat+'.html'
     htmlYeah=open(Name,'w+')
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about. </p>','<p><b>SNID:   </b>'+str(datInfo[0])+'<p><b>RA:   </b>'+str(datInfo[1])+'</p><p><b>DEC:   </b>'+str(datInfo[2])+'</p><p><b>HOST_ID:   </b>'+str(datInfo[3])+'</p><p><b>PHOTO_Z:   </b>'+str(datInfo[4])+'</p><p><b>PHOTO_ZERR:   </b>'+str(datInfo[5])+'</p><p><b>SPEC_Z:   </b>'+str(datInfo[6])+'</p><p><b>SPEC_ZERR:   </b>'+str(datInfo[7])+'</p><p><b>HOST_SEP:   </b>'+str(datInfo[8])+'</p><p><b>H_GMAG:   </b>'+str(datInfo[9])+'</p><p><b>H_RMAG:   </b>'+str(datInfo[10])+'</p><p><b>H_IMAG:   </b>'+str(datInfo[11])+'</p><p><b>H_ZMAG:   </b>'+str(datInfo[12])+'</p>']
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about. </p>','<p><b>SNID:   </b>'+str(datInfo[0])+'<p><b>RA:   </b>'+str(datInfo[1])+' deg</p><p><b>DEC:   </b>'+str(datInfo[2])+' deg</p><p><b>HOST_ID:   </b>'+str(datInfo[3])+'</p><p><b>PHOTO_Z:   </b>'+str(datInfo[4])+'</p><p><b>PHOTO_ZERR:   </b>'+str(datInfo[5])+'</p><p><b>SPEC_Z:   </b>'+str(datInfo[6])+'</p><p><b>SPEC_ZERR:   </b>'+str(datInfo[7])+'</p><p><b>HOST_SEP:   </b>'+str(datInfo[8])+'</p><p><b>H_GMAG:   </b>'+str(datInfo[9])+'</p><p><b>H_RMAG:   </b>'+str(datInfo[10])+'</p><p><b>H_IMAG:   </b>'+str(datInfo[11])+'</p><p><b>H_ZMAG:   </b>'+str(datInfo[12])+'</p>']
     for tag in topLines:
         htmlYeah.write(tag)
     htmlYeah.close()
@@ -771,6 +828,11 @@ def ZapHTML(Dict,OMDict,theDat,datInfo): #Dict with obs and associated gifs, dic
             newLines=['<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="100" height="100"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="100" height="100"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="100" height="100"/></span>','</div>']
             for line in newLines:
                 htmlYeah.write(line)
+    htmlYeah.close()
+    htmlYeah=open(Name,'a')
+    LightLines=['<h1>Light Curve</h1>','<img src=\''+LightCurveName+'\'width="400" height="400">']
+    for line in LightLines:
+        htmlYeah.write(line)
     htmlYeah.close()
     htmlYeah=open(Name,'a')
     bottomLines=['</body>\n','</head>']
@@ -844,7 +906,7 @@ def combinedatafiles(master,fitsname,datadir):
     masdf = pd.DataFrame.from_records(mlist)
 
     path = os.path.join(os.environ.get('ROOTDIR2'), 'makedatafiles')
-    fitsname = os.path.join(path,fitsname)
+    fitsname= os.path.join(path,fitsname)
     path = os.path.join(path,datadir)
     
     if os.path.isfile(fitsname):
@@ -888,6 +950,10 @@ def combinedatafiles(master,fitsname,datadir):
         lines = f.readlines()
         f.close()
         
+        print(datfile)
+        ###Make Light Curves
+        LightCurve=makeLightCurves(datfile,lines)
+        print(LightCurve)
         GoodTarFiles=[]
 
         snid = lines[1].split()[1]
@@ -1023,42 +1089,16 @@ def combinedatafiles(master,fitsname,datadir):
                     continue
                 else:
                     tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
-                #print(tarFiles)
+
                     try:
                         tarFiles=tarFiles[0]
                         if tarFiles not in GiantTarList:
                             GiantTarList.append(tarFiles)
                             tarFileFoundforDat+=ExtracTarFiles(tarFiles)
-                   #t:
-                   #t('/')
-                   #
-                   #n-1]
-                   #y.split('.')[0] #stamp           
-                   #'GifAndFits'+definingQuality+'/'
-                   #ndFitsDir+'/*.gif')
-                   #))
-                   #jids(tars,objid)
-                   #(goodTars))
-                   #
-                        
-                    
- #r)
- #))
- #jids(tars,objid)
- #(goodTars))
- #
+
                     except IndexError:
                         print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
-
-#                #print('Type of tarFiles',type(tarFiles))
-#                if tarFiles not in GiantTarList:
-#                    Gian.append(tarFiles)
-#                    try:
-#                        tarFile=tarFiles[0]
-#                        anHTML=makeHTML(tarFile,Name)
-#                    except IndexError:
-#                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
-#                
+                
         else:
             for k in range(n):
                 RA.append(ra[k])
@@ -1111,67 +1151,23 @@ def combinedatafiles(master,fitsname,datadir):
                         if tarFiles not in GiantTarList:
                             GiantTarList.append(tarFiles)
                             tarFileFoundforDat+=ExtracTarFiles(tarFiles)
-                   #t:
-                   #t('/')
-                   #
-                   #n-1]
-                   #y.split('.')[0] #stamp           
-                   #'GifAndFits'+definingQuality+'/'
-                   #ndFitsDir+'/*.gif')
-                   #))
-                   #jids(tars,objid)
-                   #(goodTars))
-                   #
-
-                        #rFiles)
-                        #))
-                        #jids(tars,objid)
-                        #(goodTars))
-                        #
+        
                     except IndexError:
                         print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
 
 
 
 
-#
-#   #print('Type of tarFiles',type(tarFiles))
-#                if tarFiles not in tarFilesList:
-#                    tarFilesList.append(tarFiles)
-#                    try:
-#                        tarFile=tarFiles[0]
-#                        anHTML=makeHTML(tarFile,Name)
-#                    except IndexError:
-#                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
-#
 
         ####MakeDictHere####
         ObjidDict,ObjidMjidDict=MakeDictforObjidsHere(tarFileFoundforDat,objid,mjd)
         ####MakeHTMLwithDict####
-        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat,datInfo)
-        #
-        #)
-        #
-# htmlYeah=open(Name,'a')
-# for line in bottomLines:
-#     htmlYeah.write(line)
-# htmlYeah.close()
-#
+        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat,datInfo,LightCurve)
+    
 
-#try:
-#    tarFile=tarFiles[0]
-#    anHTML=makeHTML(tarFile)
-#except IndexError:
-#    print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
-#t('length of tarFilesList',len(tarFilesList))
-#t(tarFiles)
-#
-    #    anHTML=makePrestigiousHTML(DatFileTarList,datfile)
 
     print 'allgood = %d' % allgood
     print
-#    print len(RA)
-#    print len(PHOTFLAG)
     print len(EXPNUM)
     HEX = []
 
@@ -1238,7 +1234,7 @@ def combinedatafiles(master,fitsname,datadir):
     return fitsname
 
 def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
-
+    
     season = os.environ.get('SEASON')
     season = str(season)
 
@@ -1252,6 +1248,7 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
         mlist = fitsio.read(master)
         mlist = mlist.byteswap().newbyteorder()
         masdf = pd.DataFrame.from_records(mlist)
+        print('masdf',masdf)
     else:
         skip = True
         print "No master list found with filename",master+'.'
