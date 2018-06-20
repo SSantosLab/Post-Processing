@@ -789,7 +789,6 @@ def makeLightCurves(datFile,lines):
     ax.legend()
     plt.xlabel('Time (days)')
     plt.ylabel('Magnitude')
-    plt.show()
     
     LightCurveName='LightCurve_'+datFile.split('.')[1].split('/')[-1]+'.png'
     fig.savefig(LightCurveName)
