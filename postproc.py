@@ -738,18 +738,19 @@ def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList,MjdList):
 
 
 def ErrorMag(flux,fluxerror):
-    magnitudeError=[]
     dmdflux=1/(flux)
     almostError=(dmdflux**2)*fluxerror
     Error=almostError**(.5)
-    magnitudeError.append(Error)
-    return magnitudeError
+    return Error
+
+
 
 
 
 
 
 def makeLightCurves(datFile,lines):
+    
     Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=53,usecols=(4,5,1,15,18),unpack=True)
     band=[]
     Bands=[]
@@ -759,7 +760,7 @@ def makeLightCurves(datFile,lines):
             band.append(bandy)
             if bandy not in Bands:
                 Bands.append(bandy)
-    Mag=[]
+    #Time=Mjd
     Time=Nite-Nite[0]
     bandDict={}
     for b in Bands:
@@ -773,23 +774,30 @@ def makeLightCurves(datFile,lines):
             bandDict[band[i]][1].append(Time[i])
             bandDict[band[i]][2].append(magErr)
             
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    ax = fig.gca()    
     
     for b in bandDict.keys():
-        yerr=np.asarray(bandDict[b][2])
-        plt.plot(np.asarray(bandDict[b][1]),np.asarray(bandDict[b][0]),'o',label=b+" band")
-        #band skip po
+        if not bandDict[b]==[[],[],[]]:
+            print('b!!!',b)
+            myyerr=np.asarray(bandDict[b][2])
+            plt.errorbar(bandDict[b][1],bandDict[b][0],yerr=myyerr, fmt='o', label=b+" band")
+            #band skip po
     
-    plt.xlabel('Time (days)')
-    plt.ylabel('Magnitude')
     ax.grid()
     ax.invert_yaxis()
     ax.legend()
-    #plt.show()
+    plt.xlabel('Time (days)')
+    plt.ylabel('Magnitude')
+    plt.show()
     
     LightCurveName='LightCurve_'+datFile.split('.')[1].split('/')[-1]+'.png'
     fig.savefig(LightCurveName)
     return LightCurveName
+
+
+
+
 
 
 
@@ -830,7 +838,7 @@ def ZapHTML(Dict,OMDict,theDat,datInfo,LightCurveName): #Dict with obs and assoc
                 htmlYeah.write(line)
     htmlYeah.close()
     htmlYeah=open(Name,'a')
-    LightLines=['<h1>Light Curve</h1>','<img src=\''+LightCurveName+'\'width="400" height="400">']
+    LightLines=['<h1>Light Curve</h1>','<img src=\''+LightCurveName+'\'width="533" height="400">']
     for line in LightLines:
         htmlYeah.write(line)
     htmlYeah.close()
