@@ -1,9 +1,11 @@
 import os
+from glob import glob
 import tarfile
 import argparse
 import ConfigParser
 import sys
 import postproc
+import makePlots
 import numpy as np
 import pandas as pd
 
@@ -268,39 +270,16 @@ print
 #########
 # STEP 6: Make plots
 #########
-def gif_files(members):
-    for tarinfo in members:
-        if os.path.splitext(tarinfo.name)[1] == ".gif":
-            yield tarinfo
-def fits_files(members):
-    for tarinfo in members:
-        if os.path.splitext(tarinfo.name)[1] == ".fits":
-            yield tarinfo
 
-try:
-    skip=True
-    print "Run STEP 6: Make plots"
-    print
-    realdf,lcdir = postproc.makeplots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
-    print
-except:
-    print("Sorry, son. Step 6 doesn't quite work right here, so I'll just give you the associated .fits and .gifs for these exposures.They will be in your outdir directory and hard to miss.")
-#    SEASON=postproc.season
-#    NITE=postproc.nite
-#    EXPNUM=postproc.expnum
-#    BAND=postproc.num
-#    CCDNUM=postproc.ccdnum
-#    FIELD=postproc.field
-#
-    tar='/pnfs/des/persistent/gw/exp/20170817/668439/dp504/i_36/stamps_20170817_GW1971-233_i_36/stamps_20170817_GW1971-233_i_36.tar.gz'
-#'/pnfs/des/persistent/gw/exp/'+NITE+'/'+EXPNUM+'/dp'+SEASON+'/'+BAND+'_'+CCDNUM+'/stamps_'+NITE+'_'+FIELD+'_'+BAND+'_'+CCDNUM+'/stamps_'+NITE+'_'+FIELD+'_'+BAND+'_'+CCDNUM+'.tar.gz'
 
-    GifAndFitsDir='./yourLonelyGifsAndFits/'
-    if not os.path.isdir(GifAndFitsDir):
-        os.makedirs(GifAndFitsDir)
-    lilTar= tarfile.open(tar)
-    lilTar.extractall(members=gif_files(lilTar), path = GifAndFitsDir)
-    lilTar.extractall(members=fits_files(lilTar), path = GifAndFitsDir)
+skip=True
+print "Run STEP 6: Make plots"
+print
+Words=makePlots.MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
+print(Words)
+
+    #print("Sorry, son. Step 6 doesn't quite work right here, so I'll just give you the associated .fits and .gifs for these exposures.They will be in your outdir directory and hard to miss.")
+
 
 #########
 # STEP 7: Make htmls/webpage
@@ -311,7 +290,5 @@ print "Run STEP 7: Make htmls/webpage"
 print "This is not Awesomely implemented. More coming soon..."
 #postproc.createhtml(fitsname,realdf,master,lcdir)
 print
-theHTML=makeHTML(GifAndFitsDir)
-print(theHTML)
-
+print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
 
