@@ -8,6 +8,7 @@ import postproc
 import makePlots
 import numpy as np
 import pandas as pd
+import WholeHTML
 
 ## Read config file
 config = ConfigParser.ConfigParser()
@@ -275,8 +276,9 @@ print
 skip=True
 print "Run STEP 6: Make plots"
 print
-Words=makePlots.MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
-print(Words)
+MLScoreFake,RADEC=makePlots.MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
+#print(Words)
+print('It is possible this has run.')
 
     #print("Sorry, son. Step 6 doesn't quite work right here, so I'll just give you the associated .fits and .gifs for these exposures.They will be in your outdir directory and hard to miss.")
 
@@ -291,4 +293,6 @@ print "This is not Awesomely implemented. More coming soon..."
 #postproc.createhtml(fitsname,realdf,master,lcdir)
 print
 print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
-
+print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
+word=WholeHTML.WholeHTML(MLScoreFake,RADEC)
+print(word)
