@@ -1,7 +1,7 @@
 
 ##### edit these lines before running the code:
 export ROOTDIR=/pnfs/des/persistent/gw
-export ROOTDIR2=/data/des40.b/data/nsherman/postproc5
+export ROOTDIR2=/data/des40.b/data/nsherman/postprocBig
 export SEASON=416
 #####
 
