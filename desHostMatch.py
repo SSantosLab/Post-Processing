@@ -140,8 +140,14 @@ thisTime = strftime("%Y%m%d.%H%M%S")
 #INPUT_DIR  = DIR + '/v1.0.1/'
 #OUTPUT_DIR = DIR + '/hostmatching/RUNLOGS/' + thisTime + '/'
 
+#Test an environmental change to employ new hostgal catalog
+TopHost='/data/des60.b/data/palmese/GW_reject_cat/v1.0.2' 
+os.environ['TOPDIR_HOSTMATCH']=TopHost
 INPUT_DIR = os.environ.get('TOPDIR_HOSTMATCH') + '/'
 OUTPUT_DIR = os.environ.get('OUTDIR_HOSTMATCH') + '/'
+print('TOPDIR_HOSTMATCH='+INPUT_DIR)
+print('OUTDIR_HOSTMATCH='+OUTPUT_DIR)
+#sys.exit('Nora made me exit. Blame her. But really, this was just a test to ensure I crash anyway due to there being no TOPDIR_HOSTMATCH (as least probably)')
 if not os.path.isdir(OUTPUT_DIR):
     os.mkdir(OUTPUT_DIR)
 OUTPUT_DIR = OUTPUT_DIR + thisTime + '/'
@@ -224,7 +230,7 @@ def main():
 
     start_time = time.time()
 
-    hostname   = 'leovip148.ncsa.uiuc.edu'
+    hostname   = 'desdb.ncsa.illinois.edu'
     port       = 1521
     dbname     = args.dbname
     username   = args.username
