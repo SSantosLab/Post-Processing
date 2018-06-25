@@ -22,3 +22,10 @@ ul {
     white-space: nowrap;
 }
 
+a:link {
+    color: #FF1493;
+}
+
+a:visited {
+    color:#48D1CC;
+}
