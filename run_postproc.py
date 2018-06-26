@@ -8,6 +8,7 @@ import postproc
 import makePlots
 import numpy as np
 import pandas as pd
+import findHostGala
 import WholeHTML
 
 ## Read config file
@@ -234,9 +235,17 @@ print
 #########
 
 print "Run STEP 3: Hostmatch"
-#import desHostMatch
-#desHostMatch.main()
+import desHostMatch
+print('We are *RUNNING HOSTMATCH!*')
+desHostMatch.main()
 print
+print('That... was not worth the hype.')
+print
+print('Now making a galaxy match dictionary!')
+droid=desHostMatch.thisistheDroidyouarelookingfor
+snidDict=findHostGala.findHostGala(droid)
+
+
 
 #########
 # STEP 4: Make truth table
@@ -262,7 +271,6 @@ if not fakeversion=='KBOMAG20ALLSKY':
 else:
     print "No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY."
 print                                                                                    
-
 print "Run STEP 5b: Combine real datafiles"
 fitsname = postproc.combinedatafiles(master,combined_fits,outDir_datareal)
 print
@@ -296,3 +304,4 @@ print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
 print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
 word=WholeHTML.WholeHTML(MLScoreFake,RADEC)
 print(word)
+
