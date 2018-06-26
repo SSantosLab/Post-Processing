@@ -60,14 +60,16 @@ v3.2  Sep 12 2016  -- Update SNGALS for all *good* candidates with numepochs_ml>
 
 
 import cx_Oracle
+import shutil
 import sys
 import os
 import math
 import numpy as np
 import time
 import argparse
-from healpy.pixelfunc import ang2pix
-from healpy.pixelfunc import get_all_neighbours
+import healpy
+#from healpy.pixelfunc import ang2pix
+#from healpy.pixelfunc import get_all_neighbours
 from astropy.io import fits
 from math import pi
 
@@ -318,7 +320,7 @@ def main():
     ra_cand[idx] = ra_cand[idx]+360.
     ra_cand = ra_cand*pi/180.
     dec_cand = (90.-dec_cand)*pi/180.
-    pix = ang2pix(32,dec_cand,ra_cand)
+    pix = healpy.pixelfunc.ang2pix(32,dec_cand,ra_cand)
     fields_cands = np.array(pix)
     fields = np.unique(pix)
 
@@ -368,7 +370,7 @@ def main():
             index  = np.where(pix == thisField)
             index  = [s for s in data[index]]  
             NCands = len(index) 
-            pix_edges = get_all_neighbours(32,thisField)
+            pix_edges = healpy.pixelfunc.get_all_neighbours(32,thisField)
 
         if args.verbose > 0 :
             print "\t",NCands," entries to match in this field"
@@ -843,8 +845,10 @@ def main():
     
     connection.close()
     
-
-
+    thisisnottheDroidyouarelookingfor=OUTPUT_DIR+thisTime+'/hostmatch.db.log'
+    shutil.copy2(thisisnottheDroidyouarelookingfor,'/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/hostmatch.db.log')
+    global thisistheDroidyouarelookingfor='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/hostmatc\
+h.db.log' ###database log file containing all the information necessary to build snid dictionary for html documentation
 
 ############################### Call main script ##################################################
 
