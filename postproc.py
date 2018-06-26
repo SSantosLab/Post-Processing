@@ -553,6 +553,9 @@ def makedatafiles(format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fak
         alltime += yawn
         if alltime>maxtime:
             break
+
+
+
 ###The following two functions are heavily based on a tutorial
 def gif_files(members):
     for tarinfo in members:
@@ -659,7 +662,6 @@ def makePrestigiousHTML(DatFileTarList,datfile):
             os.makedirs(specificGifAndFitsDir)
         lilTar=tarfile.open(tar)
         lilTar.extractall(members=gif_files(lilTar), path = specificGifAndFitsDir)
-        print('here is the type of lilTar',type(lilTar))
         allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
         gifDict={}
         for File in allTheGifs:
@@ -779,7 +781,6 @@ def makeLightCurves(datFile,lines):
     
     for b in bandDict.keys():
         if not bandDict[b]==[[],[],[]]:
-            print('b!!!',b)
             myyerr=np.asarray(bandDict[b][2])
             plt.errorbar(bandDict[b][1],bandDict[b][0],yerr=myyerr, fmt='o', label=b+" band")
             #band skip po
@@ -807,7 +808,7 @@ def makeLightCurves(datFile,lines):
 def ZapHTML(Dict,OMDict,theDat,datInfo,LightCurveName): #Dict with obs and associated gifs, dict with OBJIDS and associated MJDS,list of tar files that correspond to observations, list=[snid,raval,decval]
     Name='theProtoATC'+theDat+'.html'
     htmlYeah=open(Name,'w+')
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoATCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about. </p>','<h1> SNID:     '+str(datInfo[0])+'</h1>\n','<table>\n','<tr>\n','<th>SNID</th>\n','<td>'+str(datInfo[0])+'</td>\n','<th>RA</th>\n','<td>'+str(datInfo[1])+'</td>\n','<th>DEC</th>\n','<td>'+str(datInfo[2])+'</td>\n','<th>HOST_ID</th>\n','<td>'+str(datInfo[3])+'</td>\n','<th>PHOTO_Z</th>\n','<td>'+str(datInfo[4])+'</td>\n','</tr>\n','<tr>\n','<th>PHOTO_ZERR</th>\n','<td>'+str(datInfo[5])+'</td>\n','<th>'+str(datInfo[5])+'</th>\n',' <td>'+str(datInfo[6])+'</td>\n','<th>SPEC_ZERR</th>\n','<td>'+str(datInfo[7])+'</td>\n','<th>HOST_SEP</th>\n','<td>'+str(datInfo[8])+'</td>\n','</tr>\n','<tr>\n','<th>H_GMAG</th>\n','<td>'+str(datInfo[9])+'</td>\n','<th>H_RMAG</th>\n','<td>'+str(datInfo[10])+'</td>\n','<th>H_IMAG</th>\n','<td>'+str(datInfo[11])+'</td>\n','<th>H_ZMAG</th>\n','<td>'+str(datInfo[12])+'</td>\n','</tr>\n']
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoATCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about. </p>','<h1> SNID:     '+str(datInfo[0])+'</h1>\n','<table>\n','<tr>\n','<th>RA</th>\n','<td>'+str(datInfo[1])+'</td>\n','<th>DEC</th>\n','<td>'+str(datInfo[2])+'</td>\n','<th>HOST_ID</th>\n','<td>'+str(datInfo[3])+'</td>\n','<th>PHOTO_Z</th>\n','<td>'+str(datInfo[4])+'</td>\n','</tr>\n','<tr>\n','<th>PHOTO_ZERR</th>\n','<td>'+str(datInfo[5])+'</td>\n','<th>'+str(datInfo[5])+'</th>\n',' <td>'+str(datInfo[6])+'</td>\n','<th>SPEC_ZERR</th>\n','<td>'+str(datInfo[7])+'</td>\n','<th>HOST_SEP</th>\n','<td>'+str(datInfo[8])+'</td>\n','</tr>\n','<tr>\n','<th>H_GMAG</th>\n','<td>'+str(datInfo[9])+'</td>\n','<th>H_RMAG</th>\n','<td>'+str(datInfo[10])+'</td>\n','<th>H_IMAG</th>\n','<td>'+str(datInfo[11])+'</td>\n','<th>H_ZMAG</th>\n','<td>'+str(datInfo[12])+'</td>\n','</tr>\n']
     for tag in topLines:
         htmlYeah.write(tag)
     htmlYeah.close()
@@ -879,7 +880,6 @@ def FindTarsforObjids(ListOtarFiles,ListOobjids): #Takes a list of all the tar f
 
 ###determines whether a dat file contains more than one data point. Unnecesasry, though, because you can just do a np.getfromtext and determine the length of the resulting array.
 def checkDatFile(exposure_file):
-    print('datfile Name', exposure_file,'datfile Type', type(exposure_file))
     file_under_scrutiny=open(exposure_file)
     DatCount=0
     Continue='Yes'
@@ -896,7 +896,7 @@ def checkDatFile(exposure_file):
     return Continue
 
  
-def combinedatafiles(master,fitsname,datadir):
+def combinedatafiles(master,fitsname,datadir,snidDict):
     
     config = configparser.ConfigParser()
     config.read('postproc.ini')
@@ -904,7 +904,6 @@ def combinedatafiles(master,fitsname,datadir):
 
     season = os.environ.get('SEASON')
     season = str(season)
-    print(season)
     print 'Starting combinedatafiles'
     #mlist = Table.read(master)
     #masdf = mlist.to_pandas()
@@ -957,10 +956,10 @@ def combinedatafiles(master,fitsname,datadir):
         lines = f.readlines()
         f.close()
         
-        print(datfile)
+        
         ###Make Light Curves
         LightCurve=makeLightCurves(datfile,lines)
-        print(LightCurve)
+    
         GoodTarFiles=[]
 
         snid = lines[1].split()[1]
@@ -986,9 +985,9 @@ def combinedatafiles(master,fitsname,datadir):
         band = np.genfromtxt(datfile,dtype='string',skip_header=53,usecols=(2,),unpack=True)
         #print(band,field,nite,expnum,ccdnum)
         #tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
-        print(datfile)
+       
         theDat=datfile.split('/')[-1].split('.')[0]
-        ###NFS: Code to ensure that each of the components of bakedPotato are np.ndarrays.###
+        ###Code to ensure that each of the components of bakedPotato are np.ndarrays.###
         ####Put elements from text into list
         bakedPotato=[obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
         #print(len(bakedPotato))
@@ -1092,7 +1091,7 @@ def combinedatafiles(master,fitsname,datadir):
                 CCDNUM.append(ccdnum[k])
                 
                 if objid==np.float64(0):
-                    print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
+                    #print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
                     tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
@@ -1105,7 +1104,7 @@ def combinedatafiles(master,fitsname,datadir):
 
                     except IndexError:
                         print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
-                
+                        
         else:
             for k in range(n):
                 RA.append(ra[k])
@@ -1145,13 +1144,11 @@ def combinedatafiles(master,fitsname,datadir):
                 bandk=band[k]
                 ccdnumk=str(int(ccdnum[k]))
 
-                print(type(objid[k]),'This is objid!')
                 if objid[k]==np.float64(0):
-                    print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
+                    #print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
                     tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
-                    print(tarFiles)
 
                     try:
                         tarFiles=tarFiles[0]
@@ -1169,7 +1166,7 @@ def combinedatafiles(master,fitsname,datadir):
         ####MakeDictHere####
         ObjidDict,ObjidMjidDict=MakeDictforObjidsHere(tarFileFoundforDat,objid,mjd)
         ####MakeHTMLwithDict####
-        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat,datInfo,LightCurve)
+        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat,datInfo,LightCurve,snidDict)
     
 
 
@@ -1255,7 +1252,6 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
         mlist = fitsio.read(master)
         mlist = mlist.byteswap().newbyteorder()
         masdf = pd.DataFrame.from_records(mlist)
-        print('masdf',masdf)
     else:
         skip = True
         print "No master list found with filename",master+'.'
