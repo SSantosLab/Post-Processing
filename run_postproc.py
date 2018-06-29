@@ -4,12 +4,15 @@ import tarfile
 import argparse
 import ConfigParser
 import sys
+import updateStatus
 import postproc
 import makePlots
 import numpy as np
 import pandas as pd
 import findHostGala
 import WholeHTML
+import datetime
+import time
 
 ## Read config file
 config = ConfigParser.ConfigParser()
@@ -57,6 +60,20 @@ if args.season == None:
     season = config.get('general','season')
 else:
     season = str(args.season)
+
+########                                                                                   
+# Set Season and Time                                                                      
+####### 
+
+thisTime = time.strftime("%Y%m%d.%H%M")
+thisTime=thisTime.replace('.','_')
+seasonTime=open('seasonTime.txt','w+')
+seasonTime.write(season)
+seasonTime.write('\n')
+seasonTime.write(thisTime)
+seasonTime.close()
+print('seasonTime.txt was made.')
+
 
 ## Set ligoid                                                                       
 if args.ligoid == None:
@@ -172,13 +189,30 @@ if not os.path.isdir(outdir + '/plots/' + 'lightcurves'):
 outplots = outdir + '/' + 'plots'
 outstamps = outdir + '/' + 'stamps'
 
+########
+# Initialize Status
+########
+statusList=[False,False,False,False,False,False,False,False,'incomplete']
+update=updateStatus.updateStatus(statusList)
+print(update)
+#sys.exit('debugggin')
+
 #########
 # STEP -1: Set up the environment
 #########
 
 print "Run STEP -1: Set up the environment"
-postproc.prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema)
+status=postproc.prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema)
 print
+print(status,'status-1')
+if status !=None:
+    statusList[0]=status
+else:
+    statusList[0]=False
+
+update=updateStatus.updateStatus(statusList)
+print(update)
+
 
 #########
 # STEP 0: Create initial master list, check processing outputs
@@ -186,16 +220,21 @@ print
 
 print "Run STEP 0: Create initial master list, check processing outputs"
 if len(expnums)>0:
-    expniteband_df,master = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands,expnums)
+    expniteband_df,master,sta = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands,expnums)
 else:
     print "No exposures specified by user. All exposures taken under LIGO ID "+str(ligoid)+" / event ID "+str(triggerid)+" and prop ID "+str(propid)+" will be used for the initial master list and the checkoutputs step."
-    expniteband_df,master = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands)
+    expniteband_df,master,sta = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands)
 print
+
+if sta == None:
+    sta=False
 
 ### the current checkoutputs assumes .FAIL files are cleared out when a CCD is reprocessed
 if len(expniteband_df)>0:
-    expnums,a_blacklist,ccddf = postproc.checkoutputs(expniteband_df,logfile,ccdfile,goodchecked,steplist)
+    expnums,a_blacklist,ccddf,tus = postproc.checkoutputs(expniteband_df,logfile,ccdfile,goodchecked,steplist)
+
 else:
+    tus=False
     print "ERROR: No exposures provided, and no exposures found matching the trigger id and prop id provided in the .ini file:"
     print
     print "TRIGGER ID: "+str(triggerid)
@@ -206,10 +245,17 @@ else:
     sys.exit()
 print
 
+if sta+tus==0 or sta+tus == 1:
+    statusList[1]=False
+else:
+    statusList[1]=True
 
 if checkonly:
     print( 'You gave the --checkonly option. Stopping Now.')
     sys.exit(0)
+
+update=updateStatus.updateStatus(statusList)
+print(update)
 
 
 #########
@@ -217,8 +263,16 @@ if checkonly:
 #########
 
 print "Run STEP 1: Create final master list"
-expniteband_df,master = postproc.masterlist(masterfile_2,blacklist_file,ligoid,propid,bands,expnums,a_blacklist)
+expniteband_df,master,status = postproc.masterlist(masterfile_2,blacklist_file,ligoid,propid,bands,expnums,a_blacklist)
 print
+
+if status !=None:
+    statusList[2]=status
+else:
+    statusList[2]=False
+
+update=updateStatus.updateStatus(statusList)
+print(update)
 
 expnums = expniteband_df['expnum'].tolist()
 
@@ -229,6 +283,7 @@ expnums = expniteband_df['expnum'].tolist()
 print "Run STEP 2: Forcephoto"
 postproc.forcephoto(ncore,numepochs_min_1,writeDB)
 print
+####Status update at a different time
 
 #########
 # STEP 3: Hostmatch
@@ -242,9 +297,25 @@ print
 print('That... was not worth the hype.')
 print
 print('Now making a galaxy match dictionary!')
-droid=desHostMatch.thisistheDroidyouarelookingfor
-snidDict=findHostGala.findHostGala(droid)
+irksome='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt'
+irritation=open(irksome,'r')
+path=irritation.read()
+irritation.close()
+print(path)
+#sys.exit('Ladies and gentlemen! We are debugging.')
+snidDict=findHostGala.findHostGala(path)
+print(list(snidDict.keys()))
 
+prestat=open('hostmatchstatus.txt','r')
+stat=prestat.read()
+if stat==True:
+    status=True
+else:
+    status=False
+statusList[4]=status
+
+update=updateStatus.updateStatus(statusList)
+print(update)
 
 
 #########
@@ -253,10 +324,18 @@ snidDict=findHostGala.findHostGala(droid)
 
 if len(expnums)>0:
     print "Run STEP 4: Make truth table"
-    truthplus = postproc.truthtable(expnums,filename,truthplusfile)
+    truthplus,status = postproc.truthtable(expnums,filename,truthplusfile)
 else:
+    status=False
     print "WARNING: List of exposures is empty. Skipping STEP 4."
 print
+
+if status == None:
+    statuse=False
+
+statusList[5]=status
+update=updateStatus.updateStatus(statusList)
+print(update)
 
 #########
 # STEP 5: Make datafiles
@@ -272,8 +351,15 @@ else:
     print "No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY."
 print                                                                                    
 print "Run STEP 5b: Combine real datafiles"
-fitsname = postproc.combinedatafiles(master,combined_fits,outDir_datareal)
+fitsname,status = postproc.combinedatafiles(master,combined_fits,outDir_datareal,snidDict)
 print
+
+if status == None:
+    status=False
+
+statusList[6]=status
+update=updateStatus.updateStatus(statusList)
+print(update)
 
 #sys.exit()
 #########
@@ -284,17 +370,24 @@ print
 skip=True
 print "Run STEP 6: Make plots"
 print
-MLScoreFake,RADEC=makePlots.MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
+stat6,MLScoreFake,RADEC=makePlots.MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
 #print(Words)
 print('It is possible this has run.')
-
+statusList.append(status)
     #print("Sorry, son. Step 6 doesn't quite work right here, so I'll just give you the associated .fits and .gifs for these exposures.They will be in your outdir directory and hard to miss.")
+
+if stat6==None:
+    stat6=False
+
+statusList[7]=stat6
+update=updateStatus.updateStatus(statusList)
+print(update)
 
 
 #########
 # STEP 7: Make htmls/webpage
 #########
-
+status=False
 #sys.exit()
 print "Run STEP 7: Make htmls/webpage"
 print "This is not Awesomely implemented. More coming soon..."
@@ -304,4 +397,17 @@ print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
 print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
 word=WholeHTML.WholeHTML(MLScoreFake,RADEC)
 print(word)
+if word == "Magic!":
+    statusNew=True
+    statusList[8]=statusNew
+else:
+    statusList[8]=status
 
+update=updateStatus.updateStatus(statusList)
+print(update)
+
+
+runStatus='complete'
+statusList[9]=runStatus
+update=updateStatus.updateStatus(statusList)
+print(update)
