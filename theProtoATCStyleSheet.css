@@ -1,0 +1,25 @@
+#gifs {
+    white-space: nowrap;
+}
+
+table, th, td {
+    border: 1px solid black;
+    background-color:#FFE4E1;
+    text-align: left;
+    /*align:center;*/
+    color:black;
+}
+
+table {
+    margin-left:auto;
+    margine-right:auto;
+}
+
+body {
+    background-image: url("KenHerner.jpeg");
+    background-size:110%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color:white;
+    text-align: center;
+}

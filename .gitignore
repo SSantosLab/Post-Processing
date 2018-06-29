@@ -1,3 +1,4 @@
+#*#
 
 DONOTUSE/
 logsAndste/
@@ -7,6 +8,9 @@ forcephoto/
 outdir/
 SpecialOutpus/
 
+*.fits
+*.gif
+*.ipynb
 *.pyc
 *.png
 *.swp
