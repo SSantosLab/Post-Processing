@@ -27,5 +27,10 @@ a:link {
 }
 
 a:visited {
-    color:#48D1CC;
+    color:#cc00ff;
+}
+
+#status {
+    font-size:30px;
+    color: #00ff00
 }
