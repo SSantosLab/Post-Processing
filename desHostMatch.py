@@ -276,6 +276,10 @@ def main():
         #data.sort(key=lambda x:x[4])
         data = np.array(data)
     else:
+        status='0'
+        hostms=open('hostmatchstatus.txt','w')
+        hostms.write(status)
+        hostms.close()
         print
         print "WARNING:"
         print "The list of galaxies to host match is empty."
@@ -286,9 +290,11 @@ def main():
         print "This could be due to a previous successful run."
         print "If you wish to rerun, please clear the database using the following command:"
         print
-        print "delete from SNGALS where season="+str(args.season)+';'
+        #print "delete from SNGALS where season="+str(args.season)+';'
         print
-        return
+        print('update SNGALS SET sngalid=NULL where season=416;')
+        print('(Maybe)')
+        return 
 
         
 
@@ -430,6 +436,16 @@ def main():
                 ra             = float(entry[2])  
                 dec            = float(entry[3])
                 #field          = entry[4]
+                
+                ##Debugging
+                print(SNID,'This is SNID!!!')
+                if os.path.isfile('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList'):
+                    yo=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList','a')
+                else:
+                    yo=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList','w')
+                yo.write(str(SNID))
+                yo.close()
+                ##Debugging
 
                 if args.verbose > 0:
                     print '\ni=',i, entry[0], entry[1], '(RA, dec) = (',ra,',',dec,')'
@@ -844,12 +860,20 @@ def main():
     logfile_db.close()
     
     connection.close()
-    
-    thisisnottheDroidyouarelookingfor=OUTPUT_DIR+thisTime+'/hostmatch.db.log'
-    shutil.copy2(thisisnottheDroidyouarelookingfor,'/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/hostmatch.db.log')
-    global thisistheDroidyouarelookingfor='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/hostmatc\
-h.db.log' ###database log file containing all the information necessary to build snid dictionary for html documentation
 
+    
+    status='1'
+    hostms=open('hostmatchstatus.txt','w')
+    hostms.write(status)
+    hostms.close()
+    
+    thisisnottheDroidyouarelookingfor=OUTPUT_DIR+'/hostmatch.db.log'
+    thisistheDroidyouarelookingfor='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/hostmatch.db.log'
+    ###database log file containing all the information necessary to build snid dictionary for html documentation
+    shutil.copy2(thisisnottheDroidyouarelookingfor,thisistheDroidyouarelookingfor)
+    irksome=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt','w+')
+    irksome.write(thisistheDroidyouarelookingfor)
+    irksome.close()
 ############################### Call main script ##################################################
 
 if __name__ == "__main__":
