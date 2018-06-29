@@ -31,6 +31,7 @@ def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,sche
     os.environ['OUTDIR_HOSTMATCH'] = os.path.join(outdir,'hostmatch')
     os.environ['DB'] = db
     os.environ['SCHEMA'] = schema
+    return True
 
 def masterlist(filename,blacklist_file,ligoid,propid,bands=None,expnums=None,a_blacklist=None):
     indir = os.environ.get('INDIR')
@@ -179,7 +180,7 @@ order by id"""
     f.write(str(sorted(set(blacklist))))
     f.close()
     
-    return expdf[['expnum','nite','filter']],filename
+    return expdf[['expnum','nite','filter']],filename, True
 
 def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     expnums = expdf['expnum'].tolist()
@@ -397,7 +398,7 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     #print baddf
     #print baddf.index.values.tolist()
 
-    return yesex,nonex,ccddf
+    return yesex,nonex,ccddf,True
             
 def forcephoto(ncore=4,numepochs_min=0,writeDB=False):    
     season = os.environ.get('SEASON')
@@ -444,8 +445,10 @@ def truthtable(expnums,filename,truthplus):
     connection.query_and_save(query,os.path.join(outdir,truthplus))
 
     connection.close()
-
-    return plus
+    
+    status=True
+    
+    return plus,status
 
 def makedatafiles(format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fakeversion=None):
     season = os.environ.get('SEASON')
@@ -707,13 +710,13 @@ def ExtracTarFiles(tar):
 
 
 
-def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList,MjdList):
-    ObjidDict={}
-    ObjidMjdDict={}
+def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList):
+    ObjidDict={}###dictionary pointing to gifs and fits for dat file
+
     #print('you just entered the twilight zone.')
     for n in range(len(ObjidList)):
         ObjidDict[str(int(ObjidList[n]))]=[]
-        ObjidMjdDict[str(int(ObjidList[n]))]=str(MjdList[n])
+        
     for File in tarFileFoundforDat:
         #print(File)
         NumID=''
@@ -734,7 +737,7 @@ def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList,MjdList):
             happyList=ObjidDict[NumID]+preHappy
             ObjidDict[NumID]=happyList
 
-    return ObjidDict,ObjidMjdDict
+    return ObjidDict
 
 
 
@@ -746,8 +749,30 @@ def ErrorMag(flux,fluxerror):
     return Error
 
 
+def getBandsandField(lines):
+    band=[]
+    field=[]
+    for line in lines:
+        if line.split(' ')[0]=='OBS:':
+            ##get bands
+            bandy=str(line.split(' ')[5])
+            band.append(bandy)
+            ##get field
+            fieldy=str(line.split(' ')[7])
+            field.append(fieldy)
+
+    return band,field
 
 
+
+def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid,band,field):
+    objidDict={}
+    for i in range(len(objid)):
+        if objid[i] != 0:
+            objidDict[str(int(objid[i]))]=[str(mjd[i]),band[i],str(field[i]),str(fluxcal[i]),str(fluxcalerr[i]),str(photflag[i]),str(photprob[i]),str(zpflux[i]),str(psf[i]),str(skysig[i]),str(skysig_t[i]),str(gain[i]),str(xpix[i]),str(ypix[i]),str(int(nite[i])),str(int(expnum[i])),str(int(ccdnum[i]))]
+        else:
+            continue
+    return objidDict
 
 
 
@@ -805,16 +830,72 @@ def makeLightCurves(datFile,lines):
 
 
 
-def ZapHTML(Dict,OMDict,theDat,datInfo,LightCurveName): #Dict with obs and associated gifs, dict with OBJIDS and associated MJDS,list of tar files that correspond to observations, list=[snid,raval,decval]
+def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with obs and associated gifs, dict with OBJIDS and associated dat file info ,list of tar files that correspond to observations, list=[snid,raval,decval], name of the Light curve for the dat file, dictionary mapping snid to host galaxy info
+    if datInfo[0] not in list(snidDict.keys()) or snidDict[datInfo[0]]==[('N/A', '0','N/A', 'N/A')]: ##This condition is to work around when clearing the database also removes (hides?) the SNIDs with no potetial host galaxy
+        snidDict[datInfo[0]]=[('-999', '0','-999', '-999')]
+    GalInfo=snidDict[datInfo[0]]
+    HostID=GalInfo[0][0]
+    HostRank=GalInfo[0][1]
+    HostRA=GalInfo[0][2]
+    HostDEC=GalInfo[0][3]
+
+    dat=theDat.split('_')[-1]
+    
     Name='theProtoATC'+theDat+'.html'
     htmlYeah=open(Name,'w+')
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoATCStyleSheet.css">','<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about. </p>','<h1> SNID:     '+str(datInfo[0])+'</h1>\n','<table>\n','<tr>\n','<th>RA</th>\n','<td>'+str(datInfo[1])+'</td>\n','<th>DEC</th>\n','<td>'+str(datInfo[2])+'</td>\n','<th>HOST_ID</th>\n','<td>'+str(datInfo[3])+'</td>\n','<th>PHOTO_Z</th>\n','<td>'+str(datInfo[4])+'</td>\n','</tr>\n','<tr>\n','<th>PHOTO_ZERR</th>\n','<td>'+str(datInfo[5])+'</td>\n','<th>'+str(datInfo[5])+'</th>\n',' <td>'+str(datInfo[6])+'</td>\n','<th>SPEC_ZERR</th>\n','<td>'+str(datInfo[7])+'</td>\n','<th>HOST_SEP</th>\n','<td>'+str(datInfo[8])+'</td>\n','</tr>\n','<tr>\n','<th>H_GMAG</th>\n','<td>'+str(datInfo[9])+'</td>\n','<th>H_RMAG</th>\n','<td>'+str(datInfo[10])+'</td>\n','<th>H_IMAG</th>\n','<td>'+str(datInfo[11])+'</td>\n','<th>H_ZMAG</th>\n','<td>'+str(datInfo[12])+'</td>\n','</tr>\n']
+    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>',
+          '<link rel="stylesheet" type="text/css" href="theProtoATCStyleSheet.css">',
+          '<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n',
+          '<body>','<p> This is what it is about. </p>',
+          '<table>\n','<caption>Candidate (SNID  '+str(datInfo[0])+') Info</caption>','<tr>','<th>RA</th>\n','<td>'+str(datInfo[1])+'</td>\n',
+          '<th>DEC</th>\n','<td>'+str(datInfo[2])+'</td>\n','</tr>','</table>',
+          '<table>','<caption>Host Galaxy Info</caption>','<tr>','<th>HOST_ID</th>','<td>'+HostID+'</td>','</tr>',
+          '<tr>','<th>HOST_RANK</th>','<td>'+HostRank+'</td>','</tr>',
+          '<tr>','<th>HOST_RA</th>','<td>'+HostRA+'</td>','</tr>',
+          '<tr>','<th>HOST_DEC</th>','<td>'+HostDEC+'</td>','</tr>','</table>']
     for tag in topLines:
         htmlYeah.write(tag)
     htmlYeah.close()
     
-    for key in list(Dict.keys()):
-        mjd=OMDict[key]
+
+    ##obs info table
+    openingLines=['<table width="750">','<caption>Observation Info</caption>','<tr>','<th>OBJID</th>','<th>MJD</th>','<th>FLT</th>','<th>FIELD</th>','<th>FLUXCAL</th>','<th>FLUXCALERR</th>','<th>PHOTFLAG</th>','<th>PHOTPROB</th>','<th>ZPFLUX</th>','<th>PSF</th>','<th>SKYSIG</th>','<th>SKYSIG_T</th>','<th>GAIN</th>','<th>XPIX</th>','<th>YPIX</th>','<th>NITE</th>','<th>EXPNUM</th>','<th>CCDNUM</th>','</tr>']
+    htmlYeah=open(Name,'a')
+    for line in openingLines:
+        htmlYeah.write(line)
+    htmlYeah.close()
+    htmlYeah=open(Name,'a')
+    for key in list(objidDict.keys()):
+        mjd=objidDict[key][0]
+        band=objidDict[key][1]
+        field=objidDict[key][2]
+        FLUXCAL=objidDict[key][3]
+        FLUXCALERR=objidDict[key][4]
+        PHOTFLAG=objidDict[key][5]
+        PHOTPROB=objidDict[key][6]
+        ZPFLUX=objidDict[key][7]
+        PSF=objidDict[key][8]
+        SKYSIG=objidDict[key][9]
+        SKYSIG_T=objidDict[key][10]
+        GAIN=objidDict[key][11]
+        XPIX=objidDict[key][12]
+        YPIX=objidDict[key][13]
+        NITE=objidDict[key][14]
+        EXPNUM=objidDict[key][15]
+        CCDNUM=objidDict[key][16]
+
+        tableLines=['<tr>','<td>'+key+'</td>','<td>'+mjd+'</td>','<td>'+band+'</td>','<td>'+field+'</td>','<td>'+FLUXCAL+'</td>','<td>'+FLUXCALERR+'</td>','<td>'+PHOTFLAG+'</td>','<td>'+PHOTPROB+'</td>','<td>'+ZPFLUX+'</td>','<td>'+PSF+'</td>','<td>'+SKYSIG+'</td>','<td>'+SKYSIG_T+'</td>','<td>'+GAIN+'</td>','<td>'+XPIX+'</td>','<td>'+YPIX+'</td>','<td>'+NITE+'</td>','<td>'+EXPNUM+'</td>','<td>'+CCDNUM+'</td>','</tr>']
+        for line in tableLines:
+            htmlYeah.write(line)
+    htmlYeah.close()
+    
+    closingLines=['</table>']
+    htmlYeah=open(Name,'a')
+    htmlYeah.write(closingLines[0])
+    htmlYeah.close()
+    
+    for key in list(objidDict.keys()):
+        mjd=objidDict[key][0]
         Dict[key].sort
         #print('this is Key!',key)
         #print(len(Dict[key]))
@@ -922,7 +1003,10 @@ def combinedatafiles(master,fitsname,datadir,snidDict):
         print
         print 'If you want to recreate the file, either change the combined_fits key under the [GWmakeDataFiles-real] heading in the .ini file, or simply delete the existing one.'
         print
-        return fitsname
+        
+        status=False
+        
+        return fitsname, status
 
     dats = os.listdir(path)
     dats = [x for x in dats if '.dat' in x]
@@ -956,7 +1040,13 @@ def combinedatafiles(master,fitsname,datadir,snidDict):
         lines = f.readlines()
         f.close()
         
+        print(datfile)
         
+        ###Get obs info and make info dict
+        bands,fields=getBandsandField(lines)
+        mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(1,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        objidDict=MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid,bands,fields)
+
         ###Make Light Curves
         LightCurve=makeLightCurves(datfile,lines)
     
@@ -1095,7 +1185,7 @@ def combinedatafiles(master,fitsname,datadir,snidDict):
                     continue
                 else:
                     tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
-
+                    
                     try:
                         tarFiles=tarFiles[0]
                         if tarFiles not in GiantTarList:
@@ -1162,11 +1252,11 @@ def combinedatafiles(master,fitsname,datadir,snidDict):
 
 
 
-
+                        
         ####MakeDictHere####
-        ObjidDict,ObjidMjidDict=MakeDictforObjidsHere(tarFileFoundforDat,objid,mjd)
+        Dict=MakeDictforObjidsHere(tarFileFoundforDat,objid)
         ####MakeHTMLwithDict####
-        HTML=ZapHTML(ObjidDict,ObjidMjidDict,theDat,datInfo,LightCurve,snidDict)
+        HTML=ZapHTML(Dict,objidDict,theDat,datInfo,LightCurve,snidDict)
     
 
 
@@ -1234,8 +1324,10 @@ def combinedatafiles(master,fitsname,datadir,snidDict):
 
     print "number of candidates where all detections had ml_score>0.5 :",allgood
     print
-    
-    return fitsname
+
+    status=True
+
+    return fitsname,status
 
 def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
     
