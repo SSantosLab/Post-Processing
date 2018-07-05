@@ -14,10 +14,6 @@ import WholeHTML
 import datetime
 import time
 
-## Read config file
-config = ConfigParser.ConfigParser()
-if os.path.isfile('./postproc.ini'):
-    inifile = config.read('./postproc.ini')[0]
 
 ## Read command line options
 parser = argparse.ArgumentParser(description=__doc__, 
@@ -32,6 +28,13 @@ parser.add_argument('--ups', type=bool, help='ups mode: True/False')
 parser.add_argument('--checkonly', type=bool, help='only do the processing check')
 args = parser.parse_args()
 
+season=str(args.season)
+
+## Read config file                                                            
+config = ConfigParser.ConfigParser()
+if os.path.isfile('./postproc_'+str(season)+'.ini'):
+    inifile = config.read('./postproc_'+str(season)+'.ini')[0]
+
 ## Set ups mode: True/False
 if args.ups == None:
     ups = config.getboolean('general','ups')
@@ -41,7 +44,7 @@ else:
 ## If running in ups environment, replace the .ini file
 if ups:
     cpath = os.environ["GWPOST_DIR"]
-    inifile = config.read(os.path.join(cpath,"postproc.ini"))[0]
+    inifile = config.read(os.path.join(cpath,"postproc_"+str(season)+".ini"))[0]
 
 ## Option to only do the check
 if args.checkonly == None:
@@ -56,6 +59,7 @@ else:
     outdir = args.outdir
 
 ## Set season
+#This line should not be necessary
 if args.season == None:
     season = config.get('general','season')
 else:
@@ -67,12 +71,12 @@ else:
 
 thisTime = time.strftime("%Y%m%d.%H%M")
 thisTime=thisTime.replace('.','_')
-seasonTime=open('seasonTime.txt','w+')
+seasonTime=open('seasonTime'+str(season)+'.txt','w+')
 seasonTime.write(season)
 seasonTime.write('\n')
 seasonTime.write(thisTime)
 seasonTime.close()
-print('seasonTime.txt was made.')
+print('seasonTime'+season+'.txt was made.')
 
 
 ## Set ligoid                                                                       
@@ -171,7 +175,6 @@ outDir_datafake = config.get('GWmakeDataFiles-fake', 'outDir_data')
 
 fakeversion = config.get('GWmakeDataFiles-fake', 'version')
 
-
 ## Make directory structure
 
 if not os.path.isdir(outdir):
@@ -193,7 +196,7 @@ outstamps = outdir + '/' + 'stamps'
 # Initialize Status
 ########
 statusList=[False,False,False,False,False,False,False,False,'incomplete']
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 #sys.exit('debugggin')
 
@@ -210,7 +213,7 @@ if status !=None:
 else:
     statusList[0]=False
 
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 
@@ -254,7 +257,7 @@ if checkonly:
     print( 'You gave the --checkonly option. Stopping Now.')
     sys.exit(0)
 
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 
@@ -271,7 +274,7 @@ if status !=None:
 else:
     statusList[2]=False
 
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 expnums = expniteband_df['expnum'].tolist()
@@ -281,7 +284,7 @@ expnums = expniteband_df['expnum'].tolist()
 #########
 
 print "Run STEP 2: Forcephoto"
-postproc.forcephoto(ncore,numepochs_min_1,writeDB)
+postproc.forcephoto(season,ncore,numepochs_min_1,writeDB)
 print
 ####Status update at a different time
 
@@ -314,7 +317,7 @@ else:
     status=False
 statusList[4]=status
 
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 
@@ -324,7 +327,7 @@ print(update)
 
 if len(expnums)>0:
     print "Run STEP 4: Make truth table"
-    truthplus,status = postproc.truthtable(expnums,filename,truthplusfile)
+    truthplus,status = postproc.truthtable(season,expnums,filename,truthplusfile)
 else:
     status=False
     print "WARNING: List of exposures is empty. Skipping STEP 4."
@@ -334,7 +337,7 @@ if status == None:
     statuse=False
 
 statusList[5]=status
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 #########
@@ -342,23 +345,23 @@ print(update)
 #########
 
 print "Run STEP 5: Make datafiles"
-postproc.makedatafiles(format,numepochs_min_2,two_nite_trigger,outFile_stdoutreal,outDir_datareal,ncore)
+postproc.makedatafiles(season,format,numepochs_min_2,two_nite_trigger,outFile_stdoutreal,outDir_datareal,ncore)
 
 if not fakeversion=='KBOMAG20ALLSKY':
-    postproc.makedatafiles(format,numepochs_min_2,two_nite_trigger,outFile_stdoutfake,outDir_datafake,ncore,fakeversion)
+    postproc.makedatafiles(season,format,numepochs_min_2,two_nite_trigger,outFile_stdoutfake,outDir_datafake,ncore,fakeversion)
     one=1
 else:
     print "No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY."
 print                                                                                    
 print "Run STEP 5b: Combine real datafiles"
-fitsname,status = postproc.combinedatafiles(master,combined_fits,outDir_datareal,snidDict)
+fitsname,status = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict)
 print
 
 if status == None:
     status=False
 
 statusList[6]=status
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 #sys.exit()
@@ -380,7 +383,7 @@ if stat6==None:
     stat6=False
 
 statusList[7]=stat6
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 
@@ -403,11 +406,11 @@ if word == "Magic!":
 else:
     statusList[8]=status
 
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
 
 
 runStatus='complete'
 statusList[9]=runStatus
-update=updateStatus.updateStatus(statusList)
+update=updateStatus.updateStatus(statusList,season)
 print(update)
