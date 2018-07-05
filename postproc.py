@@ -400,8 +400,8 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
 
     return yesex,nonex,ccddf,True
             
-def forcephoto(ncore=4,numepochs_min=0,writeDB=False):    
-    season = os.environ.get('SEASON')
+def forcephoto(season,ncore=4,numepochs_min=0,writeDB=False):    
+    #season = os.environ.get('SEASON')
     a = './forcePhoto_master.pl ' 
     a = a + ' -season ' + season 
     a = a + ' -numepochs_min ' + numepochs_min 
@@ -413,9 +413,9 @@ def forcephoto(ncore=4,numepochs_min=0,writeDB=False):
     #a = 'source '+os.getenv('SETUPFILE')+'; '+a
     subprocess.call(a,shell=True)
  
-def truthtable(expnums,filename,truthplus):
-    season = os.environ.get('SEASON')
-    outdir = os.path.join(os.environ.get('ROOTDIR2'),'truthtable')
+def truthtable(season,expnums,filename,truthplus):
+    #season = os.environ.get('SEASON')
+    outdir = os.path.join(os.environ.get('ROOTDIR2'),'truthtable'+season)
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     db = os.environ.get('DB')
@@ -450,8 +450,8 @@ def truthtable(expnums,filename,truthplus):
     
     return plus,status
 
-def makedatafiles(format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fakeversion=None):
-    season = os.environ.get('SEASON')
+def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fakeversion=None):
+    #season = os.environ.get('SEASON')
     datafiles_dir = os.path.join(os.environ.get('ROOTDIR2'),'makedatafiles')
     db = os.environ.get('DB')
     schema = os.environ.get('SCHEMA')
@@ -630,66 +630,7 @@ def makeHTML(tar, Name):
     return
 
 
-###DO NOT USE. NOW OBSOLETE
-def makePrestigiousHTML(DatFileTarList,datfile):
-    theDat=datfile.split('/')[-1].split('.')[0]
-    Name='theProtoATC'+theDat+'.html'
-    htmlYeah=open(Name,'w+')
-    topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>','<link rel="stylesheet" type="text/css" href="theProtoAtCStyleSheet.css">','<title> Plots from'+theDat+'</title>\n','<h1>This is the title for'+theDat+'</h1>','\n','</head>\n','<body>','<p> This is what it is about </p>','<div class="nav-wrapper">','<nav class="nav-menu">','<ul class="clearfix">']
-    bottomLines=['</body>\n','</head>']
 
-    for tag in topLines:
-        htmlYeah.write(tag)
-    htmlYeah.close()
-
-    htmlYeah=open(Name,'a')
-    for tar in DatFileTarList:
-        tar=tar[0]
-        tarsplit=tar.split('/')
-        tarlen=len(tarsplit)
-        quality=tarsplit[tarlen-1]
-        definingQuality=quality.split('.')[0] #stamp
-        menuBarText=['<li><a href="'+definingQuality+'">'+definingQuality+'</a></li>']
-    menuBarBottomText=['</div>','</nav>','</ul>']
-    html.close()
-
-    htmlYeah=open(Name,'a')
-    for tar in DatFileTarList:
-        tarsplit=tar.split('/')
-        tarlen=len(tarsplit)
-        quality=tarsplit[tarlen-1]
-        definingQuality=quality.split('.')[0] #stamp
-        specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
-####Use or make a dir in which to put the tar files
-        if not os.path.isdir(specificGifAndFitsDir):
-            os.makedirs(specificGifAndFitsDir)
-        lilTar=tarfile.open(tar)
-        lilTar.extractall(members=gif_files(lilTar), path = specificGifAndFitsDir)
-        allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
-        gifDict={}
-        for File in allTheGifs:
-            value=''
-            for char in File:
-                try:
-                    char=int(char)
-                except:
-                    pass
-                if isinstance(char,int):
-                    value+=str(char)
-            if not value in gifDict.keys():
-                aList=[]
-                gifDict[value]=aList
-            gifDict[value].append(File)
-        htmlYeah=open(Name,'a')
-        for gifSet in list(gifDict.values()):
-            gifSet.sort()
-            lines='<a name="'+definingQuality+'"></a>\n',['<h1>What Is Going on Here?</h1>\n','<p>It is a gif!</p>\n','<h2\>'+gifSet[0]+'</h2>\n','<p>\n','<img src=\''+gifSet[0]+'\' width="200" height="200"/>\n','</p>\n','<p\>The diffimage</p>\n','<h2>'+gifSet[1]+'</h2>\n','<p>\n','<img src=\''+gifSet[1]+'\' width="200" height="200"/>\n','</p>\n','<p\>The searchimage</p>\n','<h2>'+gifSet[2]+'</h2>\n','<p>\n','<img src=\''+gifSet[2]+'\' width="200" height="200"/>\n','</p>\n','<p\>The tempimage</p>\n']
-            for line in lines:
-                htmlYeah.write(line)
-        for line in bottomLines:
-            htmlYeah.write(line)
-        htmlYeah.close()
-    return
 def ExtracTarFiles(tar):
     ###get tar files                                                           
     ####Get the distinguishing number at the end of the tar file               
@@ -977,13 +918,14 @@ def checkDatFile(exposure_file):
     return Continue
 
  
-def combinedatafiles(master,fitsname,datadir,snidDict):
+def combinedatafiles(season,master,fitsname,datadir,snidDict):
     
     config = configparser.ConfigParser()
-    config.read('postproc.ini')
-    mySEASON=config.get('general','season')
+    config.read('postproc_'+season+'.ini')
+    #mySEASON=config.get('general','season')
+    mySEASON=season
 
-    season = os.environ.get('SEASON')
+    #season = os.environ.get('SEASON')
     season = str(season)
     print 'Starting combinedatafiles'
     #mlist = Table.read(master)
