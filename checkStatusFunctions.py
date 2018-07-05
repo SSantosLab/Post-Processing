@@ -1,4 +1,5 @@
 import time
+from time import strftime
 import numpy as np
 import os
 from glob import glob
@@ -7,6 +8,11 @@ from glob import glob
 
 def checkForcephoto(season, time):
     passing=0
+    date=time.split('_')[0]
+    print(time.split('_')[1])
+    print(date)
+    if date != strftime("%Y%m%d"):
+        return False
     logs=glob('./forcephoto/output/dp'+season+'/'+time+'_DESY'+season+'/*_FORCEPHOTO.LOG')
     print('./forcephoto/output/dp'+season+'/'+time+'_DESY'+season)
     print(len(logs),'len o logs')
