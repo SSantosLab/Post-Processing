@@ -11,8 +11,9 @@ table, th, td {
 }
 
 table {
-    margin-left:auto;
-    margine-right:auto;
+    align:center;
+    /*margin-left:auto;
+    margine-right:auto;*/
 }
 
 body {
