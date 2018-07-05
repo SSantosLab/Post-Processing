@@ -1,5 +1,5 @@
-def updateStatus(statuslist):
-    stat=open('status.txt','w+')
+def updateStatus(statuslist,season):
+    stat=open('status'+season+'.txt','w+')
     for status in statuslist:
         if status == False:
             stat.write('0 \n')
