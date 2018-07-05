@@ -1,8 +1,8 @@
 
 ##### edit these lines before running the code:
 export ROOTDIR=/pnfs/des/persistent/gw
-export ROOTDIR2=/data/des40.b/data/nsherman/postprocBig
-export SEASON=416
+export ROOTDIR2=/data/des40.b/data/nsherman/postprocBig 
+export SEASON=416 
 #####
 
 source /cvmfs/des.opensciencegrid.org/eeups/startupcachejob21i.sh
@@ -41,8 +41,10 @@ export DIFFIMG_HOST=FNAL
 export SCAMP_CATALOG_DIR=$PWD/SNscampCatalog
 export AUTOSCAN_PYTHON=$PYTHON_DIR/bin/python
 export DES_ROOT=/data/des20.b/data/SNDATA_ROOT/INTERNAL/DES 
-export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/forcephoto/images/dp${SEASON} 
-export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/forcephoto/output/dp${SEASON}   
+###The following two lines ought to be commented out when Adam is functional
+#export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/forcephoto/images/dp${SEASON} 
+#export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/forcephoto/output/dp${SEASON} 
+###----------------------------------------------------------------------###  
 export TOPDIR_DATAFILES_PUBLIC=${ROOTDIR}/DESSN_PIPELINE/SNFORCE/DATAFILES_TEST
 export TOPDIR_WSTEMPLATES=${ROOTDIR}/WSTemplates
 export TOPDIR_TEMPLATES=${ROOTDIR}/WSTemplates
@@ -71,7 +73,10 @@ export SNANA_ROOT=/data/des41.b/data/SNDATA_ROOT
 #export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk
 #export PATH=$DIFFIMG_DIR/bin:$PATH
 
+
+###The following should be removed once Adam is fuctional
 if [ ! -d $TOPDIR_SNFORCEPHOTO_OUTPUT ]; then mkdir -p $TOPDIR_SNFORCEPHOTO_OUTPUT ; fi
+###
 
 #if [ ! -d $TOPDIR_SNFORCEPHOTO_IMAGES ]; then 
 #     mkdir -p $TOPDIR_SNFORCEPHOTO_IMAGES
