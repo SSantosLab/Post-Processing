@@ -18,6 +18,7 @@ def checkForcephoto(season, time):
     print(len(logs),'len o logs')
     count=1
     if len(logs)==0:
+        return False
         while len(logs)==0:
             ymd=time.split('_')[0]
             minsec=time.split('_')[1]
@@ -58,16 +59,21 @@ def checkStatus(statusFile,season,Time): ##All strings
     
     currentStatus=[0]*(len(stats))
     
+    print('statusFile!', statusFile)
+    print('inside checkStatus')
+
     while progress == 'incomplete':
         
+        print('inside the while looooooop.')
+
         time.sleep(60) ##Pause the program for a minute before checking statuses
         
         status=open(statusFile,'r') ###Read contents of file
         stats=status.readlines()
         status.close()
-        
+        print('stats!',stats)
         progress=stats[-1].split('\n')[0] ##Set postproc progress
-        
+        print(progress)
         for i in range(len(stats)):
             stat=stats[i]
             if stat == '1 \n':
