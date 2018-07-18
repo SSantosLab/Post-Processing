@@ -195,7 +195,7 @@ outstamps = outdir + '/' + 'stamps'
 ########
 # Initialize Status
 ########
-statusList=[False,False,False,False,False,False,False,False,'incomplete']
+statusList=[False,False,False,False,False,False,False,False,False,'incomplete']
 update=updateStatus.updateStatus(statusList,season)
 print(update)
 #sys.exit('debugggin')
@@ -212,10 +212,10 @@ if status !=None:
     statusList[0]=status
 else:
     statusList[0]=False
-
+print('step-1 status:',status)
 update=updateStatus.updateStatus(statusList,season)
 print(update)
-
+print('statusList',statusList)
 
 #########
 # STEP 0: Create initial master list, check processing outputs
@@ -247,7 +247,7 @@ else:
     print
     sys.exit()
 print
-
+print('step 0 status', sta+tus)
 if sta+tus==0 or sta+tus == 1:
     statusList[1]=False
 else:
@@ -259,7 +259,7 @@ if checkonly:
 
 update=updateStatus.updateStatus(statusList,season)
 print(update)
-
+print('statusList',statusList)
 
 #########
 # STEP 1: Create final master list
@@ -273,10 +273,10 @@ if status !=None:
     statusList[2]=status
 else:
     statusList[2]=False
-
+print('step 1 staus:', status)
 update=updateStatus.updateStatus(statusList,season)
 print(update)
-
+print('statusList',statusList)
 expnums = expniteband_df['expnum'].tolist()
 
 #########
@@ -317,9 +317,11 @@ else:
     status=False
 statusList[4]=status
 
+print('step 3 status', status)
+
 update=updateStatus.updateStatus(statusList,season)
 print(update)
-
+print('statusList',statusList)
 
 #########
 # STEP 4: Make truth table
@@ -334,11 +336,12 @@ else:
 print
 
 if status == None:
-    statuse=False
-
+    status=False
+print('stet 4 status',status)
 statusList[5]=status
 update=updateStatus.updateStatus(statusList,season)
 print(update)
+print('statusList',statusList)
 
 #########
 # STEP 5: Make datafiles
@@ -354,15 +357,18 @@ else:
     print "No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY."
 print                                                                                    
 print "Run STEP 5b: Combine real datafiles"
-fitsname,status = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict)
+fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict)
 print
+if masterTableInfo != None:
+    print(type(list(masterTableInfo.keys())[0]))
 
 if status == None:
     status=False
-
+print('step 5 status',status)
 statusList[6]=status
 update=updateStatus.updateStatus(statusList,season)
 print(update)
+print('statusList',statusList)
 
 #sys.exit()
 #########
@@ -376,16 +382,16 @@ print
 stat6,MLScoreFake,RADEC=makePlots.MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
 #print(Words)
 print('It is possible this has run.')
-statusList.append(status)
+#statusList.append(status)
     #print("Sorry, son. Step 6 doesn't quite work right here, so I'll just give you the associated .fits and .gifs for these exposures.They will be in your outdir directory and hard to miss.")
 
 if stat6==None:
     stat6=False
-
+print('step 6 status', stat6)
 statusList[7]=stat6
 update=updateStatus.updateStatus(statusList,season)
 print(update)
-
+print('statusList',statusList)
 
 #########
 # STEP 7: Make htmls/webpage
@@ -398,16 +404,18 @@ print "This is not Awesomely implemented. More coming soon..."
 print
 print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
 print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
-word=WholeHTML.WholeHTML(MLScoreFake,RADEC)
+word=WholeHTML.WholeHTML(MLScoreFake,RADEC,season,masterTableInfo)
 print(word)
 if word == "Magic!":
     statusNew=True
     statusList[8]=statusNew
 else:
     statusList[8]=status
+print('step 7 status', status)
 
 update=updateStatus.updateStatus(statusList,season)
 print(update)
+print('statusList',statusList)
 
 
 runStatus='complete'
