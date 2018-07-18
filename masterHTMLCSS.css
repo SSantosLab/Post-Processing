@@ -1,5 +1,5 @@
 body {
-    background-image: url("11-0222-13D_hr2.jpg");
+    background-image: url("12-0327-15D.jpg");
     background-size: 110%;
     background-repeat: no-repeat;
     background-position: right top;
@@ -7,27 +7,69 @@ body {
     color: white;
     /*margin: auto;*/
     text-align: center;
+    /*font-family:Verdana, Geneva, sans-serif;*/
+    font-size:25px;
 }
 
-ul {
+/*ul {
     -webkit-columns: 100px 4; 
     -moz-columns: 100px 4; 
     columns: 100px 4;
     list-style-type: none;
     color: white;
+}*/
+
+#button {
+    opacity:0.5;
 }
 
+#myBtn {
+  display:block;
+  height: 75px;
+  width:75px;
+  border-radius: 50%;
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  opacity:0.5;
+  background-color:(153, 153, 255,.5);
+ /* border-radius: 4px;*/
+}
+
+/*#myBtn:hover {
+  background-color:(128, 140, 179,0.6);
+}*/
+
+#Dillion {
+    font-size:25px;
+    color:white;
+}
 
 #majorPlots {
     white-space: nowrap;
 }
 
+table, th, td {
+    font-size:25px;
+    /*font-family:Verdana, Geneva, sans-serif;*/
+    border: 1px solid white;
+    border:collapse;
+    background-color:rgba(51, 51, 204, 0.35);
+    padding: 15px;
+    align:center;
+}
+
 a:link {
-    color: #FF1493;
+    color:#80d4ff;
 }
 
 a:visited {
-    color:#cc00ff;
+    color:#0088cc;
 }
 
 #status {
