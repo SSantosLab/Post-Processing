@@ -437,8 +437,6 @@ def main():
                 dec            = float(entry[3])
                 #field          = entry[4]
                 
-                ##Debugging
-                print(SNID,'This is SNID!!!')
                 if os.path.isfile('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList'):
                     yo=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList','a')
                 else:
@@ -869,7 +867,8 @@ def main():
     
     thisisnottheDroidyouarelookingfor=OUTPUT_DIR+'/hostmatch.db.log'
     thisistheDroidyouarelookingfor='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/hostmatch.db.log'
-    ###database log file containing all the information necessary to build snid dictionary for html documentation
+    ###Unhardcode this file location, plz
+###database log file containing all the information necessary to build snid dictionary for html documentation
     shutil.copy2(thisisnottheDroidyouarelookingfor,thisistheDroidyouarelookingfor)
     irksome=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt','w+')
     irksome.write(thisistheDroidyouarelookingfor)
