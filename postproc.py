@@ -788,9 +788,9 @@ def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with o
           '<link rel="stylesheet" type="text/css" href="theProtoATCStyleSheet.css">',
           '<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n',
           '<body>','<p> This is what it is about. </p>',
-          '<table>\n','<caption>Candidate (SNID  '+str(datInfo[0])+') Info</caption>','<tr>','<th>RA</th>\n','<td>'+str(datInfo[1])+'</td>\n',
+          '<table align="center">\n','<caption>Candidate (SNID  '+str(datInfo[0])+') Info</caption>','<tr>','<th>RA</th>\n','<td>'+str(datInfo[1])+'</td>\n',
           '<th>DEC</th>\n','<td>'+str(datInfo[2])+'</td>\n','</tr>','</table>',
-          '<table>','<caption>Host Galaxy Info</caption>','<tr>','<th>HOST_ID</th>','<td>'+HostID+'</td>','</tr>',
+          '<table align="center">','<caption>Host Galaxy Info</caption>','<tr>','<th>HOST_ID</th>','<td>'+HostID+'</td>','</tr>',
           '<tr>','<th>HOST_RANK</th>','<td>'+HostRank+'</td>','</tr>',
           '<tr>','<th>HOST_RA</th>','<td>'+HostRA+'</td>','</tr>',
           '<tr>','<th>HOST_DEC</th>','<td>'+HostDEC+'</td>','</tr>','</table>']
@@ -800,7 +800,7 @@ def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with o
     
 
     ##obs info table
-    openingLines=['<table width="750">','<caption>Observation Info</caption>','<tr>','<th>OBJID</th>','<th>MJD</th>','<th>FLT</th>','<th>FIELD</th>','<th>FLUXCAL</th>','<th>FLUXCALERR</th>','<th>PHOTFLAG</th>','<th>PHOTPROB</th>','<th>ZPFLUX</th>','<th>PSF</th>','<th>SKYSIG</th>','<th>SKYSIG_T</th>','<th>GAIN</th>','<th>XPIX</th>','<th>YPIX</th>','<th>NITE</th>','<th>EXPNUM</th>','<th>CCDNUM</th>','</tr>']
+    openingLines=['<table width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th>OBJID</th>','<th>MJD</th>','<th>FLT</th>','<th>FIELD</th>','<th>FLUXCAL</th>','<th>FLUXCALERR</th>','<th>PHOTFLAG</th>','<th>PHOTPROB</th>','<th>ZPFLUX</th>','<th>PSF</th>','<th>SKYSIG</th>','<th>SKYSIG_T</th>','<th>GAIN</th>','<th>XPIX</th>','<th>YPIX</th>','<th>NITE</th>','<th>EXPNUM</th>','<th>CCDNUM</th>','</tr>']
     htmlYeah=open(Name,'a')
     for line in openingLines:
         htmlYeah.write(line)
@@ -844,6 +844,9 @@ def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with o
             keyHole=key[16:-1]
             IdentifyingInfo=Dict[key][i].split('/')[0].split('_')[0]+Dict[key][i].split('/')[0].split('_')[1]+Dict[key][i].split('/')[0].split('_')[2]+Dict[key][i].split('/')[0].split('_')[3]
             Info=IdentifyingInfo[16:-1]
+            print(Dict[key][i])
+            print(Dict[key][i+1])
+            print(Dict[key][i+2])
             htmlYeah=open(Name,'a')
             lines=['<h1>Observation OBJID: '+key+'</h1><h2>MJD: '+mjd+'</h2>\n','<h2>'+Info+'</h2>\n','<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="200" height="200"/></span>','</div>']
             for line in lines:
@@ -865,12 +868,12 @@ def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with o
         htmlYeah.write(line)
     htmlYeah.close()
     htmlYeah=open(Name,'a')
-    bottomLines=['</body>\n','</head>']
+    bottomLines=['</body>\n','</html>']
     for line in bottomLines:
         htmlYeah.write(line)
     htmlYeah.close()
 
-    return
+    return 
 
 
 
@@ -948,7 +951,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
         
         status=False
         
-        return fitsname, status
+        return fitsname, status, None
 
     dats = os.listdir(path)
     dats = [x for x in dats if '.dat' in x]
@@ -966,6 +969,8 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
 
     c=0
     allgood=0
+
+    masterTableInfo={} ###Key by snid, provide RA and DEC, probability, nad Gal Dist
     
     for d in dats:
         c=c+1
@@ -991,6 +996,8 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
 
         ###Make Light Curves
         LightCurve=makeLightCurves(datfile,lines)
+
+        print('You are here.')
     
         GoodTarFiles=[]
 
@@ -1009,6 +1016,8 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
         h_zmag = lines[19].split()[4]
 
         datInfo=[snid,raval,decval,host_id,photo_z,photo_zerr,spec_z,spec_zerr,host_sep,h_gmag,h_rmag,h_imag,h_zmag]
+
+        masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),0.0,0.0] ##Prob and host gal dist currently unknown
 
         obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
         #print(mjd, type(mjd),'this is mjd prior to making potatos')
@@ -1051,7 +1060,8 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
         #print(n,'This is n!')
         #print(type(mjd))
     
-        
+        print('You are here 1')
+
         ra = np.empty(n)
         ra.fill(raval)
         dec = np.empty(n)
@@ -1122,10 +1132,13 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                 EXPNUM.append(expnum[k])
                 CCDNUM.append(ccdnum[k])
                 
+                print(objid)
                 if objid==np.float64(0):
-                    #print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
+                    print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
+                    if int(ccdnumk)<10:
+                        ccdnumk='0'+ccdnumk
                     tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
                     
                     try:
@@ -1139,6 +1152,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                         
         else:
             for k in range(n):
+                print('Now you are here')
                 RA.append(ra[k])
                 DEC.append(dec[k])
                 CAND_ID.append(cand[k])
@@ -1176,18 +1190,34 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                 bandk=band[k]
                 ccdnumk=str(int(ccdnum[k]))
 
+                print('You made it this far!!!')
+                print(objid[k])
+                
                 if objid[k]==np.float64(0):
-                    #print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
+                    print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
+                    print('Are you here?')
+                    if int(ccdnumk)<10:
+                        print('or here?')
+                        ccdnumk='0'+ccdnumk
+                    print('Here?')
                     tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
 
                     try:
+                        print('What about here?')
+                        #print(tarFiles)
                         tarFiles=tarFiles[0]
                         if tarFiles not in GiantTarList:
+                            #if tarFiles=='/pnfs/des/persistent/gw/exp/20170816/668072/dp416/i_13/stamps_20170816_WS346-527_i_13/stamps_20170816_WS346-527_i_13.tar.gz':
+                               # continue
+
+                            print('And now are you here?')
                             GiantTarList.append(tarFiles)
+                            print('Does this exist?')
+                                #print(ExtracTarFiles(tarFiles))
                             tarFileFoundforDat+=ExtracTarFiles(tarFiles)
-        
+                            print('And next here?')
                     except IndexError:
                         print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
 
@@ -1269,7 +1299,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
 
     status=True
 
-    return fitsname,status
+    return fitsname,status,masterTableInfo
 
 def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
     
