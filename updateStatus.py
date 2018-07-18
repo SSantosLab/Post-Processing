@@ -6,6 +6,6 @@ def updateStatus(statuslist,season):
         elif status == True:
             stat.write('1 \n')
         else:
-            stat.write(str(status)+'\n')
+            stat.write(str(status))
     stat.close()
     return 'Status updated!'
