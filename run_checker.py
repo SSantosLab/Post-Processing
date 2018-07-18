@@ -26,4 +26,4 @@ print('./forcephoto/output/dp'+season+'/'+time+'_DESY'+season)
 
 statusList=checkStatusFunctions.checkStatus('status'+season+'.txt',season,time)
 print(statusList)
-statusPage.statusPage(statusList)
+statusPage.statusPage(statusList,season)
