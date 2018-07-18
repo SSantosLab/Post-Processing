@@ -9,12 +9,14 @@ echo "Running diffimg_setup.sh"
 echo "diffimg_setup done."
 echo
 
-ARRAY=(postproc_416.ini) #list of postproc_SEASON.ini files
+#Check exposure lists to see if they have grown and update ini files accordingly
 
+ARRAY=($(ls postproc_*.ini)) #list of postproc_SEASON.ini files
+echo ${ARRAY[@]}
 ELEMENTS=${#ARRAY[@]}
-one=1
+echo $ELEMENTS
 
-if [$ELEMENTS > $one];
+if [ $ELEMENTS -gt 1 ];
 then
     echo $ELEMENTS
     for ((count=0;count<$ELEMENTS;count++));
@@ -31,13 +33,13 @@ then
 	echo $TOPDIR_SNFORCEPHOTO_IMAGES
 	echo $TOPDIR_SNFORCEPHOTO_OUTPUT
 
-	python run_postproc.py --season $SEASON &
+	python run_postproc.py --season $SEASON > output${SEASON}.txt &
 	
 	sleep 45s
 	
-	python run_checker.py --season $SEASON &
+	python run_checker.py --season $SEASON 
     done
-    echo "The deed is done."
+echo "The deed is done."
 
 else
     echo "Only one .ini."
@@ -53,7 +55,7 @@ else
     echo $TOPDIR_SNFORCEPHOTO_IMAGES
     echo $TOPDIR_SNFORCEPHOTO_OUTPUT
 
-    python run_postproc.py --season $SEASON &
+    python run_postproc.py --season $SEASON > output${SEASON}.txt &
     
     sleep 45s
 
