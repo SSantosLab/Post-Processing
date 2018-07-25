@@ -13,21 +13,21 @@ def checkForcephoto(season, time):
     print(date)
     if date != strftime("%Y%m%d"):
         return False
-    logs=glob('./forcephoto/output/dp'+season+'/'+time+'_DESY'+season+'/*_FORCEPHOTO.LOG')
-    print('./forcephoto/output/dp'+season+'/'+time+'_DESY'+season)
+    logs=glob('.'+season+'/forcephoto/output/dp'+season+'/'+time+'_DESY'+season+'/*_FORCEPHOTO.LOG')
+    print('.'+season+'/forcephoto/output/dp'+season+'/'+time+'_DESY'+season)
     print(len(logs),'len o logs')
     count=1
     if len(logs)==0:
         return False
-        while len(logs)==0:
-            ymd=time.split('_')[0]
-            minsec=time.split('_')[1]
-            timePlus=ymd+'_'+str(int(minsec)+count)
-            print('./forcephoto/output/dp'+season+'/'+timePlus+'_DESY'+season)
-            logs=glob('./forcephoto/output/dp'+season+'/'+timePlus+'_DESY'+season+'/*_FORCEPHOTO.LOG')
-            print(len(logs))
-            if len(logs)==0:
-                count+=1
+        #while len(logs)==0:
+         #   ymd=time.split('_')[0]
+          #  minsec=time.split('_')[1]
+           # timePlus=ymd+'_'+str(int(minsec)+count)
+            #print('./forcephoto/output/dp'+season+'/'+timePlus+'_DESY'+season)
+            #logs=glob('./forcephoto/output/dp'+season+'/'+timePlus+'_DESY'+season+'/*_FORCEPHOTO.LOG')
+           # print(len(logs))
+           # if len(logs)==0:
+#                count+=1
     for log in logs:
         l=open(log,'r')
         ll=l.readlines()
