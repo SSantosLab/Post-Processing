@@ -4,20 +4,17 @@
 
 table, th, td {
     border: 1px solid black;
-    background-color:#FFE4E1;
-    /*text-align: left;*/
+    background-color:rgba(255, 228, 225,0.3);
     align:center;
     color:black;
 }
 
 table {
     align:center;
-    /*margin-left:auto;
-    margine-right:auto;*/
 }
 
 body {
-    background-image: url("KenHerner.jpeg");
+    background-image: url("11-0222-13D_hr2.jpg");
     background-size:110%;
     background-repeat: no-repeat;
     background-attachment: fixed;
