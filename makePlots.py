@@ -9,6 +9,7 @@ from glob import glob
 import pandas as pd
 from collections import OrderedDict as OD
 import easyaccess
+import ConfigParser
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
@@ -19,12 +20,19 @@ import psycopg2
 import fnmatch
 import configparser
 
-def MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
+def MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
+
+    config = ConfigParser.ConfigParser()
+    if os.path.isfile('./postproc_'+str(season)+'.ini'):
+        inifile = config.read('./postproc_'+str(season)+'.ini')[0]
+    outdir = config.get('general','outdir')
+
+    plt.clf()
 
     statMLS=0
     statRADEC=0
     
-    season = os.environ.get('SEASON')
+    #season = os.environ.get('SEASON')
     season = str(season)
 
     rootdir = os.environ.get('ROOTDIR')
@@ -63,10 +71,10 @@ def MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=
     plt.clf()
     ML_ScoreFake=os.path.join(outdir,'fakemltest_'+season+'.png')
     mls=ML_ScoreFake.split('/')[-1]
-    shutil.copy(ML_ScoreFake,'../../'+mls)
-    print('A img was made!', ML_ScoreFake)
+    shutil.copy(ML_ScoreFake,'./'+mls)
+    print('A img was made!', './'+mls)
     
-    ### RA/DEC MAPS ###                                                                                      
+    ### RA/DEC MAPS ###                                                                       
 
     radecdf = rdf
     if abs(max(radecdf['RA'])-min(radecdf['RA']))>180:
@@ -109,10 +117,10 @@ def MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=
     #sys.exit()
     RADECName=os.path.join(outdir,'fullmap_'+season+'.png')
     radec=RADECName.split('/')[-1]
-    shutil.copy(RADECName,'../../'+radec)
-    print('A img was made!',RADECName)
+    shutil.copy(RADECName,'./'+radec)
+    print('A img was made!','./'+radec)
     
-    if os.path.isfile(RADECName) and os.path.isfile(ML_ScoreFake):
+    if os.path.isfile('./'+radec) and os.path.isfile('./'+mls):
         stat6=True
     else:
         stat6=False
