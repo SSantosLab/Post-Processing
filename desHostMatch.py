@@ -75,6 +75,12 @@ from math import pi
 
 #from   atc_tools.ext import helpers as atcfuncs
 import HostMatchAlgorithms_Ravi as hma # RRG
+import ConfigParser
+
+config = ConfigParser.ConfigParser()
+if os.path.isfile('./postproc_'+str(season)+'.ini'):
+    inifile = config.read('./postproc_'+str(season)+'.ini')[0]
+
 
 ################### Input Parsing #################################################################
 
@@ -475,10 +481,10 @@ def main():
                                                 dtype={'names':['transient_name','SNID','SNGALID', \
                                                                     'COADD_ID','RA','DEC','sep','DLR', \
                                                                     'rank','host', 'X2','Y2','XY','A','B', \
-                                                                    'rPHI','A_IMAGE','B_IMAGE','THETA_IMAGE'],\
+                                                                    'rPHI','A_IMAGE','B_IMAGE','THETA_IMAGE','ZPHOTO'],\
                                                            'formats':['S12','S8','S8','S20','f8','f8','f8', \
                                                                           'f8','i4','i4','f8','f8','f8','f8','f8',\
-                                                                          'f8','f8','f8','f8']})
+                                                                          'f8','f8','f8','f8','f4']})
                     
                         hostinfo['transient_name'][:] = transient_name
                         hostinfo['SNID'][:]           = SNID
@@ -491,6 +497,7 @@ def main():
                         hostinfo['A_IMAGE']           = array['A'][circle]
                         hostinfo['B_IMAGE']           = array['B'][circle]
                         hostinfo['THETA_IMAGE']       = array['THETA'][circle]
+                        hostinfo['ZPHOTO']            =array['ZPHOTO'][circle] 
                         #print array.shape,hostinfo['COADD_ID']
                         #Deprecated until these parameters are included in DESDM catalogs
                         #hostinfo['X2']               = array['X2WIN_IMAGE'][circle]
@@ -533,17 +540,17 @@ def main():
                             hostinfo['rank'][k] = k+1 
 
                             s = ( "{:10s}  {:7s}   {:30s}   {:10.5f}   {:10.5f}   {:10.5f}   "
-                                  "{:10.5f}   {:8.4f}   {:8.4f}   {:8.4f}   {:d}\n" )
+                                  "{:10.5f}   {:8.4f}   {:8.4f}   {:8.4f}   {:d}    {:8.4f}\n" )
                             s = s.format(hostinfo['transient_name'][k], hostinfo['SNID'][k], \
                                              hostinfo['COADD_ID'][k], hostinfo['RA'][k], \
                                              hostinfo['DEC'][k], hostinfo['sep'][k], hostinfo['DLR'][k], \
                                              hostinfo['A'][k], hostinfo['B'][k], \
-                                             hostinfo['rPHI'][k], hostinfo['rank'][k])
+                                             hostinfo['rPHI'][k], hostinfo['rank'][k],hostinfo['ZPHOTO'][k])
 
                             if args.verbose > 1:
                                 print '\tSep: ',k, hostinfo['sep'][k], hostinfo['DLR'][k], \
                                     hostinfo['rank'][k], hostinfo['X2'][k], hostinfo['Y2'][k], \
-                                    hostinfo['XY'][k]
+                                    hostinfo['XY'][k], hostinfo['ZPHOTO'][k]
 
                             file_sep.write(s)
 
@@ -563,13 +570,13 @@ def main():
                             # write smallest angular separation object
                             r = np.where(hostinfo['rank'] == 1)
                             s = ( "{:10s}  {:7s}   {:30s}   {:10.5f}   {:10.5f}   {:10.5f}   {:10.5f}  "
-                                  "{:8.4f}   {:8.4f}   {:8.4f}   {:d}\n" )
+                                  "{:8.4f}   {:8.4f}   {:8.4f}   {:d}    {:8.4f}\n" )
                             s = s.format( hostinfo['transient_name'][r[0][0]], \
                                               hostinfo['SNID'][r[0][0]], hostinfo['COADD_ID'][r[0][0]], \
                                               hostinfo['RA'][r[0][0]], hostinfo['DEC'][r[0][0]], \
                                               hostinfo['sep'][r[0][0]], hostinfo['DLR'][r[0][0]], \
                                               hostinfo['A'][r[0][0]], hostinfo['B'][r[0][0]], \
-                                              hostinfo['rPHI'][r[0][0]], hostinfo['rank'][r[0][0]] )
+                                              hostinfo['rPHI'][r[0][0]], hostinfo['rank'][r[0][0]], hostinfo['ZPHOTO'][r[0][0]] )
                             file_mismatch.write(s)
 
                             hostinfo['rank'][:] = 0    # reset all to 0 to clear the nearest galaxy
@@ -578,13 +585,13 @@ def main():
                             # write smallest DLR object
                             r = np.where(hostinfo['rank'] == 1)
                             s = ( "{:10s}  {:7s}   {:30s}   {:10.5f}   {:10.5f}   {:10.5f}   {:10.5f}  "
-                                  "{:8.4f}   {:8.4f}   {:8.4f}   {:d}\n" )
+                                  "{:8.4f}   {:8.4f}   {:8.4f}   {:d}    {:8.4f}\n" )
                             s = s.format(hostinfo['transient_name'][r[0][0]], \
                                              hostinfo['SNID'][r[0][0]], hostinfo['COADD_ID'][r[0][0]], \
                                              hostinfo['RA'][r[0][0]], hostinfo['DEC'][r[0][0]], \
                                              hostinfo['sep'][r[0][0]], hostinfo['DLR'][r[0][0]], \
                                              hostinfo['A'][r[0][0]], hostinfo['B'][r[0][0]], \
-                                             hostinfo['rPHI'][r[0][0]], hostinfo['rank'][r[0][0]] )
+                                             hostinfo['rPHI'][r[0][0]], hostinfo['rank'][r[0][0]],hostinfo['ZPHOTO'][r[0][0]] )
                             file_mismatch.write(s)  
 
                         #------------------------------------------------------------------------------
@@ -608,12 +615,12 @@ def main():
                                 hostinfo['host'][k] = 0
 
                             s = ( "{:10s}  {:7s}   {:30s}   {:10.5f}   {:10.5f}   {:10.5f}   {:10.5f}  "
-                                  "{:8.4f}   {:8.4f}   {:8.4f}   {:3d}    {:d}\n" )
+                                  "{:8.4f}   {:8.4f}   {:8.4f}   {:3d}    {:d}    {:8.4f}\n" )
                             s = s.format(hostinfo['transient_name'][k], hostinfo['SNID'][k], \
                                              hostinfo['COADD_ID'][k], hostinfo['RA'][k], \
                                              hostinfo['DEC'][k], hostinfo['sep'][k], hostinfo['DLR'][k], \
                                              hostinfo['A'][k], hostinfo['B'][k], hostinfo['rPHI'][k], \
-                                             hostinfo['rank'][k], hostinfo['host'][k] )
+                                             hostinfo['rank'][k], hostinfo['host'][k], hostinfo['ZPHOTO'][k] )
 
                             if args.verbose > 1:
                                 print '\tDLR: ',k, hostinfo['sep'][k], hostinfo['DLR'][k], \
@@ -715,7 +722,8 @@ def main():
                                                                   hostinfo['transient_name'][k],
                                                                   array['ID'][tt],
                                                                   array['RA'][tt],array['DEC'][tt],
-                                                                  hostinfo['rank'][k],db_status) )
+                                                                  hostinfo['rank'][k],hostinfo['ZP\
+HOT'][k],db_status) )
                                 
                                 #-------------------- Ingest to ATC (if not star ) --------------------
 
