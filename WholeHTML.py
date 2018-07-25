@@ -15,7 +15,7 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
         masterHTML.write(line)
     masterHTML.close()
     
-    htmls=glob('./*.html')
+    htmls=glob('theProtoATC_'+season+'*.html')
 
     masterHTML=open('masterHTML'+season+'.html','a')
     
@@ -28,8 +28,10 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
     masterHTML=open('masterHTML'+season+'.html','a')
     for html in htmls:
         
-        name=html.split('.')[1].split('_')[-1]
+        name=html.split('.')[0].split('_')[-1]
         miniName=name[2:]
+        print(miniName)
+        
         try:
             if miniName not in list(masterTableInfo.keys()):
                 continue
@@ -48,12 +50,10 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
         if html=='./masterHTMLspecial.html':
             continue
         
-        name=html.split('.')[1].split('_')[-1]
 
         ###Making a sortable Table
         if masterTableInfo != None:
             
-            miniName=name[2:]
             RAandDEC=str(masterTableInfo[miniName][0])
             prob=str(masterTableInfo[miniName][1])
             galDist=str(masterTableInfo[miniName][2])
@@ -81,10 +81,10 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
         masterHTML.write(line)
     masterHTML.close()
 
-    statusLines=['<a id="status" href="statusPage'+season+'.html"><font size="10">Status Page</font></a>','</body>']
+    statusLines=['<a id="status" href="statusPage'+season+'.html"><font size="10">Status Page</font></a>','</body>','</html>']
     masterHTML=open('masterHTML'+season+'.html','a')
     masterHTML.write(statusLines[0])
     masterHTML.write(statusLines[1])
     masterHTML.close()
     
-    return 'Magic!'
+    return 'Functional'
