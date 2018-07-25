@@ -2,7 +2,7 @@
 ##### edit these lines before running the code:
 export ROOTDIR=/pnfs/des/persistent/gw
 export ROOTDIR2=/data/des40.b/data/nsherman/postprocBig 
-export SEASON=416 
+#export SEASON=416 
 #####
 
 source /cvmfs/des.opensciencegrid.org/eeups/startupcachejob21i.sh
