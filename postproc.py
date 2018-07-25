@@ -631,7 +631,7 @@ def makeHTML(tar, Name):
 
 
 
-def ExtracTarFiles(tar):
+def ExtracTarFiles(tar,season):
     ###get tar files                                                           
     ####Get the distinguishing number at the end of the tar file               
     tarsplit=tar.split('/')
@@ -643,7 +643,7 @@ def ExtracTarFiles(tar):
     if not os.path.isdir(specificGifAndFitsDir):
         os.makedirs(specificGifAndFitsDir)
     lilTar=tarfile.open(tar)
-    lilTar.extractall(members=gif_files(lilTar), path = specificGifAndFitsDir)
+    lilTar.extractall(members=gif_files(lilTar), path = (specificGifAndFitsDir))
     allTheGifs=glob(specificGifAndFitsDir+'/*.gif')
     #print('in extract stuff', type(allTheGifs),len(allTheGifs), allTheGifs[0])
     return allTheGifs
@@ -651,14 +651,14 @@ def ExtracTarFiles(tar):
 
 
 
-def MakeDictforObjidsHere(tarFileFoundforDat,ObjidList):
+def MakeDictforObjidsHere(stamps4file,ObjidList):
     ObjidDict={}###dictionary pointing to gifs and fits for dat file
 
     #print('you just entered the twilight zone.')
     for n in range(len(ObjidList)):
         ObjidDict[str(int(ObjidList[n]))]=[]
         
-    for File in tarFileFoundforDat:
+    for File in stamps4file:
         #print(File)
         NumID=''
         for char in File.split('/')[-1].split('.')[0]:
@@ -708,11 +708,15 @@ def getBandsandField(lines):
 
 def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid,band,field):
     objidDict={}
-    for i in range(len(objid)):
-        if objid[i] != 0:
-            objidDict[str(int(objid[i]))]=[str(mjd[i]),band[i],str(field[i]),str(fluxcal[i]),str(fluxcalerr[i]),str(photflag[i]),str(photprob[i]),str(zpflux[i]),str(psf[i]),str(skysig[i]),str(skysig_t[i]),str(gain[i]),str(xpix[i]),str(ypix[i]),str(int(nite[i])),str(int(expnum[i])),str(int(ccdnum[i]))]
-        else:
-            continue
+    try:
+        for i in range(len(objid)):
+            if objid[i] != 0:
+                objidDict[str(int(objid[i]))]=[str(mjd[i]),band[i],str(field[i]),str(fluxcal[i]),str(fluxcalerr[i]),str(photflag[i]),str(photprob[i]),str(zpflux[i]),str(psf[i]),str(skysig[i]),str(skysig_t[i]),str(gain[i]),str(xpix[i]),str(ypix[i]),str(int(nite[i])),str(int(expnum[i])),str(int(ccdnum[i]))]
+            else:
+                continue
+    except TypeError:
+        if objid != 0:
+            objidDict[str(int(objid))]=[str(mjd),str(band[0]),str(field),str(fluxcal),str(fluxcalerr),str(photflag),str(photprob),str(zpflux),str(psf),str(skysig),str(skysig_t),str(gain),str(xpix),str(ypix),str(int(nite)),str(int(expnum)),str(int(ccdnum))]
     return objidDict
 
 
@@ -729,19 +733,31 @@ def makeLightCurves(datFile,lines):
             if bandy not in Bands:
                 Bands.append(bandy)
     #Time=Mjd
-    Time=Nite-Nite[0]
+    try:
+        Time=Nite-Nite[0]
+    except:
+        Time=0
     bandDict={}
     for b in Bands:
         bandDict[b]=[[],[],[]] #mag,time,magerr
-    
-    for i in range(len(Objid)):
-        if Objid[i] != 0.0:
-            m=-2.5*np.log10(Flux[i])+27.5
-            magErr=ErrorMag(Flux[i],FluxErr[i])
-            bandDict[band[i]][0].append(m)
-            bandDict[band[i]][1].append(Time[i])
-            bandDict[band[i]][2].append(magErr)
+    try:
+        for i in range(len(Objid)):
+            if Objid[i] != 0.0:
+                m=-2.5*np.log10(Flux[i])+27.5
+                magErr=ErrorMag(Flux[i],FluxErr[i])
+                bandDict[band[i]][0].append(m)
+                bandDict[band[i]][1].append(Time[i])
+                bandDict[band[i]][2].append(magErr)
             
+    except:
+        if Objid !=0.0:
+            m=-2.5*np.log10(Flux)+27.5
+            magErr=ErrorMag(Flux,FluxErr)
+            bandDict[band[0]][0].append(m)
+            bandDict[band[0]][1].append(Time)
+            bandDict[band[0]][2].append(magErr)
+    
+
     fig = plt.figure()
     ax = fig.gca()    
     
@@ -771,7 +787,7 @@ def makeLightCurves(datFile,lines):
 
 
 
-def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with obs and associated gifs, dict with OBJIDS and associated dat file info ,list of tar files that correspond to observations, list=[snid,raval,decval], name of the Light curve for the dat file, dictionary mapping snid to host galaxy info
+def ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with obs and associated gifs, dict with OBJIDS and associated dat file info ,list of tar files that correspond to observations, list=[snid,raval,decval], name of the Light curve for the dat file, dictionary mapping snid to host galaxy info
     if datInfo[0] not in list(snidDict.keys()) or snidDict[datInfo[0]]==[('N/A', '0','N/A', 'N/A')]: ##This condition is to work around when clearing the database also removes (hides?) the SNIDs with no potetial host galaxy
         snidDict[datInfo[0]]=[('-999', '0','-999', '-999')]
     GalInfo=snidDict[datInfo[0]]
@@ -782,12 +798,12 @@ def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with o
 
     dat=theDat.split('_')[-1]
     
-    Name='theProtoATC'+theDat+'.html'
+    Name='theProtoATC_'+season+'_'+theDat+'.html'
     htmlYeah=open(Name,'w+')
     topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>',
           '<link rel="stylesheet" type="text/css" href="theProtoATCStyleSheet.css">',
           '<title> Plots from '+theDat+'</title>\n','<h1>This is the title for '+theDat+'</h1>','\n','</head>\n',
-          '<body>','<p> This is what it is about. </p>',
+          '<body>','<p> Candidates whose ML scores are less than 0.7 are not displayed. </p>',
           '<table align="center">\n','<caption>Candidate (SNID  '+str(datInfo[0])+') Info</caption>','<tr>','<th>RA</th>\n','<td>'+str(datInfo[1])+'</td>\n',
           '<th>DEC</th>\n','<td>'+str(datInfo[2])+'</td>\n','</tr>','</table>',
           '<table align="center">','<caption>Host Galaxy Info</caption>','<tr>','<th>HOST_ID</th>','<td>'+HostID+'</td>','</tr>',
@@ -838,12 +854,14 @@ def ZapHTML(Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict with o
     for key in list(objidDict.keys()):
         mjd=objidDict[key][0]
         Dict[key].sort
-        #print('this is Key!',key)
-        #print(len(Dict[key]))
+        print('this is Key!',key)
+        print(len(Dict[key]))
+        print(Dict[key])
+        if Dict[key]==[]:
+            continue
         for i in range(0,len(Dict[key]),3):
             keyHole=key[16:-1]
-            IdentifyingInfo=Dict[key][i].split('/')[0].split('_')[0]+Dict[key][i].split('/')[0].split('_')[1]+Dict[key][i].split('/')[0].split('_')[2]+Dict[key][i].split('/')[0].split('_')[3]
-            Info=IdentifyingInfo[16:-1]
+            Info=Dict[key][i].split('/')[0].split('_')[1]+Dict[key][i].split('/')[0].split('_')[2]
             print(Dict[key][i])
             print(Dict[key][i+1])
             print(Dict[key][i+2])
@@ -920,6 +938,31 @@ def checkDatFile(exposure_file):
        Continue='No'
     return Continue
 
+
+def getGTL():
+    if not os.path.exists('GiantTarList.txt'):
+        return []
+    else:
+        GTL=open('GiantTarList.txt','r')
+        lines=GTL.readlines()
+        GTL.close()
+
+        GiantTarList=[]
+        for i in lines:
+            GiantTarList.append(i[:-1])
+
+        return GiantTarList
+
+def updateGTL(newTars):
+    GTL=open('GiantTarList.txt','w+')
+    for new in newTars:
+        GTL.write(new+'\n')
+    GTL.close()
+    return "Updated GiantTarList"
+
+
+
+
  
 def combinedatafiles(season,master,fitsname,datadir,snidDict):
     
@@ -971,16 +1014,16 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
     allgood=0
 
     masterTableInfo={} ###Key by snid, provide RA and DEC, probability, nad Gal Dist
-    
+
+    GTL=getGTL()##List of tar files already extracted
+
     for d in dats:
         c=c+1
         if c%1000==0:
             print c
             #break                                                             
         
-        tarFileFoundforDat=[]
-        #print('len O tars found',len(tarFileFoundforDat))
-        GiantTarList=[]
+        stamps4file=[]##Stamps found for dat file
         filename = d.split('\n')[0]
         datfile = os.path.join(path,filename)
         f = open(datfile,'r+')
@@ -997,7 +1040,6 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
         ###Make Light Curves
         LightCurve=makeLightCurves(datfile,lines)
 
-        print('You are here.')
     
         GoodTarFiles=[]
 
@@ -1057,10 +1099,6 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
              #   allgood+=1
         
         n = len(mjd)
-        #print(n,'This is n!')
-        #print(type(mjd))
-    
-        print('You are here 1')
 
         ra = np.empty(n)
         ra.fill(raval)
@@ -1094,10 +1132,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
         for j in range(n):
             DATAFILE.append(filename)
 
-        ###Here Insert checkDatFile###
-        #print('This is obs', obs, 'and its type is',type(obs))
         if len(obs) == 1:
-            print('Did not pass checkDatFile')
             BAND.append(band)
             OBJID.append(objid)
             for k in range(n):
@@ -1116,7 +1151,6 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                 HOST_IMAG.append(himag[k])
                 HOST_ZMAG.append(hzmag[k])
                 FIELD.append(field[k])
-                #print('Field!',field[k])
                 FLUXCAL.append(fluxcal[k])
                 FLUXCALERR.append(fluxcalerr[k])
                 PHOTFLAG.append(photflag[k])
@@ -1139,16 +1173,27 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                 else:
                     if int(ccdnumk)<10:
                         ccdnumk='0'+ccdnumk
-                    tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
+                    if float(photprob[k])<0.7:
+                        continue
+                    else:
+                        tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
                     
-                    try:
-                        tarFiles=tarFiles[0]
-                        if tarFiles not in GiantTarList:
-                            GiantTarList.append(tarFiles)
-                            tarFileFoundforDat+=ExtracTarFiles(tarFiles)
-
-                    except IndexError:
-                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+                        try:
+                            tarFile=tarFiles[0]
+                            if tarFile not in GTL:
+                                GTL.append(tarFile)
+                                stamps4file+=ExtracTarFiles(tarFile,season)
+                            else:
+                                print ("Well, well, well. So I see you've made it this far, eh?")
+                                tarsplit=tarFile.split('/')
+                                tarlen=len(tarsplit)
+                                quality=tarsplit[tarlen-1]
+                                definingQuality=quality.split('.')[0]
+                                specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
+                                print(specificGifAndFitsDir)
+                                stamps4file+=glob(specificGifAndFitsDir+'/*.gif')
+                        except IndexError:
+                            print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
                         
         else:
             for k in range(n):
@@ -1197,40 +1242,43 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                     print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
-                    print('Are you here?')
                     if int(ccdnumk)<10:
-                        print('or here?')
                         ccdnumk='0'+ccdnumk
-                    print('Here?')
-                    tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
+                    if float(photprob[k])<0.7:
+                        continue
+                    else:
+                        tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
 
-                    try:
-                        print('What about here?')
-                        #print(tarFiles)
-                        tarFiles=tarFiles[0]
-                        if tarFiles not in GiantTarList:
-                            #if tarFiles=='/pnfs/des/persistent/gw/exp/20170816/668072/dp416/i_13/stamps_20170816_WS346-527_i_13/stamps_20170816_WS346-527_i_13.tar.gz':
-                               # continue
-
-                            print('And now are you here?')
-                            GiantTarList.append(tarFiles)
-                            print('Does this exist?')
-                                #print(ExtracTarFiles(tarFiles))
-                            tarFileFoundforDat+=ExtracTarFiles(tarFiles)
-                            print('And next here?')
-                    except IndexError:
-                        print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
+                        try:
+                            tarFile=tarFiles[0]
+                            if tarFile not in GTL:
+                                GTL.append(tarFile)
+                                stamps4file+=ExtracTarFiles(tarFile,season)
+                            else:
+                                print("Well, well, well. So I see you've made it this far, eh?")
+                                tarsplit=tarFile.split('/')
+                                tarlen=len(tarsplit)
+                                quality=tarsplit[tarlen-1]
+                                definingQuality=quality.split('.')[0]
+                                specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
+                                print(specificGifAndFitsDir)
+                                stamps4file+=glob(specificGifAndFitsDir+'/*.gif')
+                        except IndexError:
+                            print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
 
 
 
 
                         
         ####MakeDictHere####
-        Dict=MakeDictforObjidsHere(tarFileFoundforDat,objid)
+        print('stamps for the file.',stamps4file)
+        Dict=MakeDictforObjidsHere(stamps4file,objid)
+        print("The objid dict with the gifs.", Dict)
         ####MakeHTMLwithDict####
-        HTML=ZapHTML(Dict,objidDict,theDat,datInfo,LightCurve,snidDict)
+        HTML=ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurve,snidDict)
     
-
+    updatedGTL=updateGTL(GTL)
+    print(updatedGTL)
 
     print 'allgood = %d' % allgood
     print
