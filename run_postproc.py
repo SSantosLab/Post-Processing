@@ -292,31 +292,33 @@ print
 # STEP 3: Hostmatch
 #########
 
-print "Run STEP 3: Hostmatch"
-import desHostMatch
-print('We are *RUNNING HOSTMATCH!*')
-desHostMatch.main()
-print
-print('That... was not worth the hype.')
-print
-print('Now making a galaxy match dictionary!')
-irksome='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt'
-irritation=open(irksome,'r')
-path=irritation.read()
-irritation.close()
-print(path)
-#sys.exit('Ladies and gentlemen! We are debugging.')
-snidDict=findHostGala.findHostGala(path)
-print(list(snidDict.keys()))
-
-prestat=open('hostmatchstatus.txt','r')
-stat=prestat.read()
-if stat==True:
-    status=True
-else:
-    status=False
-statusList[4]=status
-
+#print "Run STEP 3: Hostmatch"
+#import desHostMatch
+#print('We are *RUNNING HOSTMATCH!*')
+#desHostMatch.main(season)
+#print
+#print('That... was not worth the hype.')
+#print
+#print('Now making a galaxy match dictionary!')
+#irksome='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt'
+#irritation=open(irksome,'r')
+#path=irritation.read()
+#irritation.close()
+#print(path)
+##sys.exit('Ladies and gentlemen! We are debugging.')
+#snidDict=findHostGala.findHostGala(path)
+#print(list(snidDict.keys()))
+#
+#prestat=open('hostmatchstatus.txt','r')
+#stat=prestat.read()
+#if stat==True:
+#    status=True
+#else:
+#    status=False
+#statusList[4]=status
+#
+snidDict={}
+status=False
 print('step 3 status', status)
 
 update=updateStatus.updateStatus(statusList,season)
@@ -330,6 +332,8 @@ print('statusList',statusList)
 if len(expnums)>0:
     print "Run STEP 4: Make truth table"
     truthplus,status = postproc.truthtable(season,expnums,filename,truthplusfile)
+
+    print(truthplus)
 else:
     status=False
     print "WARNING: List of exposures is empty. Skipping STEP 4."
@@ -358,6 +362,8 @@ else:
 print                                                                                    
 print "Run STEP 5b: Combine real datafiles"
 fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict)
+
+print(fitsname)
 print
 if masterTableInfo != None:
     print(type(list(masterTableInfo.keys())[0]))
@@ -370,7 +376,13 @@ update=updateStatus.updateStatus(statusList,season)
 print(update)
 print('statusList',statusList)
 
-#sys.exit()
+if status == False:
+    runStatus='complete'
+    statusList[9]=runStatus
+    update=updateStatus.updateStatus(statusList,season)
+    print(update)
+    sys.exit()
+
 #########
 # STEP 6: Make plots
 #########
@@ -379,7 +391,7 @@ print('statusList',statusList)
 skip=True
 print "Run STEP 6: Make plots"
 print
-stat6,MLScoreFake,RADEC=makePlots.MakeDaPlots(ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
+stat6,MLScoreFake,RADEC=makePlots.MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
 #print(Words)
 print('It is possible this has run.')
 #statusList.append(status)
@@ -406,7 +418,7 @@ print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
 print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
 word=WholeHTML.WholeHTML(MLScoreFake,RADEC,season,masterTableInfo)
 print(word)
-if word == "Magic!":
+if word == "Functional":
     statusNew=True
     statusList[8]=statusNew
 else:
