@@ -333,7 +333,6 @@ if len(expnums)>0:
     print "Run STEP 4: Make truth table"
     truthplus,status = postproc.truthtable(season,expnums,filename,truthplusfile)
 
-    print(truthplus)
 else:
     status=False
     print "WARNING: List of exposures is empty. Skipping STEP 4."
@@ -363,11 +362,11 @@ print
 print "Run STEP 5b: Combine real datafiles"
 fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict)
 
-print(fitsname)
-print
-if masterTableInfo != None:
-    print(type(list(masterTableInfo.keys())[0]))
 
+print
+#if masterTableInfo != None:
+#    print(type(list(masterTableInfo.keys())[0]))
+#
 if status == None:
     status=False
 print('step 5 status',status)
