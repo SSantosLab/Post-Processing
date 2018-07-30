@@ -6,18 +6,22 @@ table, th, td {
     border: 1px solid black;
     background-color:rgba(255, 228, 225,0.3);
     align:center;
-    color:black;
+    color:white;
+    padding: 5px;
+    font-family:Verdana, Geneva, sans-serif;
 }
 
 table {
     align:center;
+    border-radius: 20px;
 }
 
 body {
-    background-image: url("11-0222-13D_hr2.jpg");
+    background-image: url("iu-5.jpeg");
     background-size:110%;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    font-family:Verdana, Geneva, sans-serif;
     color:white;
     text-align: center;
 }
