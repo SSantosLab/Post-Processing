@@ -513,6 +513,7 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
         a = a + ' -numepochs_min ' + numepochs_min  
         a = a + ' -outFile_stdout ' + outfile + '_' + str(i+1) 
         a = a + ' -outDir_data ' + outdir
+        a = a + ' -ML_trigger ' + '0.7'
         if not two_nite_trigger == 'null':
             a = a + ' -2nite_trigger ' + trigger 
         if not fakeversion == None: 
