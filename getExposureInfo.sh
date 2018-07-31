@@ -11,4 +11,4 @@ do
 awk '($6 == "'$band'")' exposures.list > exposures_${band}.list
 done
 
-exit
+#exit
