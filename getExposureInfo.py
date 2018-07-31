@@ -38,7 +38,7 @@ conn.close()
 #print some_exposures.keys()
  
 
- mystrings=''
+mystrings=''
 
 mystrings=some_exposures.to_string(index_names=False,index=False,justify="left")
 
@@ -51,3 +51,9 @@ myout.close()
 
 
 os.system('mv newdbtest.dat exposures.list')
+
+line = subprocess.check_output(['tail', '-1', 'exposures.list'])
+lastExp=line.split(' ')[1]
+g=open('lastExp.txt', 'w+')
+g.write(lastExp)
+g.close()
