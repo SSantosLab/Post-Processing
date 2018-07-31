@@ -1,5 +1,5 @@
 import os
-#import easyaccess as ea
+import subprocess
 import pandas
 import psycopg2
 
