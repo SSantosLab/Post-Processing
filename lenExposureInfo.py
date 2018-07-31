@@ -1,5 +1,4 @@
-import os
-#import easyaccess as ea                                                                
+import os                                                                
 import pandas
 import psycopg2
 
@@ -11,15 +10,16 @@ WHERE flavor='object' and exptime>29.999  and RA is not NULL and id>=182809
 
 conn =  psycopg2.connect(database='decam_prd',
                            user='decam_reader',
-                           host='des20.fnal.gov',
-                           #password='mar70chips',                                      
+                           host='des20.fnal.gov',                                      
                          port=5443)
-lenExp = pandas.read_sql(query, conn)
+lenExpFrame = pandas.read_sql(query, conn)
 conn.close()
+
+lenExp=lenExpFrame.iloc[-1]['count']
 
 print('lenExp',lenExp)
 
 f=open('ExpLen.txt','w+')
-f.write(lenExp)
+f.write(str(lenExp))
 f.close()
 
