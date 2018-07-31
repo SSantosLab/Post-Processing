@@ -25,7 +25,7 @@ for i in $otherEle
 do
     echo $i
 done
-for (count=0;count<$ELEMENTS;count++);
+for ((count=0;count<$ELEMENTS;count++));
 do
     nite=${nites[${count}]}
     awk '$2 == "nite" {print $0}' outfile.txt >> curatedExposure.list
