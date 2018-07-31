@@ -1,6 +1,7 @@
 import os
 import pandas
 import psycopg2
+import argparse
 
 parser = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
