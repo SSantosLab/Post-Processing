@@ -38,7 +38,7 @@ conn.close()
 #print some_exposures.keys()
  
 
-mystrings=''
+ mystrings=''
 
 mystrings=some_exposures.to_string(index_names=False,index=False,justify="left")
 
