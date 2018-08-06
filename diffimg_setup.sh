@@ -77,7 +77,7 @@ export SNANA_ROOT=/data/des41.b/data/SNDATA_ROOT
 ###The following should be removed once Adam is fuctional
 if [ ! -d $TOPDIR_SNFORCEPHOTO_OUTPUT ]; then mkdir -p $TOPDIR_SNFORCEPHOTO_OUTPUT ; fi
 ###
-
+##FORCE PHOTO GOODNESS TO BE UNCOMMENTED WHEN NECESSARY
 #if [ ! -d $TOPDIR_SNFORCEPHOTO_IMAGES ]; then 
 #     mkdir -p $TOPDIR_SNFORCEPHOTO_IMAGES
 #     if [ -d $(echo $ROOTDIR/forcephoto/images/dp${SEASON}) ]; then
@@ -85,7 +85,7 @@ if [ ! -d $TOPDIR_SNFORCEPHOTO_OUTPUT ]; then mkdir -p $TOPDIR_SNFORCEPHOTO_OUTP
 # 	do
 # 	    mkdir ${TOPDIR_SNFORCEPHOTO_IMAGES}/$(basename $nite)}
 #	    #Backtothebeginning
-#	    #ln -sf $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*/*.fits $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*/*.psf ${TOPDIR_SNFORCEPHOTO_IMAGES}/$(basename $nite)/
+#	   THIS IS THE DROID YOU ARE LOOKING FOR (IGNORE THE OTHER 2) #ln -sf $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*/*.fits $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*/*.psf ${TOPDIR_SNFORCEPHOTO_IMAGES}/$(basename $nite)/
 #	    ln -sf $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*.fits $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*.psf ${TOPDIR_SNFORCEPHOTO_IMAGES}/$(basename $nite)/
 #
 ## 	    ln -sf $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*.fits $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*.psf ${TOPDIR_SNFORCEPHOTO_IMAGES}/$(basename $nite)/
