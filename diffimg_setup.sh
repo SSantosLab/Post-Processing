@@ -41,9 +41,38 @@ export DIFFIMG_HOST=FNAL
 export SCAMP_CATALOG_DIR=$PWD/SNscampCatalog
 export AUTOSCAN_PYTHON=$PYTHON_DIR/bin/python
 export DES_ROOT=/data/des20.b/data/SNDATA_ROOT/INTERNAL/DES 
-###The following two lines ought to be commented out when Adam is functional
-#export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/forcephoto/images/dp${SEASON} 
-#export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/forcephoto/output/dp${SEASON} 
+
+
+### Add for multi-season processing ###
+ARRAY=($(ls postproc_*.ini)) #list of postproc_SEASON.ini files
+ELEMENTS=${#ARRAY[@]}
+
+for ((count=0;count<$ELEMENTS;count++))
+do
+    INI=${ARRAY[${count}]}
+    python getSeason.py --ini $INI
+    SEASON=`cat getSeason.txt`
+
+    export $SEASON
+
+    export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/forcephoto/images/dp${SEASON} 
+    export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/forcephoto/output/dp${SEASON} 
+
+    if [ ! -d $TOPDIR_SNFORCEPHOTO_OUTPUT ]; then mkdir -p $TOPDIR_SNFORCEPHOTO_OUTPUT ; fi
+###                                                      
+    if [ ! -d $TOPDIR_SNFORCEPHOTO_IMAGES ]; then
+	mkdir -p $TOPDIR_SNFORCEPHOTO_IMAGES
+	if [ -d $(echo $ROOTDIR/forcephoto/images/dp${SEASON}) ]; then
+            for nite in $(ls $ROOTDIR/forcephoto/images/dp${SEASON})
+            do
+		mkdir ${TOPDIR_SNFORCEPHOTO_IMAGES}/$(basename $nite)                                          
+		ln -sf $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*/*.fits $ROOTDIR/forcephoto/images/dp${SEASON}/${nite}/*/*.psf ${TOPDIR_SNFORCEPHOTO_IMAGES}/$(basename $nite)/
+            done
+	fi
+    fi
+done
+
+
 ###----------------------------------------------------------------------###  
 export TOPDIR_DATAFILES_PUBLIC=${ROOTDIR}/DESSN_PIPELINE/SNFORCE/DATAFILES_TEST
 export TOPDIR_WSTEMPLATES=${ROOTDIR}/WSTemplates
