@@ -102,9 +102,9 @@ export SNANA_ROOT=/data/des41.b/data/SNDATA_ROOT
 #export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk
 #export PATH=$DIFFIMG_DIR/bin:$PATH
 
-
+######ACTUALLY, UNLESS SOMETHING RELATING TO SYMLINKS DOES NOT WORK, IGNORE THIS
 ###The following should be removed once Adam is fuctional
-if [ ! -d $TOPDIR_SNFORCEPHOTO_OUTPUT ]; then mkdir -p $TOPDIR_SNFORCEPHOTO_OUTPUT ; fi
+#if [ ! -d $TOPDIR_SNFORCEPHOTO_OUTPUT ]; then mkdir -p $TOPDIR_SNFORCEPHOTO_OUTPUT ; fi
 ###
 ##FORCE PHOTO GOODNESS TO BE UNCOMMENTED WHEN NECESSARY
 #if [ ! -d $TOPDIR_SNFORCEPHOTO_IMAGES ]; then 
