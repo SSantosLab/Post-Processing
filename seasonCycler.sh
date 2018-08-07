@@ -16,8 +16,8 @@ then
     python getExposureInfoNFS.py --lastExp
     . getExpWPropIDandNite.sh
 
-    echo "Sleeping for a moment"
-    sleep 60s 
+    echo "Sleeping for a bit"
+    sleep 5s 
 
     echo "It's alive."
     echo
@@ -37,19 +37,14 @@ then
     then
 	echo $ELEMENTS
 	for ((count=0;count<$ELEMENTS;count++));
-	do
+	do 
+	    
 	    INI=${ARRAY[${count}]}
 	    echo $INI
 	    python getSeason.py --ini $INI
 	    SEASON=`cat getSeason.txt`
 	    echo 'SEASON = '$SEASON
 	    
-	    export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/$SEASON/forcephoto/images/dp${SEASON}
-	    export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/$SEASON/forcephoto/output/dp${SEASON}
-	    
-	    echo $TOPDIR_SNFORCEPHOTO_IMAGES
-	    echo $TOPDIR_SNFORCEPHOTO_OUTPUT
-
 	    python run_postproc.py --season $SEASON > output${SEASON}.txt &
 	    
 	    sleep 45s
@@ -66,12 +61,6 @@ then
 	SEASON=`cat getSeason.txt`
 	echo 'SEASON = '$SEASON
 
-	export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/forcephoto/images/dp${SEASON}
-	export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/forcephoto/output/dp${SEASON}
-	
-	echo $TOPDIR_SNFORCEPHOTO_IMAGES
-	echo $TOPDIR_SNFORCEPHOTO_OUTPUT
-	
 	python run_postproc.py --season $SEASON > output${SEASON}.txt &
 	
 	sleep 45s
