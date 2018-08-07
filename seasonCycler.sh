@@ -45,6 +45,9 @@ then
 	    SEASON=`cat getSeason.txt`
 	    echo 'SEASON = '$SEASON
 	    
+	    #update exposure list in config file
+	    python changeEXPlist.py --season $SEASON --expList curatedExposure.list 
+
 	    python run_postproc.py --season $SEASON > output${SEASON}.txt &
 	    
 	    sleep 45s
