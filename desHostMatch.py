@@ -220,7 +220,7 @@ if season_number:
 
 ###############################   MAIN   ##########################################################
 
-def main():
+def main(season):
     global isNearest
     global maxgalid
     global db_flag
@@ -874,11 +874,11 @@ HOT'][k],db_status) )
     hostms.close()
     
     thisisnottheDroidyouarelookingfor=OUTPUT_DIR+'/hostmatch.db.log'
-    thisistheDroidyouarelookingfor='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/hostmatch.db.log'
+    thisistheDroidyouarelookingfor='./'+season+'/outputs/hostmatch/hostmatch.db.log'
     ###Unhardcode this file location, plz
 ###database log file containing all the information necessary to build snid dictionary for html documentation
     shutil.copy2(thisisnottheDroidyouarelookingfor,thisistheDroidyouarelookingfor)
-    irksome=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt','w+')
+    irksome=open('./'+season+'/outputs/hostmatch/databaseLocation.txt','w+')
     irksome.write(thisistheDroidyouarelookingfor)
     irksome.close()
 ############################### Call main script ##################################################
