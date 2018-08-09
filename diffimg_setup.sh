@@ -1,7 +1,7 @@
 
 ##### edit these lines before running the code:
 export ROOTDIR=/pnfs/des/persistent/gw
-export ROOTDIR2= ./ #This should just be where you are running /data/des40.b/data/nsherman/postprocBig 
+export ROOTDIR2=./ #This should just be where you are running /data/des40.b/data/nsherman/postprocBig 
 #export SEASON=416 
 #####
 
@@ -53,7 +53,7 @@ do
     python getSeason.py --ini $INI
     SEASON=`cat getSeason.txt`
 
-    export $SEASON
+    export SEASON=$SEASON
 
     export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/forcephoto/images/dp${SEASON} 
     export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/forcephoto/output/dp${SEASON} 
