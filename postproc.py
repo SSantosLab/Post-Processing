@@ -40,7 +40,7 @@ def masterlist(filename,blacklist_file,ligoid,propid,bands=None,expnums=None,a_b
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
-    filename = os.path.join(outdir,filename)
+    filename = os.path.join(outdir,filename) #filename=
 
     if os.path.isfile(os.path.join(indir,blacklist_file)):
         blacklist = list(np.genfromtxt(blacklist_file,usecols=(0),unpack=True))
@@ -53,9 +53,15 @@ def masterlist(filename,blacklist_file,ligoid,propid,bands=None,expnums=None,a_b
     blacklist = [int(x) for x in blacklist]
 
     if expnums:
-        query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
+        if len(expnums)>1:
+            query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
 where ra is not null and (program='des gw' or program='survey' or program='des nu') and id IN """+str(tuple(expnums))+""" order by id"""
+        else:
+            query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
+from exposure 
+where ra is not null and (program='des gw' or program='survey' or program='des nu') and id="""+str(expnums[0])+""" order by id"""
+
 #         query_count = """select * from (
 # WITH objnights AS (
 # SELECT obstac.nightmjd(date), object, ra, declination
@@ -174,7 +180,7 @@ order by id"""
          fits.Column(name='t_eff', format='E', array=expdf['qc_teff']),
          ])
 
-    tbhdu1.writeto(filename,clobber=True)
+    tbhdu1.writeto(filename,clobber=True) #filename
     
     f=open(os.path.join(outdir,blacklist_file),'w')
     f.write(str(sorted(set(blacklist))))
@@ -200,13 +206,16 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     stepnames = map(lambda x: x.strip(), stepnames)
 
     goodchecked = os.path.join(outdir,goodchecked)
+    print("good checked", goodchecked)
     if os.path.isfile(goodchecked):
         f = open(goodchecked,'r')
         good = f.readlines()
         f.close()
-        good = map(lambda x: int(x.strip()), good)        
+        good = map(lambda x: int(x.strip()), good)
+        print("good list", good)
     else:
         good = []
+        print("GOOD IS EMPTY")
 
     totexp = len(expnums)
 
@@ -337,10 +346,14 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
 
     df1 = pd.DataFrame(d)
     df = df1.set_index('expnum')
+    print
+    print("df", df)
 
     ccddf = df.copy()
 
     listgood = df.loc[df.sum(axis=1) == 0].index
+    print
+    print("listgood", listgood)
     listgood = listgood.tolist()
     for l in listgood:
         if len(set(df.loc[l].values))!=1:
@@ -349,8 +362,10 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     np.savetxt(goodchecked,sorted(listgood),fmt='%d')
 
     df['unfinished']=(df<0).astype(int).sum(axis=1)
+    print("unfinished", df['unfinished'])
     dfsuc = df.drop('unfinished',1)
     df['successes']=(dfsuc==0).astype(int).sum(axis=1)
+    print("df[successes]",df['successes'])
     df['fraction'] = ""
     for exp in list(df.index.values):
         frac = float(df.get_value(exp,'successes'))/59.
@@ -366,6 +381,8 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     lf.write(str(ccdsum)),lf.write('\n')
     
     lf.write('CCD SUCCESS RATE: ')
+    print
+    print("ccdsum, ccdtoto", ccdsum, ccdtot)
     div = float(ccdsum)/float(ccdtot)
     div = div*100
     lf.write('%.1f%%' % div)
@@ -965,7 +982,7 @@ def updateGTL(newTars):
 
 
  
-def combinedatafiles(season,master,fitsname,datadir,snidDict):
+def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
     
     config = configparser.ConfigParser()
     config.read('postproc_'+season+'.ini')
@@ -1177,7 +1194,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                     if float(photprob[k])<0.7:
                         continue
                     else:
-                        tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
+                        tarFiles=glob('/pnfs/des/persistent/'+schema+'/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
                     
                         try:
                             tarFile=tarFiles[0]
@@ -1248,7 +1265,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict):
                     if float(photprob[k])<0.7:
                         continue
                     else:
-                        tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
+                        tarFiles=glob('/pnfs/des/persistent/'+schema+'/exp/'+nitek+'/'+expnumk+'/dp'+mySEASON+'/'+bandk+'_'+ccdnumk+'/stamps_'+nitek+'_*_'+bandk+'_'+ccdnumk+'/*.tar.gz')
 
                         try:
                             tarFile=tarFiles[0]
