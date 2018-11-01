@@ -26,6 +26,7 @@ parser.add_argument('--ligoid', help='LIGO event ID (G######)', type=str)
 parser.add_argument('--mjdtrigger', type=float, help='MJD of LIGO trigger')
 parser.add_argument('--ups', type=bool, help='ups mode: True/False')
 parser.add_argument('--checkonly', type=bool, help='only do the processing check')
+parser.add_argument('--schema', type=str, default='gw', help='Schema used')
 args = parser.parse_args()
 
 season=str(args.season)
@@ -178,7 +179,7 @@ fakeversion = config.get('GWmakeDataFiles-fake', 'version')
 ## Make directory structure
 
 if not os.path.isdir(outdir):
-    os.mkdir(outdir) 
+    os.makedirs(outdir) 
 
 if not os.path.isdir(outdir + '/' + 'stamps'):
     os.mkdir(outdir + '/' + 'stamps')
@@ -224,6 +225,7 @@ print('statusList',statusList)
 print "Run STEP 0: Create initial master list, check processing outputs"
 if len(expnums)>0:
     expniteband_df,master,sta = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands,expnums)
+
 else:
     print "No exposures specified by user. All exposures taken under LIGO ID "+str(ligoid)+" / event ID "+str(triggerid)+" and prop ID "+str(propid)+" will be used for the initial master list and the checkoutputs step."
     expniteband_df,master,sta = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands)
@@ -234,6 +236,7 @@ if sta == None:
 
 ### the current checkoutputs assumes .FAIL files are cleared out when a CCD is reprocessed
 if len(expniteband_df)>0:
+    print("expniteband_df >0 true")
     expnums,a_blacklist,ccddf,tus = postproc.checkoutputs(expniteband_df,logfile,ccdfile,goodchecked,steplist)
 
 else:
@@ -266,6 +269,7 @@ print('statusList',statusList)
 #########
 
 print "Run STEP 1: Create final master list"
+
 expniteband_df,master,status = postproc.masterlist(masterfile_2,blacklist_file,ligoid,propid,bands,expnums,a_blacklist)
 print
 
@@ -360,7 +364,7 @@ else:
     print "No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY."
 print                                                                                    
 print "Run STEP 5b: Combine real datafiles"
-fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict)
+fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict, args.schema)
 
 
 print
