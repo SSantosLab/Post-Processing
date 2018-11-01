@@ -2,34 +2,42 @@
 
 echo "Set ExpLen as OriginalExpLen"
 mv ExpLen.txt OriginalExpLen.txt
-echo "OriginalExpLen"
+
+echo "OriginalExpLen is"
 originalLen=`cat OriginalExpLen.txt`
+echo $originalLen
+
 python lenExposureInfo.py
-echo "New ExpLen"
+echo "New ExpLen is"
 newLen=`cat ExpLen.txt`
+echo $newLen
 sleep 5s
 
 if [[ $newLen -gt $originalLen ]]
 then
     echo "Exposure list has grown"
-    lastExp=`cat lastExp.txt`
-    python getExposureInfoNFS.py --lastExp
-    . getExpWPropIDandNite.sh
+    lastExposure=`cat lastExp.txt`
+    python getExposureInfoNFS.py --lastExp $lastExposure
+
+    ARRAY=(postproc_*.ini) #list of postproc_SEASON.ini files
+    for INIFILE in ${ARRAY[@]}
+    do
+	PROPID="$(awk -F "=" '/^propid/{print $NF}' $INIFILE)"
+	today=`date +%Y%m%d`
+	yesterday=`date -d "yesterday 13:00" +%Y%m%d`
+	python getExpWPropIDandNite.py -n $today $yesterday -p $PROPID
+    done
 
     echo "Sleeping for a bit"
     sleep 5s 
 
-    echo "It's alive."
-    echo
-    
     echo "Running diffimg_setup.sh"
     . diffimg_setup.sh
 
     echo "diffimg_setup done."
     echo
-    
-    ARRAY=($(ls postproc_*.ini)) #list of postproc_SEASON.ini files
-    echo ${ARRAY[@]}
+    	
+    echo "available .ini files: "${ARRAY[@]}
     ELEMENTS=${#ARRAY[@]}
     echo $ELEMENTS
 
@@ -58,7 +66,7 @@ then
 
     else
 	echo "Only one .ini."
-	INI=${ARRAY[${0}]}
+	INI=${ARRAY[0]}
 	echo $INI
 	python getSeason.py --ini $INI
 	SEASON=`cat getSeason.txt`
@@ -72,8 +80,17 @@ then
 	
 	echo "The deed is done."
     fi
+
+#    for INIFILE in ${ARRAY[@]}
+#    do
+#	OUTDIR="$(awk '$1=="outdir" {print $3}' $INI)"
+#	mv $INIFILE $OUTDIR
+#	echo "Moved "$INIFILE" to "$OUTDIR
+#    done
+
 else
     echo "Nothing new to see here."
-    return
+    #return
+    #exit
     ### If you are exectuting this script, change this `return` to and `exit`
 fi
