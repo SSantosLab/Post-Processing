@@ -1,7 +1,7 @@
 
 ##### edit these lines before running the code:
 export ROOTDIR=/pnfs/des/persistent/gw
-export ROOTDIR2=./ #This should just be where you are running /data/des40.b/data/nsherman/postprocBig 
+export ROOTDIR2=$(pwd) #This should just be where you are running /data/des40.b/data/nsherman/postprocBig 
 #export SEASON=416 
 #####
 
@@ -46,6 +46,7 @@ export DES_ROOT=/data/des20.b/data/SNDATA_ROOT/INTERNAL/DES
 ### Add for multi-season processing ###
 ARRAY=($(ls postproc_*.ini)) #list of postproc_SEASON.ini files
 ELEMENTS=${#ARRAY[@]}
+echo $ELEMENTS
 
 for ((count=0;count<$ELEMENTS;count++))
 do
@@ -53,7 +54,7 @@ do
     python getSeason.py --ini $INI
     SEASON=`cat getSeason.txt`
 
-    export SEASON=$SEASON
+    export SEASON
 
     export TOPDIR_SNFORCEPHOTO_IMAGES=${ROOTDIR2}/forcephoto/images/dp${SEASON} 
     export TOPDIR_SNFORCEPHOTO_OUTPUT=${ROOTDIR2}/forcephoto/output/dp${SEASON} 
