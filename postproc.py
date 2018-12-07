@@ -872,17 +872,17 @@ def ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict
     for key in list(objidDict.keys()):
         mjd=objidDict[key][0]
         Dict[key].sort
-        print('this is Key!',key)
-        print(len(Dict[key]))
-        print(Dict[key])
+        #print('this is Key!',key)
+        #print(len(Dict[key]))
+        #print(Dict[key])
         if Dict[key]==[]:
             continue
         for i in range(0,len(Dict[key]),3):
             keyHole=key[16:-1]
             Info=Dict[key][i].split('/')[0].split('_')[1]+Dict[key][i].split('/')[0].split('_')[2]
-            print(Dict[key][i])
-            print(Dict[key][i+1])
-            print(Dict[key][i+2])
+            #print(Dict[key][i])
+            #print(Dict[key][i+1])
+            #print(Dict[key][i+2])
             htmlYeah=open(Name,'a')
             lines=['<h1>Observation OBJID: '+key+'</h1><h2>MJD: '+mjd+'</h2>\n','<h2>'+Info+'</h2>\n','<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="200" height="200"/></span>','</div>']
             for line in lines:
@@ -1202,20 +1202,19 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
                                 GTL.append(tarFile)
                                 stamps4file+=ExtracTarFiles(tarFile,season)
                             else:
-                                print ("Well, well, well. So I see you've made it this far, eh?")
+                                #print ("Well, well, well. So I see you've made it this far, eh?")
                                 tarsplit=tarFile.split('/')
                                 tarlen=len(tarsplit)
                                 quality=tarsplit[tarlen-1]
                                 definingQuality=quality.split('.')[0]
                                 specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
-                                print(specificGifAndFitsDir)
+                                #print(specificGifAndFitsDir)
                                 stamps4file+=glob(specificGifAndFitsDir+'/*.gif')
                         except IndexError:
                             print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
                         
         else:
             for k in range(n):
-                print('Now you are here')
                 RA.append(ra[k])
                 DEC.append(dec[k])
                 CAND_ID.append(cand[k])
@@ -1253,8 +1252,8 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
                 bandk=band[k]
                 ccdnumk=str(int(ccdnum[k]))
 
-                print('You made it this far!!!')
-                print(objid[k])
+                #print('You made it this far!!!')
+                #print(objid[k])
                 
                 if objid[k]==np.float64(0):
                     print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
@@ -1273,13 +1272,13 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
                                 GTL.append(tarFile)
                                 stamps4file+=ExtracTarFiles(tarFile,season)
                             else:
-                                print("Well, well, well. So I see you've made it this far, eh?")
+                                #print("Well, well, well. So I see you've made it this far, eh?")
                                 tarsplit=tarFile.split('/')
                                 tarlen=len(tarsplit)
                                 quality=tarsplit[tarlen-1]
                                 definingQuality=quality.split('.')[0]
                                 specificGifAndFitsDir='GifAndFits'+definingQuality+'/'
-                                print(specificGifAndFitsDir)
+                                #print(specificGifAndFitsDir)
                                 stamps4file+=glob(specificGifAndFitsDir+'/*.gif')
                         except IndexError:
                             print('The tarfile you tried to look at does not exist! Maybe you should go and make it.')
@@ -1289,14 +1288,14 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
 
                         
         ####MakeDictHere####
-        print('stamps for the file.',stamps4file)
+        #print('stamps for the file.',stamps4file)
         Dict=MakeDictforObjidsHere(stamps4file,objid)
-        print("The objid dict with the gifs.", Dict)
+        #print("The objid dict with the gifs.", Dict)
         ####MakeHTMLwithDict####
         HTML=ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurve,snidDict)
     
     updatedGTL=updateGTL(GTL)
-    print(updatedGTL)
+    #print(updatedGTL)
 
     print 'allgood = %d' % allgood
     print
@@ -1417,8 +1416,8 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
             rafail.append(masdf['RA'].loc[masdf['expnum']==t].values[0])
             decfail.append(masdf['DEC'].loc[masdf['expnum']==t].values[0])
     
-    print len(tempfails)
-    print tempfails
+    #print len(tempfails)
+    #print tempfails
 
     np.savetxt('event3_ccds.txt',np.c_[tempfails,rafail,decfail],fmt=['%d','%.6f','%.6f'],delimiter='\t',header='EXP\tRA\t\tDEC',comments='')
 
@@ -1479,9 +1478,9 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
     magdiff = df['MAG']-df['TRUEMAG']
     pull = magdiff/df['MAGERR']
     
-    print len(pull)
-    print 'mean = '+str(np.mean(pull))
-    print 'SD = '+str(np.std(np.array(pull)))
+    #print len(pull)
+    #print 'mean = '+str(np.mean(pull))
+    #print 'SD = '+str(np.std(np.array(pull)))
 
     #bins = np.linspace(int(min(pull)),int(max(pull)+1),100)
     bins = np.linspace(-3,3,100)
@@ -1763,7 +1762,7 @@ def createhtml(fitsname,realdf,master,lcdir):
             #time2 = time.time()
             for c in sorted(edf['CCDNUM'].unique()):
                 bb += 1
-                print '    '+str(bb)+'/'+str(bblen)+' - '+str(c)
+                #print '    '+str(bb)+'/'+str(bblen)+' - '+str(c)
                 cdf = edf.loc[edf['CCDNUM'] == c]
                 nite = str(cdf['NITE'].values[0])
                 hhex = str(cdf['HEX'].values[0])
