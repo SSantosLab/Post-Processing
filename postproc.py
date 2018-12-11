@@ -1048,7 +1048,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         lines = f.readlines()
         f.close()
         
-        print(datfile)
+        #print(datfile)
         
         ###Get obs info and make info dict
         bands,fields=getBandsandField(lines)
@@ -1756,7 +1756,7 @@ def createhtml(fitsname,realdf,master,lcdir):
         for e in sorted(rdf['EXPNUM'].unique()):
             aaa += 1
             bb = 0
-            print str(aaa)+'/'+str(aaalen)+' - '+str(e)
+            #print str(aaa)+'/'+str(aaalen)+' - '+str(e)
             edf = rdf[['EXPNUM','NITE','CCDNUM','BAND','OBJID','HEX']].loc[rdf['EXPNUM'] == e]
             bblen = len(edf['CCDNUM'].unique())
             #time2 = time.time()
