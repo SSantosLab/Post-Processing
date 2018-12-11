@@ -57,7 +57,7 @@ else:
 if args.outputdir == None:
     outdir = config.get('general','outdir')
 else:
-    outdir = args.outdir
+    outdir = args.outputdir
 
 ## Set season
 #This line should not be necessary
@@ -296,33 +296,33 @@ print
 # STEP 3: Hostmatch
 #########
 
-#print "Run STEP 3: Hostmatch"
-#import desHostMatch
+print "Run STEP 3: Hostmatch"
+import desHostMatch
 #print('We are *RUNNING HOSTMATCH!*')
-#desHostMatch.main(season)
+desHostMatch.main(season)
 #print
 #print('That... was not worth the hype.')
 #print
-#print('Now making a galaxy match dictionary!')
-#irksome='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt'
-#irritation=open(irksome,'r')
-#path=irritation.read()
-#irritation.close()
+print('Now making a galaxy match dictionary!')
+irksome='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt'
+irritation=open(irksome,'r')
+path=irritation.read()
+irritation.close()
 #print(path)
 ##sys.exit('Ladies and gentlemen! We are debugging.')
-#snidDict=findHostGala.findHostGala(path)
+snidDict=findHostGala.findHostGala(path)
 #print(list(snidDict.keys()))
 #
-#prestat=open('hostmatchstatus.txt','r')
-#stat=prestat.read()
-#if stat==True:
-#    status=True
-#else:
-#    status=False
-#statusList[4]=status
-#
+prestat=open('hostmatchstatus.txt','r')
+stat=prestat.read()
+if stat==True:
+    status=True
+else:
+    status=False
+statusList[4]=status
+
 snidDict={}
-status=False
+#status=False
 print('step 3 status', status)
 
 update=updateStatus.updateStatus(statusList,season)
@@ -344,7 +344,7 @@ print
 
 if status == None:
     status=False
-print('stet 4 status',status)
+print('step 4 status',status)
 statusList[5]=status
 update=updateStatus.updateStatus(statusList,season)
 print(update)
@@ -420,7 +420,7 @@ print
 print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
 print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
 word=WholeHTML.WholeHTML(MLScoreFake,RADEC,season,masterTableInfo)
-print(word)
+#print(word)
 if word == "Functional":
     statusNew=True
     statusList[8]=statusNew
