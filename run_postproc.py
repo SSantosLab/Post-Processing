@@ -57,7 +57,7 @@ else:
 if args.outputdir == None:
     outdir = config.get('general','outdir')
 else:
-    outdir = args.outdir
+    outdir = args.outputdir
 
 ## Set season
 #This line should not be necessary
