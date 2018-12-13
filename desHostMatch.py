@@ -97,12 +97,10 @@ parser.add_argument( "--dbname", "-db", help = "Name of Database at NCSA in "
                      default="destest")
 
 parser.add_argument( "--username", "-u", help = "Username for NCSA access.  "
-                     "Default is read-only generic username.  CANNOT ACCESS Y2 DB.",
-                     default="marcelle")
+                     "Default is read-only generic username.  CANNOT ACCESS Y2 DB.")
 
 parser.add_argument( "--password", "-p", help = "Password for NCSA access.  "
-                     "Default is read-only generic password.  CANNOT ACCESS Y2 DB.",
-                     default="mar70chips")
+                     "Default is read-only generic password.  CANNOT ACCESS Y2 DB.")
 
 parser.add_argument( "--verbose", "-v", help = "Print helpful statements to "
                      "check progress of code.  Default is false.", action = "count")
