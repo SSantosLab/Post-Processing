@@ -121,7 +121,7 @@ def forcephoto(season,ncore=4,numepochs_min=0,writeDB=False):
 # ##not this                                                                                           
 # #print os.popen('python '+deshostmatch+' --season='+season).read()                                   
 # ###this                                                                                              
-# #print os.popen('python '+deshostmatch+' '+season+' --username marcelle --password mar70chips --dbname destest --verbose --testdb').read()                                                                 
+
 # print 'Finished',deshostmatch                                                                        
 # print '-'*50 
 
@@ -358,7 +358,7 @@ def truthtable(season,expnums,outdir,filename,db='destest',schema='marcelle'):
 # ##not this
 # #print os.popen('python '+deshostmatch+' --season='+season).read()
 # ###this
-# #print os.popen('python '+deshostmatch+' '+season+' --username marcelle --password mar70chips --dbname destest --verbose --testdb').read()
+# #print os.popen('python '+deshostmatch+' '+season+' --username username --password password --dbname destest --verbose --testdb').read()
 # print 'Finished',deshostmatch
 # print '-'*50
 
