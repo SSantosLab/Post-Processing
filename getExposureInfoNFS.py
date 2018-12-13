@@ -2,15 +2,17 @@ import os
 import pandas
 import psycopg2
 import argparse
+import subprocess
 
 parser = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('--lastExp', metavar='e',type=int, nargs='+', help='Last exposure found.')
 
 args = parser.parse_args()
-lastExp=args.lastExp
+lastExp=args.lastExp[0]
 
-query = """SELECT id as EXPNUM,
+#SELECT id as EXPNUM
+query = """SELECT id as ID,
        TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS NITE,
        EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) AS MJD_OBS,
        ra AS RADEG,
@@ -22,8 +24,9 @@ query = """SELECT id as EXPNUM,
        qc_teff as TEFF,
        object as OBJECT
 FROM exposure.exposure
-WHERE flavor='object' and exptime>29.999  and RA is not NULL and id>=182809 and expnum>"""+lastExp+"""
+WHERE flavor='object' and exptime>29.999  and RA is not NULL and id>"""+str(lastExp)+"""
 ORDER BY id"""
+#WHERE flavor='object' and exptime>29.999  and RA is not NULL and id>=182809 and expnum>"""+str(lastExp)
 
 conn =  psycopg2.connect(database='decam_prd',
                            user='decam_reader',
