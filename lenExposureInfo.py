@@ -10,7 +10,7 @@ WHERE flavor='object' and exptime>29.999  and RA is not NULL and id>=182809
 
 conn =  psycopg2.connect(database='decam_prd',
                            user='decam_reader',
-                           host='des20.fnal.gov',                                      
+                           host='des61.fnal.gov',                                      
                          port=5443)
 lenExpFrame = pandas.read_sql(query, conn)
 conn.close()

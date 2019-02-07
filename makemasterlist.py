@@ -63,7 +63,7 @@ GROUP BY object,ra,declination
 
 conn =  psycopg2.connect(database='decam_prd',
                            user='decam_reader',
-                           host='des20.fnal.gov',
+                           host='des61.fnal.gov',
 #                           password='THEPASSWORD',
                          port=5443) 
 

@@ -98,7 +98,7 @@ order by id"""
 # ) as foo order by ra"
     conn =  psycopg2.connect(database='decam_prd',
                                user='decam_reader',
-                               host='des20.fnal.gov',
+                               host='des61.fnal.gov',
                                password='reader',
                                port=5443) 
 
@@ -439,15 +439,14 @@ def truthtable(season,expnums,filename,truthplus):
     schema = os.environ.get('SCHEMA')
 
     explist=','.join(map(str,expnums))
-    for isplit in xrange(0,len(expnums),1000):
-        splitlist=','.join(map(str,expnums)[isplit:isplit+1000])
-### Truth table (normal)
-        query='select distinct SNFAKE_ID, EXPNUM, CCDNUM, TRUEMAG, TRUEFLUXCNT, FLUXCNT, BAND, NITE, MJD, SEASON from '+ schema +'.SNFAKEIMG where EXPNUM IN ('+splitlist+') and SEASON='+ season +' order by SNFAKE_ID'
-        print query
 
-        filename=os.path.join(outdir,filename)
-        connection=easyaccess.connect(db)
-        connection.query_and_save(query,filename)
+### Truth table (normal)
+    query='select distinct SNFAKE_ID, EXPNUM, CCDNUM, TRUEMAG, TRUEFLUXCNT, FLUXCNT, BAND, NITE, MJD, SEASON from '+ schema +'.SNFAKEIMG where EXPNUM IN ('+explist+') and SEASON='+ season +' order by SNFAKE_ID'
+    print query
+
+    filename=os.path.join(outdir,filename)
+    connection=easyaccess.connect(db)
+    connection.query_and_save(query,filename)
 
     print
 

@@ -30,7 +30,7 @@ ORDER BY id"""
 
 conn =  psycopg2.connect(database='decam_prd',
                            user='decam_reader',
-                           host='des20.fnal.gov',
+                           host='des61.fnal.gov',
 #                           password='THEPASSWORD',
                          port=5443) 
 some_exposures = pandas.read_sql(query, conn)
