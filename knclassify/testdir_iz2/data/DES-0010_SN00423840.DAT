@@ -1,0 +1,74 @@
+SURVEY: DES   
+SNID:   423840   
+IAUC:    NULL 
+PHOTOMETRY_VERSION: TMP_morg_RM_DES+LIGO_KN_BKG-0010_56323 
+SNTYPE:  20 
+FILTERS: griz 
+RA:      78.248609  deg 
+DECL:    5.883248  deg 
+PIXSIZE:  0.2700  arcsec 
+CCDNUM: 0  
+FAKE:    2   (=> simulated LC with snlc_sim.exe) 
+MWEBV:       0.0983    MW E(B-V) 
+MWEBV_ERR:   0.0157    error on MWEBV 
+REDSHIFT_HELIO:   0.284244 +- 0.001000  (Helio, z_best) 
+REDSHIFT_FINAL:   0.284230 +- 0.001000  (CMB) 
+REDSHIFT_STATUS:  OK 
+
+VPEC:         0.00  # v_pec correction
+VPEC_ERR:     0.00  # error on above  
+PEAKMJD:   58421.422 
+
+HOSTGAL_OBJID:    16171591  
+HOSTGAL_PHOTOZ:   0.3516  +- 0.0637 
+HOSTGAL_SPECZ:    0.2842  +- 0.0010 
+HOSTGAL_SNSEP:     0.403    # arcsec 
+HOSTGAL_MAG:   24.32  23.65  23.38  23.20 # griz
+ 
+
+SIM_MODEL_NAME:  NON1A 
+SIM_MODEL_INDEX:  10 
+SIM_TYPE_INDEX:   20 
+SIM_TYPE_NAME:    IIP 
+SIM_TEMPLATE_INDEX: 233   
+SIM_COMMENT:  SN Type = IIP , MODEL = /project/rkessler/PRODUCTS/SNDATA_ROOT/snsed/NON1A/SDSS-018892.SED  
+SIM_LIBID:  2  
+SIM_NGEN_LIBID:  1  
+SIMLIB_MSKOPT:  32  
+SIM_NOBS_UNDEFINED:  0  
+SIM_REDSHIFT_HELIO:  0.28386  
+SIM_REDSHIFT_CMB:    0.28385  
+SIM_REDSHIFT_HOST:   0.29670  
+SIM_VPEC:  -0.0 (km/sec) 
+SIM_HOSTLIB_NPAR: 0 
+SIM_DLMU:      40.8172  mag   [ -5*log10(10pc/dL) ]
+SIM_LENSDMU:   0.0000  mag 
+SIM_RA:        78.248611 deg  
+SIM_DECL:      5.883248 deg  
+SIM_MWRV:    3.100   (MilkyWay RV) 
+SIM_MWEBV:   0.0862   (MilkyWay E(B-V)) 
+SIMOPT_MWCOLORLAW:  94   (MW color-law option) 
+SIMOPT_MWEBV:       1   (modify MWEBV_SFD)
+SIM_MAGSMEAR_COH:   -0.969  
+SIM_GALFRAC:  -9.000 -9.000 -9.000 -9.000  (griz F_gal/F_SNpeak for PSF=1'')
+SIM_PEAKMAG:   -9.00  -9.00  26.82  27.61  (griz obs)
+SIM_EXPOSURE:     2.5    2.5    2.5    2.5  (griz obs)
+SIM_PEAKMJD:   58421.464844  days 
+SIM_SEARCHEFF_MASK:  0  (bits 1,2=> found by software,spec) 
+SIM_SEARCHEFF_SPEC:  0.0000  (spectro-search efficiency (ignores pipelines)) 
+SIM_TRESTMIN:    34.98   days 
+SIM_TRESTMAX:    34.98   days 
+SIM_RISETIME_SHIFT:   0.0 days 
+SIM_FALLTIME_SHIFT:   0.0 days 
+
+
+
+# ============================================ 
+# TERSE LIGHT CURVE OUTPUT: 
+#
+NOBS: 2 
+NVAR: 10 
+VARLIST:  MJD  FLT FIELD   FLUXCAL   FLUXCALERR PHOTFLAG SKY_SIG SKY_SIG_T   ZPT  PSF  SIM_MAGOBS
+OBS:  58466.379  i WS776+58   5.5605e+00   4.074e+00 4096 1.041e+02 7.702e+01   33.265    1.79  24.4113 
+OBS:  58466.380  z WS776+58   1.4170e+01   3.283e+00 4096 1.041e+02 0.000e+00   33.265    1.79  24.2949 
+END_PHOTOMETRY: 
