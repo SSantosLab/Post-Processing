@@ -35,6 +35,7 @@ season=str(args.season)
 config = ConfigParser.ConfigParser()
 if os.path.isfile('./postproc_'+str(season)+'.ini'):
     inifile = config.read('./postproc_'+str(season)+'.ini')[0]
+    print("ini file",inifile)
 
 ## Set ups mode: True/False
 if args.ups == None:
@@ -129,6 +130,7 @@ if bands=='all':
     bands = None
 else:
     bands = bands.split(',')
+    bands = map(str.strip, bands)
 
 setupfile = config.get('general','env_setup_file')
 
@@ -229,7 +231,7 @@ if len(expnums)>0:
 else:
     print "No exposures specified by user. All exposures taken under LIGO ID "+str(ligoid)+" / event ID "+str(triggerid)+" and prop ID "+str(propid)+" will be used for the initial master list and the checkoutputs step."
     expniteband_df,master,sta = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands)
-print
+
 
 if sta == None:
     sta=False
@@ -315,20 +317,20 @@ snidDict=findHostGala.findHostGala(path)
 #
 prestat=open('hostmatchstatus.txt','r')
 stat=prestat.read()
-if stat==True:
+if stat=='0':
     status=True
 else:
     status=False
 statusList[4]=status
 
-snidDict={}
+#snidDict={}
 #status=False
 print('step 3 status', status)
 
 update=updateStatus.updateStatus(statusList,season)
 print(update)
 print('statusList',statusList)
-
+#exit()
 #########
 # STEP 4: Make truth table
 #########
@@ -366,6 +368,7 @@ print
 print "Run STEP 5b: Combine real datafiles"
 fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict, args.schema)
 
+print("fitsname", fitsname)
 
 print
 #if masterTableInfo != None:
