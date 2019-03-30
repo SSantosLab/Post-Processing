@@ -56,11 +56,11 @@ def masterlist(filename,blacklist_file,ligoid,propid,bands=None,expnums=None,a_b
         if len(expnums)>1:
             query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
-where ra is not null and (program='des gw' or program='survey' or program='des nu') and id IN """+str(tuple(expnums))+""" order by id"""
+where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE') and id IN """+str(tuple(expnums))+""" order by id"""
         else:
             query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
-where ra is not null and (program='des gw' or program='survey' or program='des nu') and id="""+str(expnums[0])+""" order by id"""
+where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE') and id="""+str(expnums[0])+""" order by id"""
 
 #         query_count = """select * from (
 # WITH objnights AS (
@@ -81,7 +81,7 @@ where ra is not null and (program='des gw' or program='survey' or program='des n
     else:
         query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
-where propid='"""+propid+"""' and seqid='"""+ligoid+"""' and ra is not null and (program='des gw' or program='survey') 
+where propid='"""+propid+"""' and seqid='"""+ligoid+"""' and ra is not null and (program='des gw' or program='survey' or program='DESGW ER TEST EXPOSURE') 
 order by id"""
 #         query_count = """select * from (
 # WITH objnights AS (
@@ -118,10 +118,12 @@ order by id"""
     #print expdf
 
     expdf = expdf.loc[~expdf['expnum'].isin(blacklist)]
+#    print("AGtest expdf", expdf)
 
 #    expdf = expdf.sort_values(by=['ra','mjd'])
 
     expdf['dup'] = expdf.duplicated(subset=['ra','nite'])
+    print("AG-dups", expdf['dup'])
 
     epoch = []
 
@@ -439,15 +441,14 @@ def truthtable(season,expnums,filename,truthplus):
     schema = os.environ.get('SCHEMA')
 
     explist=','.join(map(str,expnums))
-    for isplit in xrange(0,len(expnums),1000):
-        splitlist=','.join(map(str,expnums)[isplit:isplit+1000])
-### Truth table (normal)
-        query='select distinct SNFAKE_ID, EXPNUM, CCDNUM, TRUEMAG, TRUEFLUXCNT, FLUXCNT, BAND, NITE, MJD, SEASON from '+ schema +'.SNFAKEIMG where EXPNUM IN ('+splitlist+') and SEASON='+ season +' order by SNFAKE_ID'
-        print query
 
-        filename=os.path.join(outdir,filename)
-        connection=easyaccess.connect(db)
-        connection.query_and_save(query,filename)
+### Truth table (normal)
+    query='select distinct SNFAKE_ID, EXPNUM, CCDNUM, TRUEMAG, TRUEFLUXCNT, FLUXCNT, BAND, NITE, MJD, SEASON from '+ schema +'.SNFAKEIMG where EXPNUM IN ('+explist+') and SEASON='+ season +' order by SNFAKE_ID'
+    print query
+
+    filename=os.path.join(outdir,filename)
+    connection=easyaccess.connect(db)
+    connection.query_and_save(query,filename)
 
     print
 
