@@ -77,48 +77,58 @@ from math import pi
 import HostMatchAlgorithms_Ravi as hma # RRG
 import ConfigParser
 
-config = ConfigParser.ConfigParser()
-if os.path.isfile('./postproc_'+str(season)+'.ini'):
-    inifile = config.read('./postproc_'+str(season)+'.ini')[0]
+#config = ConfigParser.ConfigParser()
+#if os.path.isfile('./postproc_'+str(season)+'.ini'):
+#    inifile = config.read('./postproc_'+str(season)+'.ini')[0]
 
 
 ################### Input Parsing #################################################################
 
-parser = argparse.ArgumentParser( description = "Assignment of DES transient "
-                  "names to SN candidates (SNIDs) based on the current set of naming "
-                  "criteria.  Subsequently ingests targets into the ATC if the relevant"
-                  " flag is set. Required arguments is SEASON." )
+#parser2 = argparse.ArgumentParser( description = "Assignment of DES transient "
+#                  "names to SN candidates (SNIDs) based on the current set of naming "
+#                  "criteria.  Subsequently ingests targets into the ATC if the relevant"
+#                  " flag is set. Required arguments is SEASON." )
 
-parser.add_argument( "--input", help = "File containing list of named "
-                     "transients to ingest to ATC." )
+#parser.add_argument( "--input", help = "File containing list of named "
+#                     "transients to ingest to ATC." )
 
-parser.add_argument( "--dbname", "-db", help = "Name of Database at NCSA in "
-                     "which we are looking for new transients.   Default is desoper.",
-                     default="destest")
+#parser2.add_argument( "--dbname", "-db", help = "Name of Database at NCSA in "
+#                     "which we are looking for new transients.   Default is desoper.",
+#                     default="destest")
+my_dbname = "destest"
 
-parser.add_argument( "--username", "-u", help = "Username for NCSA access.  "
-                     "Default is read-only generic username.  CANNOT ACCESS Y2 DB.")
+#parser2.add_argument( "--username", "-u", help = "Username for NCSA access.  "
+#                     "Default is read-only generic username.  CANNOT ACCESS Y2 DB.",
+#                     default="testtest") # testing (Paulo_12-14-18)
 
-parser.add_argument( "--password", "-p", help = "Password for NCSA access.  "
-                     "Default is read-only generic password.  CANNOT ACCESS Y2 DB.")
+#parser2.add_argument( "--password", "-p", help = "Password for NCSA access.  "
+#                     "Default is read-only generic password.  CANNOT ACCESS Y2 DB.",
+#                     default="testtest") # testing (Paulo_12-14-18)
 
-parser.add_argument( "--verbose", "-v", help = "Print helpful statements to "
-                     "check progress of code.  Default is false.", action = "count")
+#parser2.add_argument( "--verbose", "-v", help = "Print helpful statements to "
+#                     "check progress of code.  Default is false.", action = "count", default=False)
+my_verbose=False
 
-parser.add_argument( "--season", type=int, help = "Season number for transient. Default is 70. ",
-                     default=70)
+#parser2.add_argument( "--season", type=int, help = "Season number for transient. Default is 70. ",
+#                     default=70)
+my_season=70
 
 #parser.add_argument( "--atc", help = "Ingest all targets into the ATC. "
 #                     "Default is false.  In either case, transients info is "
-#f                     "written to a log file.", action = "store_true" )
+#                     "written to a log file.", action = "store_true" )
 
-parser.add_argument( "--test", "-t" , help = "Test mode: No writing to "
-                     "database is done.  Rather, only an output file is written to "
-                     "scratch with the transient names and host names, along with "
-                     "information about the test ATC ingestion.", action = "store_true" )
-parser.add_argument( "--testdb", "-tdb" , help = "Test mode: No writing to "
-                     "database SNGAL is done. It writes to SNGAL_TEST instead. ", action = "store_true" )
-args = parser.parse_args()
+#parser2.add_argument( "--test", "-t" , help = "Test mode: No writing to "
+#                     "database is done.  Rather, only an output file is written to "
+#                     "scratch with the transient names and host names, along with "
+#                     "information about the test ATC ingestion.", action = "store_true" )
+#parser2.add_argument( "--testdb", "-tdb" , help = "Test mode: No writing to "
+#                     "database SNGAL is done. It writes to SNGAL_TEST instead. ", action = "store_true" )
+
+#args2 = parser2.parse_args()
+
+#config = ConfigParser.ConfigParser()
+#if os.path.isfile('./postproc_'+str(season)+'.ini'):
+#    inifile = config.read('./postproc_'+str(season)+'.ini')[0]
 
 #####################   DEFINE GLOBAL VARIABLES   #################################################
 
@@ -150,18 +160,19 @@ thisTime = strftime("%Y%m%d.%H%M%S")
 TopHost='/data/des60.b/data/palmese/GW_reject_cat/v1.0.2' 
 os.environ['TOPDIR_HOSTMATCH']=TopHost
 INPUT_DIR = os.environ.get('TOPDIR_HOSTMATCH') + '/'
-OUTPUT_DIR = os.environ.get('OUTDIR_HOSTMATCH') + '/'
+OUTPUT_DIR = str(os.environ.get('OUTDIR_HOSTMATCH')) #+ '/hostmatch/'
 print('TOPDIR_HOSTMATCH='+INPUT_DIR)
 print('OUTDIR_HOSTMATCH='+OUTPUT_DIR)
 #sys.exit('Nora made me exit. Blame her. But really, this was just a test to ensure I crash anyway due to there being no TOPDIR_HOSTMATCH (as least probably)')
-if not os.path.isdir(OUTPUT_DIR):
-    os.mkdir(OUTPUT_DIR)
-OUTPUT_DIR = OUTPUT_DIR + thisTime + '/'
+#OUTPUT_DIR = OUTPUT_DIR + thisTime + '/'
 
-try:
-    os.mkdir(OUTPUT_DIR, 0755)
-except:
-    sys.exit("Could not create output directory for RUNLOGS ... " + OUTPUT_DIR)
+if not os.path.isdir(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR,0755)
+
+#try:
+#    os.mkdir(OUTPUT_DIR, 0755)
+#except:
+#    sys.exit("Could not create output directory for RUNLOGS ... " + OUTPUT_DIR)
 
 outfile_sep      = OUTPUT_DIR + "byAngularSeparation.ABT.txt"
 outfile_dlr      = OUTPUT_DIR + "byDLR.ABT.txt"
@@ -214,7 +225,8 @@ logfile_atc.write('{0:<16}{1:<25}{2:<16}{3:<16}{4:<7}{5:<7}\n'.format(
 #replace args.season with environment variable if it was set for compatibility with postproc.py
 season_number = os.environ.get('SEASON')
 if season_number:
-    args.season = season_number
+    #args2.season = season_number
+    my_season=season_number
 
 ###############################   MAIN   ##########################################################
 
@@ -224,25 +236,30 @@ def main(season):
     global db_flag
     global atc_flag
     
-    if args.verbose > 0:
-        print 'verbose = ',args.verbose
+    print("test")
+    #if args2.verbose > 0:
+    #    print 'verbose = ',args2.verbose
     
-    if args.testdb >0:
-	    sngals_file = 'SNGALS_TEST'
-	    sngals_file_id = 'COADD_OBJECTS_ID'#'OBJECTS_ID'
-    else:
-        sngals_file = 'SNGALS'
-        sngals_file_id = 'OBJECTS_ID'# 'COADD_OBJECTS_ID'
+    #if args2.testdb >0:
+    #sngals_file = 'SNGALS_TEST'
+    #sngals_file_id = 'COADD_OBJECTS_ID'#'OBJECTS_ID'
+    #else:
+    sngals_file = 'SNGALS'
+    sngals_file_id = 'OBJECTS_ID'# 'COADD_OBJECTS_ID'
 
     start_time = time.time()
 
     hostname   = 'desdb.ncsa.illinois.edu'
     port       = 1521
-    dbname     = args.dbname
-    username   = args.username
-    password   = args.password
+#    dbname     = args.dbname
+    dbname = os.environ.get('DBNAME')
+#    username   = args.username
+    username   = os.environ.get('DB_USERNAME')
+#    password   = args.password
+    password   = os.environ.get('DB_PASSWD')
     
     dsn        = cx_Oracle.makedsn(hostname, port, service_name = dbname)
+    print(dsn)
     connection = cx_Oracle.Connection(username, password, dsn)
     cursor     = connection.cursor()
 
@@ -250,7 +267,7 @@ def main(season):
     #----------- Query all transients that have no entry in the SNGALS table. ---------------------
     # ---------- These are the galaxies we are to host-match --------------------------------------
     #----------------------------------------------------------------------------------------------
-
+    print("test1")
     query  = ( "SELECT c.transient_name, c.SNID, c.ra, c.dec, "
                #"substr(c.transient_name,6,2), FIELD "
                "from SNCAND c LEFT JOIN SNGALS g on c.SNID=g.SNID "
@@ -266,14 +283,15 @@ def main(season):
                "and c.snfake_id=0 and c.cand_type >=0 "
 	       "and g.SNGALID is NULL "
                #"and g.SNGALID is NULL and c.FIELD is not NULL ") 
-               "and c.season="+str(args.season)+" ")
-
-    #print query_new
+               #"and c.season="+str(args2.season)+" ")
+               "and c.season="+str(my_season)+" ")
+    print("test 2")
+    print query_new
     cursor.execute(query_new)
     data=cursor.fetchall()
 
-    if args.verbose > 0:
-        print "Number of DES Candidates to match = ",len(data)
+    #if args2.verbose > 0:
+    #    print "Number of DES Candidates to match = ",len(data)
 
     #Sort by field to lessen memory issues on loading large files
     if len(data) > 0:
@@ -301,7 +319,7 @@ def main(season):
         return 
 
         
-
+    print("test 3")
     #----------------------------------------------------------------------------------------------
     #------------ Query the maximum SNGALID to start counting with --------------------------------
     #----------------------------------------------------------------------------------------------
@@ -316,8 +334,8 @@ def main(season):
     else:
         maxgalid = galmax[0][0]
          
-    if args.verbose > 0:
-        print "Max GALID = ",maxgalid
+    #if args2.verbose > 0:
+    #    print "Max GALID = ",maxgalid
 
     #----------------------------------------------------------------------------------------------
     #------------- Select all field names where a transient is ------------------------------------
@@ -351,8 +369,8 @@ def main(season):
                             dtype={'names':['SNID','SNGALID','COADD_ID'], \
                                    'formats':['S8','S8','S12']})
     
-    if args.verbose > 0:
-        print 'Number of objects currently in SNGALS:  ',len(temp)
+    #if args2.verbose > 0:
+    #    print 'Number of objects currently in SNGALS:  ',len(temp)
 
     if len(temp):
         current_host['SNID']     = temp[:,0]
@@ -371,8 +389,8 @@ def main(season):
     #----------------------------------------------------------------------------------------------
 
     for thisField in fields:
-        if args.verbose > 0:
-            print "Starting field = ",thisField
+        #if args2.verbose > 0:
+        #    print "Starting field = ",thisField
 
         # Find all candidates in this field ...                                                                              
         NCands = 0
@@ -382,8 +400,8 @@ def main(season):
             NCands = len(index) 
             pix_edges = healpy.pixelfunc.get_all_neighbours(32,thisField)
 
-        if args.verbose > 0 :
-            print "\t",NCands," entries to match in this field"
+#        if args2.verbose > 0 :
+#            print "\t",NCands," entries to match in this field"
 
         if NCands > 0:
             # Read in field catalog using 'loadtxt' and store relevant data to an array
@@ -391,9 +409,9 @@ def main(season):
               filename  = INPUT_DIR + "GW_cat_hpx_0" + str(thisField) + ".fits"
             else:
               filename  = INPUT_DIR + "GW_cat_hpx_" + str(thisField) + ".fits"
-            if args.verbose > 0:
-                print "\tReading in catalog from file . . . . \n"
-                print filename+'\n'
+            #if args2.verbose > 0:
+            #    print "\tReading in catalog from file . . . . \n"
+            #    print filename+'\n'
 
             h = fits.open(filename)
             cat = h[1].data    
@@ -426,8 +444,8 @@ def main(season):
 #                                                          20,21,22,23,24,25,26,27,28,29,30,31,32,33])
         
        
-            if args.verbose > 0 :
-                print "\tCatalog contains",cat.shape[0],"rows\n"
+            #if args2.verbose > 0 :
+            #    print "\tCatalog contains",cat.shape[0],"rows\n"
 
             #Begin Loop...
             for i,entry in enumerate(index):  #this will not work
@@ -440,17 +458,18 @@ def main(season):
                 ra             = float(entry[2])  
                 dec            = float(entry[3])
                 #field          = entry[4]
-                
-                if os.path.isfile('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList'):
-                    yo=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList','a')
+
+                if os.path.isfile(OUTPUT_DIR+'/SNIDList'):
+                    yo=open(OUTPUT_DIR+'/SNIDList','a')
+                    #yo=open(OUTPUT_DIR+'/outputs/hostmatch/SNIDList','a')
                 else:
-                    yo=open('/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/SNIDList','w')
-                yo.write(str(SNID))
+                    yo=open(OUTPUT_DIR+'/SNIDList','w')
+                yo.write(str(SNID)+"\n")
                 yo.close()
                 ##Debugging
 
-                if args.verbose > 0:
-                    print '\ni=',i, entry[0], entry[1], '(RA, dec) = (',ra,',',dec,')'
+                #if args2.verbose > 0:
+                #    print '\ni=',i, entry[0], entry[1], '(RA, dec) = (',ra,',',dec,')'
 
                 # First pass search over a box
                 jndex = (cat['RA'] > ra - farc/math.cos(dec*rad) ) & \
@@ -475,6 +494,14 @@ def main(season):
 
                     if np.sum(circle) > 0: 
                         # define structured array containing potential host info
+                        #hostinfo = np.zeros(np.sum(circle), \
+                        #                        dtype={'names':['transient_name','SNID','SNGALID', \
+                        #                                            'COADD_ID','RA','DEC','sep','DLR', \
+                        #                                            'rank','host', 'X2','Y2','XY','A','B', \
+                        #                                            'rPHI','A_IMAGE','B_IMAGE','THETA_IMAGE','ZPHOTO'],\
+                        #                                   'formats':['S12','S8','S8','S20','f8','f8','f8', \
+                        #                                                  'f8','i4','i4','f8','f8','f8','f8','f8',\
+                        #                                                  'f8','f8','f8','f8','f4']})
                         hostinfo = np.zeros(np.sum(circle), \
                                                 dtype={'names':['transient_name','SNID','SNGALID', \
                                                                     'COADD_ID','RA','DEC','sep','DLR', \
@@ -483,7 +510,6 @@ def main(season):
                                                            'formats':['S12','S8','S8','S20','f8','f8','f8', \
                                                                           'f8','i4','i4','f8','f8','f8','f8','f8',\
                                                                           'f8','f8','f8','f8','f4']})
-                    
                         hostinfo['transient_name'][:] = transient_name
                         hostinfo['SNID'][:]           = SNID
                         
@@ -495,7 +521,7 @@ def main(season):
                         hostinfo['A_IMAGE']           = array['A'][circle]
                         hostinfo['B_IMAGE']           = array['B'][circle]
                         hostinfo['THETA_IMAGE']       = array['THETA'][circle]
-                        hostinfo['ZPHOTO']            =array['ZPHOTO'][circle] 
+                        hostinfo['ZPHOTO']            = array['ZPHOTO'][circle] 
                         #print array.shape,hostinfo['COADD_ID']
                         #Deprecated until these parameters are included in DESDM catalogs
                         #hostinfo['X2']               = array['X2WIN_IMAGE'][circle]
@@ -545,10 +571,10 @@ def main(season):
                                              hostinfo['A'][k], hostinfo['B'][k], \
                                              hostinfo['rPHI'][k], hostinfo['rank'][k],hostinfo['ZPHOTO'][k])
 
-                            if args.verbose > 1:
-                                print '\tSep: ',k, hostinfo['sep'][k], hostinfo['DLR'][k], \
-                                    hostinfo['rank'][k], hostinfo['X2'][k], hostinfo['Y2'][k], \
-                                    hostinfo['XY'][k], hostinfo['ZPHOTO'][k]
+                            #if args2.verbose > 1:
+                            #    print '\tSep: ',k, hostinfo['sep'][k], hostinfo['DLR'][k], \
+                            #        hostinfo['rank'][k], hostinfo['X2'][k], hostinfo['Y2'][k], \
+                            #        hostinfo['XY'][k], hostinfo['ZPHOTO'][k]
 
                             file_sep.write(s)
 
@@ -597,7 +623,8 @@ def main(season):
                         #------------------ (already sorted above) and write to file, -----------------
                         #------------------ write to DB, ngest into ATC, and tag there ----------------
                         #------------------------------------------------------------------------------
-                    
+                            ### KRH debug 2019-03-14
+
                         for k in range(0,len(hostinfo)):
                             # rank ordered galaxies
                             if hostinfo['DLR'][k] < DLR_cut:
@@ -620,10 +647,10 @@ def main(season):
                                              hostinfo['A'][k], hostinfo['B'][k], hostinfo['rPHI'][k], \
                                              hostinfo['rank'][k], hostinfo['host'][k], hostinfo['ZPHOTO'][k] )
 
-                            if args.verbose > 1:
-                                print '\tDLR: ',k, hostinfo['sep'][k], hostinfo['DLR'][k], \
-                                    hostinfo['host'][k],hostinfo['X2'][k], hostinfo['Y2'][k], \
-                                    hostinfo['XY'][k]
+                            #if args2.verbose > 1:
+                            #    print '\tDLR: ',k, hostinfo['sep'][k], hostinfo['DLR'][k], \
+                            #        hostinfo['host'][k],hostinfo['X2'][k], hostinfo['Y2'][k], \
+                            #        hostinfo['XY'][k]
                                 
                             
                             # Only write top 3 ranked galaxies to file/DB
@@ -646,8 +673,7 @@ def main(season):
 				#print array
                                 kndex = np.where(array['ID'][:] == int(hostinfo['COADD_ID'][k]))
                                 tt = kndex[0][0]
-                                #hostname = hostinfo['SURVEY'][k] + "_ID-" + str(array['ID'][tt])
-                                
+#                                hostname = hostinfo['SURVEY'][k] + "_ID-" + str(array['ID'][tt])
                                 query  = ( "INSERT INTO "+sngals_file+
                                            " ( "+sngals_file_id+", RA, DEC, PHOTOZ, "
                                            "PHOTOZ_ERR, MAG_AUTO_I, "
@@ -696,32 +722,33 @@ def main(season):
                                                          hostinfo['SNID'][k],\
                                                          hostinfo['transient_name'][k],temp_galid,\
                                                          hostinfo['sep'][k],\
-                                                         hostinfo['rank'][k],hostinfo['host'][k],args.season,'\''+array['CATALOG'][tt]+'\'',array['MAG_I'][tt])
+                                                         #hostinfo['rank'][k],hostinfo['host'][k],args2.season,'\''+array['CATALOG'][tt]+'\'',array['MAG_I'][tt])
+                                                         hostinfo['rank'][k],hostinfo['host'][k],my_season,'\''+array['CATALOG'][tt]+'\'',array['MAG_I'][tt])
                                 
-                                if args.verbose > 0:
-                                    print hostinfo['SNID'][k],hostinfo['transient_name'][k],\
-                                        array['ID'][tt],\
-                                        array['THETA'][tt],array['A'][tt],\
-                                        array['B'][tt]
+                                #if args2.verbose > 0:
+                                #    print hostinfo['SNID'][k],hostinfo['transient_name'][k],\
+                                #        array['ID'][tt],\
+                                #        array['THETA'][tt],array['A'][tt],\
+                                #        array['B'][tt]
 
                                 dbstring  = 'SN: {0:<12}{1:<16}{2:<16}{3:<12}{4:<12}{5:>10}{6:>7}\n'
                                 hostlessFlag = 0
+                                print(query)
                                 try:
-                                    if not args.test:
-                                        cursor.execute(query)
-                                        connection.commit()
-                                        db_status  = 0
+#                                    if not args2.test:
+                                    cursor.execute(query)
+                                    connection.commit()
+                                    db_status  = 0
                                 except:
                                     db_status  = 1
-                                    #db_flag   += 1
+                                    db_flag   += 1
                                 #print hostlessFlag
 
                                 logfile_db.write( dbstring.format(hostinfo['SNID'][k],
                                                                   hostinfo['transient_name'][k],
                                                                   array['ID'][tt],
                                                                   array['RA'][tt],array['DEC'][tt],
-                                                                  hostinfo['rank'][k],hostinfo['ZP\
-HOT'][k],db_status) )
+                                                                  hostinfo['rank'][k],hostinfo['ZPHOTO'][k],db_status) )
                                 
                                 #-------------------- Ingest to ATC (if not star ) --------------------
 
@@ -794,28 +821,26 @@ HOT'][k],db_status) )
                 if hostlessFlag:
                     nohost_GALID = -1
                     nohost_RANK  =  0
-
                     query = ( "INSERT INTO "+sngals_file+" (SNID, TRANSIENT_NAME, SNGALID, DLR_RANK) VALUES "
                               " ({0}, '{1}', {2}, {3}) " )
                     query = query.format(SNID, transient_name, nohost_GALID, nohost_RANK)
-                    print query
 
                     #if args.verbose > 0:
                     #    print SNID, transient_name,' NO HOST'
                     
                     dbstring  = 'SN: {0:<12}{1:<16}{2:<16}{3:<12}{4:<12}{5:>10}{6:>7}\n'
                 
-                    try:
-                        if not args.test:
-                            cursor.execute(query)
-                            connection.commit()
-                            db_status  = 0
-                    except:
-                        db_status  = 1
+                    #try:
+                    #    if not args2.test:
+                    #        cursor.execute(query)
+                    #        connection.commit()
+                    #        db_status  = 0
+                    #except:
+                    #    db_status  = 1
                         #db_flag   += 1                                                                            
 		    #### I have added this line as it was giving error (didn't know what to put as db_status in logfile_db.write)
-		    if args.test:
-			db_status = 1 
+		    ##if args2.test:
+		    db_status = 1 
 
                     logfile_db.write( dbstring.format(SNID, transient_name,'N/A',
                                                       'N/A','N/A',0,db_status) )
@@ -852,9 +877,9 @@ HOT'][k],db_status) )
     logfile_atc.write('#{0}'.format(logfile_name_atc))
     print 'Run with desHostMatchFix with input file set as {0}'.format(logfile_name_atc)
     
-    if args.test:
-        logfile_atc.write('#...Except this was only a TEST, so nothing has REALLY happened!\n')
-        print '...Except this was only a TEST, so nothing has REALLY happened!'
+    #if args2.test:
+    logfile_atc.write('#...Except this was only a TEST, so nothing has REALLY happened!\n')
+    print '...Except this was only a TEST, so nothing has REALLY happened!'
 
     file_dlr.close()
     file_sep.close()
@@ -866,18 +891,21 @@ HOT'][k],db_status) )
     connection.close()
 
     
-    status='1'
+    #status='1'
     hostms=open('hostmatchstatus.txt','w')
-    hostms.write(status)
+    hostms.write(str(db_flag))
     hostms.close()
     
-    thisisnottheDroidyouarelookingfor=OUTPUT_DIR+'/hostmatch.db.log'
-    thisistheDroidyouarelookingfor='./'+season+'/outputs/hostmatch/hostmatch.db.log'
-    ###Unhardcode this file location, plz
+    thisisnottheDroidyouarelookingfor=OUTPUT_DIR+'hostmatch.db.log'
+    #thisistheDroidyouarelookingfor='./'+season+'/outputs/hostmatch/hostmatch.db.log'
+    
+###Unhardcode this file location, plz
 ###database log file containing all the information necessary to build snid dictionary for html documentation
-    shutil.copy2(thisisnottheDroidyouarelookingfor,thisistheDroidyouarelookingfor)
-    irksome=open('./'+season+'/outputs/hostmatch/databaseLocation.txt','w+')
-    irksome.write(thisistheDroidyouarelookingfor)
+    #shutil.copy2(thisisnottheDroidyouarelookingfor,thisistheDroidyouarelookingfor)
+    #irksome=open('./'+season+'/outputs/hostmatch/databaseLocation.txt','w+')
+    irksome=open(OUTPUT_DIR+'databaseLocation.txt','w+')
+    #irksome.write(thisistheDroidyouarelookingfor)
+    irksome.write(thisisnottheDroidyouarelookingfor)
     irksome.close()
 ############################### Call main script ##################################################
 
