@@ -33,7 +33,7 @@ setup -j healpy 1.8.1+3
 setup -j pandas 0.15.2+3
 
 #setup html
-echo "EUPS setup complete"
+#echo "EUPS setup complete"
 
 export DES_SERVICES=${HOME}/.desservices.ini 
 export DES_DB_SECTION=db-sn-test
@@ -46,7 +46,7 @@ export DES_ROOT=/data/des20.b/data/SNDATA_ROOT/INTERNAL/DES
 ### Add for multi-season processing ###
 ARRAY=($(ls postproc_*.ini)) #list of postproc_SEASON.ini files
 ELEMENTS=${#ARRAY[@]}
-echo $ELEMENTS
+#echo $ELEMENTS
 
 for ((count=0;count<$ELEMENTS;count++))
 do
@@ -100,8 +100,16 @@ export SNANA_DIR=/data/des41.b/data/kessler/snana/snana
 export SNANA_ROOT=/data/des41.b/data/SNDATA_ROOT
 
 ## use Ken's development version of the diffimg code:
-#export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk
-#export PATH=$DIFFIMG_DIR/bin:$PATH
+export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk
+export PATH=$DIFFIMG_DIR/bin:$PATH
+
+#4-5-18 -- update for database access
+if [ -f /home/s1/desgw/connectionInfo.sh ]; then
+    source /home/s1/desgw/connectionInfo.sh
+else
+    echo `No connectionInfo.sh in home dir. Will not be able to access database`
+fi
+
 
 ######ACTUALLY, UNLESS SOMETHING RELATING TO SYMLINKS DOES NOT WORK, IGNORE THIS
 ###The following should be removed once Adam is fuctional
