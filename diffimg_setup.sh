@@ -40,7 +40,7 @@ export DES_DB_SECTION=db-sn-test
 export DIFFIMG_HOST=FNAL
 export SCAMP_CATALOG_DIR=$PWD/SNscampCatalog
 export AUTOSCAN_PYTHON=$PYTHON_DIR/bin/python
-export DES_ROOT=/data/des20.b/data/SNDATA_ROOT/INTERNAL/DES 
+export DES_ROOT=/data/des41.b/data/SNDATA_ROOT/INTERNAL/DES 
 
 
 ### Add for multi-season processing ###
@@ -97,7 +97,7 @@ export PFILES=${PWD}/syspfiles
 ##mkdir -p $TOPDIR_SNFORCEPHOTO_IMAGES $DES_ROOT $TOPDIR_SNFORCEPHOTO_OUTPUT $TOPDIR_DATAFILES_PUBLIC
 
 export SNANA_DIR=/data/des41.b/data/kessler/snana/snana
-export SNANA_ROOT=/data/des41.b/data/SNDATA_ROOT
+export SNDATA_ROOT=/data/des41.b/data/SNDATA_ROOT
 
 ## use Ken's development version of the diffimg code:
 export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk
