@@ -56,11 +56,11 @@ def masterlist(filename,blacklist_file,ligoid,propid,bands=None,expnums=None,a_b
         if len(expnums)>1:
             query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
-where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE') and id IN """+str(tuple(expnums))+""" order by id"""
+where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE' or program='GROWTH DECam GW') and id IN """+str(tuple(expnums))+""" order by id"""
         else:
             query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
-where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE') and id="""+str(expnums[0])+""" order by id"""
+where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE' or program='GROWTH DECam GW') and id="""+str(expnums[0])+""" order by id"""
 
 #         query_count = """select * from (
 # WITH objnights AS (
