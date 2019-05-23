@@ -41,6 +41,8 @@ export DIFFIMG_HOST=FNAL
 export SCAMP_CATALOG_DIR=$PWD/SNscampCatalog
 export AUTOSCAN_PYTHON=$PYTHON_DIR/bin/python
 export DES_ROOT=/data/des41.b/data/SNDATA_ROOT/INTERNAL/DES 
+#export DES_ROOT=/data/des20.b/data/SNDATA_ROOT/INTERNAL/DES
+
 
 
 ### Add for multi-season processing ###
