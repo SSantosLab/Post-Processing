@@ -425,7 +425,8 @@ def forcephoto(season,ncore=4,numepochs_min=0,writeDB=False):
     a = a + ' -season ' + season 
     a = a + ' -numepochs_min ' + numepochs_min 
     a = a + ' -ncore ' + str(ncore) 
-    a = a + ' -noprompt ' 
+    a = a + ' -noprompt '
+    a = a + ' -SKIP_CORRUPTFILE '
     if writeDB == True:
         a = a + ' -writeDB ' 
     print a
