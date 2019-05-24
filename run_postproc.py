@@ -195,6 +195,14 @@ if not os.path.isdir(outdir + '/plots/' + 'lightcurves'):
 outplots = outdir + '/' + 'plots'
 outstamps = outdir + '/' + 'stamps'
 
+
+#############################
+# Make directories to hold  #
+# plots and htmls for ease. #
+#############################
+os.system('mkdir '+str(outdir)+'/pngs')
+os.system('mkdir '+str(outdir)+'/htmls')
+
 ########
 # Initialize Status
 ########
@@ -435,6 +443,14 @@ update=updateStatus.updateStatus(statusList,season)
 print(update)
 print('statusList',statusList)
 
+##################################
+# Move plots and htmls into      #
+# directories established above  #
+##################################
+os.system('mv theProto*.html '+str(outdir)+'/htmls/')
+os.system('mv *.png '+str(outdir)+'/pngs/')
+
+os.system('mv GiantTarList.txt '+str(outdir)+'/')
 
 runStatus='complete'
 statusList[9]=runStatus
