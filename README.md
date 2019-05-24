@@ -1,3 +1,9 @@
+##################################################################
+######## Please refer to `README` for the most up-to-date ########
+######## information on running Post Processing.          ########
+##################################################################
+
+
 # Post-Processing
 
 “I ought to be thy Adam, but I am rather the fallen angel...”
