@@ -58,3 +58,14 @@ How to make Post Processing work form a fresh GitHub pull (23.05.2019)
     ====== `exposures_listfile = full190510.list` as an example)
     ==== `bands` to the desired bands
     ===== Band list should have NO WHITESPACE!!!!
+    
+    
+    ###############################################################################################
+    ######                                   WARNING!                                        ###### 
+    ###### Contains elements (`startSeasonCycler.sh`, `seasonCycler`, among possible others) ######
+    ###### which make post processing run on multiple seasons simultaneously. Such scripts   ######
+    ###### will require unknown amounts of modifications before this can happen for this     ######
+    ###### iteration of Post Processing. Similarly, the hostmatching process has             ######
+    ###### encountered unforseen issues that will need remedy. She or he who undertakes      ###### 
+    ###### these modifications, may the odds be ever in your favor.                          ######
+    ###############################################################################################
