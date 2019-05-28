@@ -17,6 +17,7 @@ import fitsio
 import psycopg2
 import fnmatch
 import configparser
+import csv
 
 
 def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema):
@@ -118,12 +119,10 @@ order by id"""
     #print expdf
 
     expdf = expdf.loc[~expdf['expnum'].isin(blacklist)]
-#    print("AGtest expdf", expdf)
 
 #    expdf = expdf.sort_values(by=['ra','mjd'])
 
     expdf['dup'] = expdf.duplicated(subset=['ra','nite'])
-    print("AG-dups", expdf['dup'])
 
     epoch = []
 
@@ -208,13 +207,12 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     stepnames = map(lambda x: x.strip(), stepnames)
 
     goodchecked = os.path.join(outdir,goodchecked)
-    print("good checked", goodchecked)
     if os.path.isfile(goodchecked):
         f = open(goodchecked,'r')
         good = f.readlines()
         f.close()
         good = map(lambda x: int(x.strip()), good)
-        print("good list", good)
+#        print("good list", good)
     else:
         good = []
         print("GOOD IS EMPTY")
@@ -349,13 +347,12 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     df1 = pd.DataFrame(d)
     df = df1.set_index('expnum')
     print
-    print("df", df)
 
     ccddf = df.copy()
 
     listgood = df.loc[df.sum(axis=1) == 0].index
     print
-    print("listgood", listgood)
+#    print("listgood", listgood)
     listgood = listgood.tolist()
     for l in listgood:
         if len(set(df.loc[l].values))!=1:
@@ -364,7 +361,7 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     np.savetxt(goodchecked,sorted(listgood),fmt='%d')
 
     df['unfinished']=(df<0).astype(int).sum(axis=1)
-    print("unfinished", df['unfinished'])
+#    print("unfinished", df['unfinished'])
     dfsuc = df.drop('unfinished',1)
     df['successes']=(dfsuc==0).astype(int).sum(axis=1)
     print("df[successes]",df['successes'])
@@ -545,8 +542,8 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
 
     percand = 1 # max sec per cand; usually takes ~0.5 to 0.8 
     maxtime = (percand*numcands/float(ncore))+60 # in sec        
-    print maxtime
-    print maxtime/3600.
+#    print maxtime
+#    print maxtime/3600.
 
     alltime = 0
     last = -1
@@ -1037,7 +1034,8 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
     masterTableInfo={} ###Key by snid, provide RA and DEC, probability, nad Gal Dist
 
     GTL=getGTL()##List of tar files already extracted
-
+    
+    FollowupList=open('FollowupList'+str(season)+'.csv','w')
     for d in dats:
         c=c+1
         if c%1000==0:
@@ -1080,9 +1078,25 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
 
         datInfo=[snid,raval,decval,host_id,photo_z,photo_zerr,spec_z,spec_zerr,host_sep,h_gmag,h_rmag,h_imag,h_zmag]
 
-        masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),0.0,0.0] ##Prob and host gal dist currently unknown
+#        masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),0.0,0.0] ##Prob and host gal dist currently unknown
 
         obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+
+        ##----------- alyssa hack to make csv and event table-------------------
+        mypaths=[]
+        for i in range(len(nite)): 
+            mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nite[i]))+'/'+str(int(expnum[i]))+'/D00'+str(int(expnum[i]))+'_*_'+str(int(ccdnum[i]))+'_r4p7_immask.fits.fz') #path to se proc. image
+
+        #only list candidates with at least one exposure whose ml score is >= 0.7
+        highestPhotProb=max(photprob)
+        if highestPhotProb >= 0.7:
+            masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),float(highestPhotProb),str(mypaths)]
+
+        writer = csv.writer(FollowupList)
+        sequence = [[str(snid), str(datInfo[1]), str(datInfo[2]), str(highestPhotProb), str(mypaths)]]
+        writer.writerows(sequence)
+        
+
         #print(mjd, type(mjd),'this is mjd prior to making potatos')
         #print(ccdnum, type(ccdnum),'this is ccdnum prior to making potatos')
         #print ('this is photflag:', photflag, type(photflag))
@@ -1096,7 +1110,8 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         bakedPotato=[obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid]
         #print(len(bakedPotato))
         epicBakedPotato=[]
-        
+
+        #make sure everything is an array
         for ingredient in bakedPotato:
             if not isinstance(ingredient, np.ndarray):####If element is not np.ndarray
                 inferiorIngredient=np.ndarray(1)####generate a size 1 array
@@ -1296,6 +1311,15 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         #print("The objid dict with the gifs.", Dict)
         ####MakeHTMLwithDict####
         HTML=ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurve,snidDict)
+
+    FollowupList.close()
+    reader = csv.reader(open("FollowupList"+str(season)+".csv"), delimiter=",")
+    sortedlist = sorted(reader, key=lambda row: row[3], reverse=True) #sort csv by ml score
+
+    sortedfollowup = open('sortedFollowupList'+str(season)+'.csv', 'w')
+    writer = csv.writer(sortedfollowup)
+    writer.writerows(sortedlist)
+    sortedfollowup.close()
     
     updatedGTL=updateGTL(GTL)
     #print(updatedGTL)
