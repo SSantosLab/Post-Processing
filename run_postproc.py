@@ -13,6 +13,7 @@ import findHostGala
 import WholeHTML
 import datetime
 import time
+import run_checker
 
 
 ## Read command line options
@@ -27,6 +28,7 @@ parser.add_argument('--mjdtrigger', type=float, help='MJD of LIGO trigger')
 parser.add_argument('--ups', type=bool, help='ups mode: True/False')
 parser.add_argument('--checkonly', type=bool, help='only do the processing check')
 parser.add_argument('--schema', type=str, default='gw', help='Schema used')
+parser.add_argument('--post', action='store_true', help='Push htmls to website - only use for production runs')
 args = parser.parse_args()
 
 season=str(args.season)
@@ -428,8 +430,8 @@ print "Run STEP 7: Make htmls/webpage"
 print "This is not Awesomely implemented. More coming soon..."
 #postproc.createhtml(fitsname,realdf,master,lcdir)
 print
-print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
-print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
+#print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
+#print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
 word=WholeHTML.WholeHTML(MLScoreFake,RADEC,season,masterTableInfo)
 #print(word)
 if word == "Functional":
@@ -442,6 +444,11 @@ print('step 7 status', status)
 update=updateStatus.updateStatus(statusList,season)
 print(update)
 print('statusList',statusList)
+
+#copy everything over to the event page area
+if args.post:
+    run_checker.checker(season)
+    print("args.post = True, posting htmls to event page")
 
 ##################################
 # Move plots and htmls into      #
