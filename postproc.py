@@ -880,9 +880,9 @@ def ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict
         for i in range(0,len(Dict[key]),3):
             keyHole=key[16:-1]
             Info=Dict[key][i].split('/')[0].split('_')[1]+Dict[key][i].split('/')[0].split('_')[2]
-            #print(Dict[key][i])
-            #print(Dict[key][i+1])
-            #print(Dict[key][i+2])
+#            print("ag 1", Dict[key][i])
+#            print("ag 2", Dict[key][i+1])
+#            print("ag 3", Dict[key][i+2])
             htmlYeah=open(Name,'a')
             lines=['<h1>Observation OBJID: '+key+'</h1><h2>MJD: '+mjd+'</h2>\n','<h2>'+Info+'</h2>\n','<div id="gifs">','<span title='+Dict[key][i]+'>','<img src=\''+Dict[key][i]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+1]+'>','<img src=\''+Dict[key][i+1]+'\' width="200" height="200"/></span>\n','<span title='+Dict[key][i+2]+'><img src=\''+Dict[key][i+2]+'\' width="200" height="200"/></span>','</div>']
             for line in lines:
