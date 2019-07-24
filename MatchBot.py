@@ -154,7 +154,7 @@ CandidateList = pd.read_csv(file)
 RA = CandidateList.radeg
 DEC = CandidateList.decdeg
 
-print(CandidateList)
+#print(CandidateList)
 
 MatchBox = pd.DataFrame(columns=['objname','redshift','hostname','host_redshift','isTNS_AT','discovery_date',
                                  'discoverymag','radeg','decdeg','ra','dec','num_matches','ra_match','dec_match'])
@@ -192,9 +192,10 @@ for i in CandidateList.index:
     for j in range(len(df1)):
         searchobjdict = df1[j]
         searchobj = searchobjdict['objname']
-        print("Here is the search object:")
-        print(searchobj)
-        print(type(searchobj))
+        #print("Here is the search object:")
+        #print(searchobj)
+        #print(type(searchobj))
+            
         # get obj
         get_obj = [("objname", searchobj)]
         response = get(url_tns_api, get_obj)
@@ -237,11 +238,6 @@ for i in CandidateList.index:
             dists.append((RAdiffs[k] ** 2 + DECdiffs[k] ** 2) ** 0.5)
         for x in range(len(dists)):
             distvals.append(dists[x][0])
-        print(RAdiffs)
-        print(DECdiffs)
-        print(dists)
-        print(distvals)
-        print(type(distvals))
         mindist = min(distvals)
         mindex = distvals.index(mindist)
         MatchRA.append(RAs[mindex][0])
@@ -258,7 +254,7 @@ for i in CandidateList.index:
     print(FullDataFrame)
 
 MatchBox = pd.concat(MatchBoxList)
-print(num_matches)
+
 CandidateList['Matches'] = num_matches
 CandidateList['RA Match'] = MatchRA
 CandidateList['DEC Match'] = MatchDEC
