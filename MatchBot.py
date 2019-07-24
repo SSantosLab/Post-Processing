@@ -173,7 +173,7 @@ for i in CandidateList.index:
     if None not in response:
         # Here we just display the full json data as the response
         json_data = format_to_json(response.text)
-        print(json_data)
+        #print(json_data)
     else:
         print(response[1])
 
@@ -202,7 +202,7 @@ for i in CandidateList.index:
         if None not in response:
             # Here we just display the full json data as the response
             json_data = format_to_json(response.text)
-            print(json_data)
+            #print(json_data)
         else:
             print(response[1])
 
