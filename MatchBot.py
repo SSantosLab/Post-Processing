@@ -1,7 +1,13 @@
 # First call files with DESGW_Bot ####################################
 
 '''
-NOTE: If the code fails to run, may need to pip install requests and/or pandas.
+NOTE: Method of running code: use command line
+      >> python3 MatchBot.py --file //full pathname of CSV file//
+      [e.g. >> python3 MatchBot.py --file /Users/tristanbachmann/Documents/Candidates.csv]
+NOTE: If the code fails to run, may need to pip install requests, argparse, and/or pandas.
+NOTE: When creating the CSV file to run through MatchBot, it is important the the keys/headings for RA and DEC are called
+      'radeg' and 'decdeg' respectively, as these keys allow MatchBot to use the coordinates to search the TNS remotely.
+      Additionally, the names should have the key 'objname' and dates should have the key 'discoverydate'.
 '''
 
 # !/usr/bin/env python2
