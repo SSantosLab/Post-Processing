@@ -13,13 +13,13 @@ NOTE: When creating the CSV file to run through MatchBot, it is important the th
 # !/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 14 14:38:11 2017
+API Functions Created on Thu Sep 14 14:38:11 2017
 
 Developed and tested in :
 - Python version 3.6.3
 - Linux Ubuntu version 16.04 LTS (64-bit)
 
-@author: Nikola Knezevic
+API Author: Nikola Knezevic
 """
 
 import os
