@@ -739,9 +739,9 @@ def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,sky
 
 
 
-def makeLightCurves(datFile,lines):
+def makeLightCurves(datFile,lines,skipheader):
     
-    Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=53,usecols=(4,5,1,15,18),unpack=True)
+    Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(4,5,1,15,18),unpack=True)
     band=[]
     Bands=[]
     for line in lines:
@@ -1050,14 +1050,30 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         f.close()
         
         #print(datfile)
-        
+        myskipheader = 47
+        hashost = False
+        nhostmatches = 0
         ###Get obs info and make info dict
         bands,fields=getBandsandField(lines)
-        mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(1,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        # Figure out how many host galaxy matches we have
+        for myline in lines:
+            if myline == '\n':
+                continue
+            splitline=myline.split()
+            if splitline[0] == "HOSTGAL_NMATCH2:":
+                hashost = True
+                nhostmatches = int(splitline[1])
+        # set skipheader according to number of matches (47 for no matches with the makeDataFiles version from May 2019)
+        myskipheader = 47 + hashost*3 + nhostmatches*10
+        try:
+            mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=myskipheader,usecols=(1,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        except:
+            print("Error building np array for %s with %d matches. Skipping." % (datfile,nhostmatches))
+            continue
         objidDict=MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid,bands,fields)
 
         ###Make Light Curves
-        LightCurve=makeLightCurves(datfile,lines)
+        LightCurve=makeLightCurves(datfile,lines,myskipheader)
 
     
         GoodTarFiles=[]
@@ -1080,7 +1096,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
 
 #        masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),0.0,0.0] ##Prob and host gal dist currently unknown
 
-        obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=myskipheader,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
 
         ##----------- alyssa hack to make csv and event table-------------------
         mypaths=[]
@@ -1100,7 +1116,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         #print(mjd, type(mjd),'this is mjd prior to making potatos')
         #print(ccdnum, type(ccdnum),'this is ccdnum prior to making potatos')
         #print ('this is photflag:', photflag, type(photflag))
-        band = np.genfromtxt(datfile,dtype='string',skip_header=53,usecols=(2,),unpack=True)
+        band = np.genfromtxt(datfile,dtype='string',skip_header=myskipheader,usecols=(2,),unpack=True)
         #print(band,field,nite,expnum,ccdnum)
         #tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
        
