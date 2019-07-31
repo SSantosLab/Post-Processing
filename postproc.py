@@ -739,9 +739,9 @@ def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,sky
 
 
 
-def makeLightCurves(datFile,lines):
+def makeLightCurves(datFile,lines, skipheader):
     
-    Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=53,usecols=(4,5,1,15,18),unpack=True)
+    Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(4,5,1,15,18),unpack=True)
     band=[]
     Bands=[]
     for line in lines:
@@ -834,7 +834,7 @@ def ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict
     
 
     ##obs info table
-    openingLines=['<table width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th>OBJID</th>','<th>MJD</th>','<th>FLT</th>','<th>FIELD</th>','<th>FLUXCAL</th>','<th>FLUXCALERR</th>','<th>PHOTFLAG</th>','<th>PHOTPROB</th>','<th>ZPFLUX</th>','<th>PSF</th>','<th>SKYSIG</th>','<th>SKYSIG_T</th>','<th>GAIN</th>','<th>XPIX</th>','<th>YPIX</th>','<th>NITE</th>','<th>EXPNUM</th>','<th>CCDNUM</th>','</tr>']
+    openingLines=['<table width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th>OBJID</th>','<th>MJD</th>','<th>FLT</th>','<th>FIELD</th>','<th>FLUXCAL</th>','<th>FLUXCALERR</th>','<th>MAG</th>','<th>MAGERR</th>','<th>PHOTFLAG</th>','<th>PHOTPROB</th>','<th>ZPFLUX</th>','<th>PSF</th>','<th>SKYSIG</th>','<th>SKYSIG_T</th>','<th>GAIN</th>','<th>XPIX</th>','<th>YPIX</th>','<th>NITE</th>','<th>EXPNUM</th>','<th>CCDNUM</th>','</tr>']
     htmlYeah=open(Name,'a')
     for line in openingLines:
         htmlYeah.write(line)
@@ -846,6 +846,14 @@ def ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict
         field=objidDict[key][2]
         FLUXCAL=objidDict[key][3]
         FLUXCALERR=objidDict[key][4]
+        FLUXCAL = float(FLUXCAL)
+        FLUXCALERR = float(FLUXCALERR)
+        MAG = -2.5*np.log10(FLUXCAL)+27.5
+        MAGERR = ErrorMag(FLUXCAL,FLUXCALERR)
+        FLUXCAL = str(FLUXCAL)
+        FLUXCALERR = str(FLUXCALERR)
+        MAG =str(MAG)
+        MAGERR =str(MAGERR)
         PHOTFLAG=objidDict[key][5]
         PHOTPROB=objidDict[key][6]
         ZPFLUX=objidDict[key][7]
@@ -859,7 +867,8 @@ def ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict
         EXPNUM=objidDict[key][15]
         CCDNUM=objidDict[key][16]
 
-        tableLines=['<tr>','<td>'+key+'</td>','<td>'+mjd+'</td>','<td>'+band+'</td>','<td>'+field+'</td>','<td>'+FLUXCAL+'</td>','<td>'+FLUXCALERR+'</td>','<td>'+PHOTFLAG+'</td>','<td>'+PHOTPROB+'</td>','<td>'+ZPFLUX+'</td>','<td>'+PSF+'</td>','<td>'+SKYSIG+'</td>','<td>'+SKYSIG_T+'</td>','<td>'+GAIN+'</td>','<td>'+XPIX+'</td>','<td>'+YPIX+'</td>','<td>'+NITE+'</td>','<td>'+EXPNUM+'</td>','<td>'+CCDNUM+'</td>','</tr>']
+        tableLines=['<tr>','<td>'+key+'</td>','<td>'+mjd+'</td>','<td>'+band+'</td>','<td>'+field+'</td>','<td>'+FLUXCAL+'</td>','<td>'+FLUXCALERR+'</td>','<td>'+MAG+'</td>','<td>'+MAGERR+'</td>','<td>'+PHOTFLAG+'</td>','<td>'+PHOTPROB+'</td>','<td>'+ZPFLUX+'</td>','<td>'+PSF+'</td>','<td>'+SKYSIG+'</td>','<td>'+SKYSIG_T+'</td>','<td>'+GAIN+'</td>','<td>'+XPIX+'</td>','<td>'+YPIX+'</td>','<td>'+NITE+'</td>','<td>'+EXPNUM+'</td>','<td>'+CCDNUM+'</td>','</tr>']
+
         for line in tableLines:
             htmlYeah.write(line)
     htmlYeah.close()
@@ -1050,14 +1059,29 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         f.close()
         
         #print(datfile)
-        
+        myskipheader = 45
+        hashost = False
+        nhostmatches = 0
         ###Get obs info and make info dict
         bands,fields=getBandsandField(lines)
-        mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(1,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+
+        for myline in lines:
+            if myline == '\n':
+                continue
+            splitline=myline.split()
+            if splitline[0] == "HOSTGAL_NMATCH2:":
+                hashost = True
+                nhostmatches = int(splitline[1])
+        myskipheader = 47 + hashost*3 + nhostmatches*10
+        try:
+            mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=myskipheader,usecols=(1,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        except:
+            print("Error building np array for %s with %d matches. Skipping." % (datfile,nhostmatches))
+            continue
         objidDict=MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid,bands,fields)
 
         ###Make Light Curves
-        LightCurve=makeLightCurves(datfile,lines)
+        LightCurve=makeLightCurves(datfile,lines,myskipheader)
 
     
         GoodTarFiles=[]
@@ -1065,30 +1089,50 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         snid = lines[1].split()[1]
         raval = lines[8].split()[1]
         decval = lines[9].split()[1]
-        host_id = lines[15].split()[1]
-        photo_z = lines[16].split()[1]
-        photo_zerr = lines[16].split()[3]
-        spec_z = lines[17].split()[1]
-        spec_zerr = lines[17].split()[3]
-        host_sep = lines[18].split()[1]
-        h_gmag = lines[19].split()[1]
-        h_rmag = lines[19].split()[2]
-        h_imag = lines[19].split()[3]
-        h_zmag = lines[19].split()[4]
+        if hashost:
+            host_id = lines[19].split()[1]
+            photo_z = lines[20].split()[1]
+            photo_zerr = lines[20].split()[3]
+            spec_z = lines[21].split()[1]
+            spec_zerr = lines[21].split()[3]
+            host_sep = lines[24].split()[1]
+            h_gmag = lines[26].split()[1]
+            h_rmag = lines[26].split()[2]
+            h_imag = lines[26].split()[3]
+            h_zmag = lines[26].split()[4]
+        else:
+            host_id = -9
+            photo_z = -9.0
+            photo_zerr = -9.0
+            spec_z = -9.0
+            spec_zerr = -9.0
+            host_sep = 999.0
+            h_gmag = 888.0
+            h_rmag = 888.0
+            h_imag = 888.0
+            h_zmag = 888.0
 
         datInfo=[snid,raval,decval,host_id,photo_z,photo_zerr,spec_z,spec_zerr,host_sep,h_gmag,h_rmag,h_imag,h_zmag]
 
 #        masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),0.0,0.0] ##Prob and host gal dist currently unknown
 
-        obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=53,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
+        obs,mjd,band,field,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=myskipheader,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
 
         ##----------- alyssa hack to make csv and event table-------------------
         mypaths=[]
-        for i in range(len(nite)): 
-            mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nite[i]))+'/'+str(int(expnum[i]))+'/D00'+str(int(expnum[i]))+'_*_'+str(int(ccdnum[i]))+'_r4p7_immask.fits.fz') #path to se proc. image
+        if isinstance(nite, (np.float64,float)):
+            if isinstance(expnum, (int,np.int64,float,np.float64)) and isinstance(ccdnum, (int,np.int64,float,np.float64)):
+                mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nite))+'/'+str(int(expnum))+'/D00'+str(int(expnum))+'_*_'+str(int(ccdnum))+'_r4p7_immask.fits.fz')
+        else:
+            for i in range(len(nite)): 
+                mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nite[i]))+'/'+str(int(expnum[i]))+'/D00'+str(int(expnum[i]))+'_*_'+str(int(ccdnum[i]))+'_r4p7_immask.fits.fz') #path to se proc. image
 
         #only list candidates with at least one exposure whose ml score is >= 0.7
-        highestPhotProb=max(photprob)
+        highestPhotProb = 0
+        if isinstance(photprob,(float,np.float64)):
+            highestPhotProb = photprob
+        else:
+            highestPhotProb=max(photprob)
         if highestPhotProb >= 0.7:
             masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),float(highestPhotProb),str(mypaths)]
 
@@ -1100,7 +1144,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         #print(mjd, type(mjd),'this is mjd prior to making potatos')
         #print(ccdnum, type(ccdnum),'this is ccdnum prior to making potatos')
         #print ('this is photflag:', photflag, type(photflag))
-        band = np.genfromtxt(datfile,dtype='string',skip_header=53,usecols=(2,),unpack=True)
+        band = np.genfromtxt(datfile,dtype='string',skip_header=myskipheader,usecols=(2,),unpack=True)
         #print(band,field,nite,expnum,ccdnum)
         #tarFiles=glob('/pnfs/des/persistent/gw/exp/'+nite'/'+expnum+'/dp'+season+'/'+band+'_'+ccdnum+'/stamps_'+nite+'_*_'+band+'_'+ccdnum+'/*tar.gz')
        
@@ -1204,7 +1248,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
                 
                 print(objid)
                 if objid==np.float64(0):
-                    print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
+     #               print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
                     if int(ccdnumk)<10:
@@ -1274,7 +1318,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
                 #print(objid[k])
                 
                 if objid[k]==np.float64(0):
-                    print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
+#                    print("Oh no! OBJID is zero, so let's pretend this OBS doesn't exist.")
                     continue
                 else:
                     if int(ccdnumk)<10:
