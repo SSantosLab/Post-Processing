@@ -739,7 +739,11 @@ def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,sky
 
 
 
+<<<<<<< HEAD
 def makeLightCurves(datFile,lines, skipheader):
+=======
+def makeLightCurves(datFile,lines,skipheader):
+>>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
     
     Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(4,5,1,15,18),unpack=True)
     band=[]
@@ -1059,12 +1063,20 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         f.close()
         
         #print(datfile)
+<<<<<<< HEAD
         myskipheader = 45
+=======
+        myskipheader = 47
+>>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
         hashost = False
         nhostmatches = 0
         ###Get obs info and make info dict
         bands,fields=getBandsandField(lines)
+<<<<<<< HEAD
 
+=======
+        # Figure out how many host galaxy matches we have
+>>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
         for myline in lines:
             if myline == '\n':
                 continue
@@ -1072,6 +1084,10 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
             if splitline[0] == "HOSTGAL_NMATCH2:":
                 hashost = True
                 nhostmatches = int(splitline[1])
+<<<<<<< HEAD
+=======
+        # set skipheader according to number of matches (47 for no matches with the makeDataFiles version from May 2019)
+>>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
         myskipheader = 47 + hashost*3 + nhostmatches*10
         try:
             mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=myskipheader,usecols=(1,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
