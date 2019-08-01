@@ -739,11 +739,7 @@ def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,sky
 
 
 
-<<<<<<< HEAD
 def makeLightCurves(datFile,lines, skipheader):
-=======
-def makeLightCurves(datFile,lines,skipheader):
->>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
     
     Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(4,5,1,15,18),unpack=True)
     band=[]
@@ -872,7 +868,6 @@ def ZapHTML(season,Dict,objidDict,theDat,datInfo,LightCurveName,snidDict): #Dict
         CCDNUM=objidDict[key][16]
 
         tableLines=['<tr>','<td>'+key+'</td>','<td>'+mjd+'</td>','<td>'+band+'</td>','<td>'+field+'</td>','<td>'+FLUXCAL+'</td>','<td>'+FLUXCALERR+'</td>','<td>'+MAG+'</td>','<td>'+MAGERR+'</td>','<td>'+PHOTFLAG+'</td>','<td>'+PHOTPROB+'</td>','<td>'+ZPFLUX+'</td>','<td>'+PSF+'</td>','<td>'+SKYSIG+'</td>','<td>'+SKYSIG_T+'</td>','<td>'+GAIN+'</td>','<td>'+XPIX+'</td>','<td>'+YPIX+'</td>','<td>'+NITE+'</td>','<td>'+EXPNUM+'</td>','<td>'+CCDNUM+'</td>','</tr>']
-
         for line in tableLines:
             htmlYeah.write(line)
     htmlYeah.close()
@@ -1063,20 +1058,12 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         f.close()
         
         #print(datfile)
-<<<<<<< HEAD
         myskipheader = 45
-=======
-        myskipheader = 47
->>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
         hashost = False
         nhostmatches = 0
         ###Get obs info and make info dict
         bands,fields=getBandsandField(lines)
-<<<<<<< HEAD
 
-=======
-        # Figure out how many host galaxy matches we have
->>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
         for myline in lines:
             if myline == '\n':
                 continue
@@ -1084,10 +1071,6 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
             if splitline[0] == "HOSTGAL_NMATCH2:":
                 hashost = True
                 nhostmatches = int(splitline[1])
-<<<<<<< HEAD
-=======
-        # set skipheader according to number of matches (47 for no matches with the makeDataFiles version from May 2019)
->>>>>>> 8bcc3988124830f3c8ba62fbca389acc6557acc7
         myskipheader = 47 + hashost*3 + nhostmatches*10
         try:
             mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid = np.genfromtxt(datfile,skip_header=myskipheader,usecols=(1,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18),unpack=True)
@@ -1694,7 +1677,7 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
 
     ### overall map
     plt.figure(figsize=(16,9))
-    plt.scatter(radecdf['RA'],radecdf['DEC'],c=radecdf['PHOTPROB'],edgecolor='',s=10)
+    plt.scatter(radecdf['RA'],radecdf['DEC'],c=radecdf['PHOTPROB'],edgecolor='',s=25)
     plt.xlim(min(radecdf['RA'])-0.2,max(radecdf['RA'])+0.2)
     plt.ylim(min(radecdf['DEC'])-0.2,max(radecdf['DEC'])+0.2)
     plt.clim(0,1)
