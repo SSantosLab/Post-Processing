@@ -304,6 +304,7 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
                     #timea = time.time()
                     #print timea-timeb
         else:
+            
             print str(expnums.index(int(e))+1)+'/'+str(len(expnums))+' - '+p
             d['expnum'].append(e)
             for c in chips:
@@ -362,9 +363,12 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
 
     df['unfinished']=(df<0).astype(int).sum(axis=1)
 #    print("unfinished", df['unfinished'])
+    
     dfsuc = df.drop('unfinished',1)
+    
     df['successes']=(dfsuc==0).astype(int).sum(axis=1)
     print("df[successes]",df['successes'])
+    
     df['fraction'] = ""
     for exp in list(df.index.values):
         frac = float(df.get_value(exp,'successes'))/59.
@@ -1130,13 +1134,15 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         highestPhotProb = 0
         if isinstance(photprob,(float,np.float64)):
             highestPhotProb = photprob
+            bestMag = -2.5*np.log10(fluxcal)+27.5
         else:
             highestPhotProb=max(photprob)
+            bestMag = -2.5*np.log10(fluxcal[photprob.index(highestPhotProb)])+27.5
         if highestPhotProb >= 0.7:
-            masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),float(highestPhotProb),str(mypaths)]
+            masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),float(highestPhotProb),float(bestMag),str(mypaths)]
 
         writer = csv.writer(FollowupList)
-        sequence = [[str(snid), str(datInfo[1]), str(datInfo[2]), str(highestPhotProb), str(mypaths)]]
+        sequence = [[str(snid), str(datInfo[1]), str(datInfo[2]), str(highestPhotProb),float(bestMag), str(mypaths)]]
         writer.writerows(sequence)
         
 
