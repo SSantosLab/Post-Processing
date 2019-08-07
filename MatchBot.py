@@ -273,3 +273,4 @@ CandidateList['MatchMag'] = MatchMag
 print(CandidateList)
 # Optionally, can print out the MatchBox, which stores all matches and their info
 # print(MatchBox)
+
