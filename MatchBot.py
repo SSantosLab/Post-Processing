@@ -166,6 +166,8 @@ MatchRA = []
 MatchDEC = []
 MatchName = []
 MatchDate = []
+MatchMag = []
+
 for i in CandidateList.index:
     search_obj = [("ra", RA[i]), ("dec", DEC[i]), ("radius", radius), ("units", "arcsec"),
                   ("objname", ""), ("internal_name", ""), ("public_timestamp", time)]
@@ -189,13 +191,13 @@ for i in CandidateList.index:
     distvals = []
     Names = []
     Dates = []
+    Mags = []
     for j in range(len(df1)):
         searchobjdict = df1[j]
         searchobj = searchobjdict['objname']
         #print("Here is the search object:")
         #print(searchobj)
         #print(type(searchobj))
-            
         # get obj
         get_obj = [("objname", searchobj)]
         response = get(url_tns_api, get_obj)
@@ -218,6 +220,7 @@ for i in CandidateList.index:
         DECs.append(DataFrameID.decdeg)
         Names.append(DataFrameID.objname)
         Dates.append(DataFrameID.discoverydate)
+        Mags.append(DataFrameID.discoverymag)
         try:
             FullDataFrame = pd.concat(DFList)
             MatchBoxList.append(DataFrameID)
@@ -244,22 +247,30 @@ for i in CandidateList.index:
         MatchDEC.append(DECs[mindex][0])
         MatchName.append(Names[mindex][0])
         MatchDate.append(Dates[mindex][0])
+        MatchMag.append(Mags[mindex][0])
     else:
         filler = None
         MatchRA.append(filler)
         MatchDEC.append(filler)
         MatchName.append(filler)
         MatchDate.append(filler)
+        MatchMag.append(filler)
 
-    print(FullDataFrame)
-
-MatchBox = pd.concat(MatchBoxList)
+    try: print(FullDataFrame)
+    except NameError:
+        continue
+try:
+      MatchBox = pd.concat(MatchBoxList)
+except ValueError:
+      print("No matches found!")
 
 CandidateList['Matches'] = num_matches
 CandidateList['RA Match'] = MatchRA
 CandidateList['DEC Match'] = MatchDEC
 CandidateList['Match Name'] = MatchName
 CandidateList['Match Date'] = MatchDate
+CandidateList['MatchMag'] = MatchMag
 print(CandidateList)
 # Optionally, can print out the MatchBox, which stores all matches and their info
 # print(MatchBox)
+
