@@ -756,7 +756,7 @@ def makeLightCurves(datFile,lines, skipheader):
                 Bands.append(bandy)
     #Time=Mjd
     try:
-        Time=Nite-Nite[0]
+        Time=Mjd-Mjd[0]
     except:
         Time=0
     bandDict={}
@@ -792,7 +792,7 @@ def makeLightCurves(datFile,lines, skipheader):
     ax.grid()
     ax.invert_yaxis()
     ax.legend()
-    plt.xlabel('Time (days)')
+    plt.xlabel('Time (delta MJD)')
     plt.ylabel('Magnitude')
     
     LightCurveName='LightCurve_'+datFile.split('.')[1].split('/')[-1]+'.png'
