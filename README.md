@@ -1,37 +1,71 @@
-# Post-Processing
+Usage: example: python run_postproc.py --expnums 787202 789559 787204 789561 --outputdir ./icecube_try2/ --season 901 &> runpostproc_iandr_try2.out
 
-“I ought to be thy Adam, but I am rather the fallen angel...”
---Frankenstein; or, The Modern Prometheus (Mary Shelley)
+Flags:
+
+--expnums: List of Exposures
+
+--outputdir: Location of output files
+
+–season: Season number
+
+--triggerid: LIGO trigger ID (GW######)
+
+--ligoid: LIGO event ID (G######)
+
+ --mjdtrigger: MJD of LIGO trigger
+
+--ups: ups mode: True/False
+
+--checkonly: only do the processing check
+
+--schema: Schema used
+
+Outputs:
+
+If an output dir is provided, it will be saved there (with the exception of the forcephoto dir, which will always be saved in the cwd)
+
+Within the saved directory there will be various other directories:
+
+checkoutputs
+log files with the success of each step
+goodchecked.list
+hostmatch
+masterlist
+blacklist.txt - black listed exposures
+MasterExposureList.fits
+MasterExposureList_prelim.fits
+plots
+lightcurves
+stamps
+
+truthtable{SEASON NUMBER}
+fakes_truth.tab
+truthplus.tab - list of SNFAKE_ID EXPNUM CCDNUM RA DEC MAG MAGERR FLUXCNT TRUEMAG TRUEFLUXCNT SNR REJECT ML_SCORE BAND NITE SEASON
 
 
-Code for the post-processing, now known as Adam.
 
-To create a cron job for Adam do:
-*/10 * * * * . AdamRUOK.sh
-This will check if Adam is running every ten minutes and start it if not.
+How to make Post Processing work form a fresh GitHub pull (23.05.2019)
 
-Adam Flow:
-
-
-Cron job starts AdamRUOK every 10 minutes. AdamRUOK checks to see if Adam is currently running, if not, it starts Adam. When started, Adam runs a generalized diffimg_setup, then gathers an array of all the .ini files in the folder from which it runs. If Adam sees more than one .ini files, it enters a for loop over them, starting first run_postproc, pushing this to background, starting run_checker, pushing this to background, and moving on to the next .ini file. run_postproc has 9 central steps. 
-
-Step -1: Set the Environment. This pulls data from the .ini file, including the season, ligoid, and similar identifying information.
-
-Step 0: Initialize Master List. 
-
-Step 1: Finalize Master List. 
-
-Step 2: Force Photometry. 
-
-Step 3: Host Match. Finds the most likely host galaxy of a given candidate.
-
-Step 4: Make Truth Table.
-
-Step 5: Make Data Files and Candidate Webpages. Creates data files (which were already there???) on the candidate, and creates mini webpages for each with information from the data files, as well as stamps of the difference, search, and template images for it.
-
-Step 6: Make Plots. Makes plots of the ML_Scores for the fakes and RA and DEC maps for ….
-
-Step 7: Make Web Page. Makes master webpage with links to candidate pages and a status page to show whether each step outlined above ran.
-
-run_checker is much simpler. During each of the run_postproc steps, run checker gather information regarding them and saves it to a file, which it continues to update until run_postproc is completed. It the creates a table of the steps’ statuses and a webpage to house the table.
-
+(1) Copy into the Post-Processing directory an exposures list.
+(2) Modify the `postproc.ini` file:
+    == Create an additional postproc.ini such as `postproc_SEASON.ini`
+    ==== `cp postproc.ini postproc_SEASON.ini` 
+    == Remove other .ini files with a similar naming convention, if unnecessary
+    == Under `[general]`, change
+    ==== `season` to the desired season
+    ==== `propid` to the desired propped
+    ==== (include an exposures list file, following 
+    ====== `exposures_listfile = full190510.list` as an example)
+    ==== `bands` to the desired bands
+    ===== Band list should have NO WHITESPACE!!!!
+    
+    
+    ###############################################################################################
+    ######                                   WARNING!                                        ###### 
+    ###### Contains elements (`startSeasonCycler.sh`, `seasonCycler`, among possible others) ######
+    ###### which make post processing run on multiple seasons simultaneously. Such scripts   ######
+    ###### will require unknown amounts of modifications before this can happen for this     ######
+    ###### iteration of Post Processing. Similarly, the hostmatching process has             ######
+    ###### encountered unforseen issues that will need remedy. She or he who undertakes      ###### 
+    ###### these modifications, may the odds be ever in your favor.                          ######
+    ###############################################################################################

@@ -1,5 +1,5 @@
 def updateStatus(statuslist,season):
-    stat=open('status'+season+'.txt','w+')
+    stat=open('PostProcStatus'+season+'.txt','w+')
     for status in statuslist:
         if status == False:
             stat.write('0 \n')
@@ -9,3 +9,4 @@ def updateStatus(statuslist,season):
             stat.write(str(status))
     stat.close()
     return 'Status updated!'
+
