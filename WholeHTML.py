@@ -1,6 +1,7 @@
 from glob import glob
 import ConfigParser
 import os
+
 ###Style sheet for this takes many cues from w3school
 ##'<link rel="stylesheet" type="text/css" href="masterHTMLCSS.css">'
 def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
@@ -14,12 +15,18 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
     for line in MajorPlots:
         masterHTML.write(line)
     masterHTML.close()
+
+    statusLines=['<a id="status" href="statusPage'+season+'.html"><font size="10">Status Page</font></a>','</body>','</html>']
+    masterHTML=open('masterHTML'+season+'.html','a')
+    masterHTML.write(statusLines[0])
+    masterHTML.write(statusLines[1])
+    masterHTML.close()
     
     htmls=glob('theProtoATC_'+season+'*.html')
 
     masterHTML=open('masterHTML'+season+'.html','a')
     
-    candInfoTableheaders=['<table id = "candidateTable" align="center"><caption>Click on the header by which you want to sort</caption>','<tr>','<th onclick="sortTable(0)">SNID</th>','<th onclick="sortTable(1)">RA and DEC</th>','<th onclick="sortTable(2)">Probability</th>','<th onclick="sortTable(3)">Host Galaxy Distance</th>','</tr>']
+    candInfoTableheaders=['<table id = "candidateTable" align="center"><caption>Click on the header by which you want to sort</caption>','<tr>','<th onclick="sortTable(0)">SNID</th>','<th onclick="sortTable(1)">RA and DEC</th>','<th onclick="sortTable(2)">max ML score</th>','<th onclick="sortTable(2)">First Mag</th>','<th onclick="sortTable(3)">Path to .fits</th>','</tr>']
     
     for header in candInfoTableheaders:
         masterHTML.write(header)
@@ -30,7 +37,7 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
         
         name=html.split('.')[0].split('_')[-1]
         miniName=name[2:]
-        print(miniName)
+#        print("miniName ",miniName)
         
         try:
             if miniName not in list(masterTableInfo.keys()):
@@ -43,7 +50,8 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
             continue
         if html=='./statusPage.html':
             continue
-        if html=='./statusPage'+season+'.html':
+        #if html=='./statusPage'+season+'.html':
+        if html=='./PostProc_statusPage'+str(season)+'.html':
             continue
         if html=='./masterHTML'+season+'.html':
             continue
@@ -56,6 +64,7 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
             
             RAandDEC=str(masterTableInfo[miniName][0])
             prob=str(masterTableInfo[miniName][1])
+            
             galDist=str(masterTableInfo[miniName][2])
             row=['<tr>','<td><a href='+html+'>'+name+'</a></td>','<td>'+RAandDEC+'</td>','<td>'+prob+'</td>','<td>'+galDist+'</td>']
             for part in row:
@@ -81,10 +90,14 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
         masterHTML.write(line)
     masterHTML.close()
 
-    statusLines=['<a id="status" href="statusPage'+season+'.html"><font size="10">Status Page</font></a>','</body>','</html>']
-    masterHTML=open('masterHTML'+season+'.html','a')
-    masterHTML.write(statusLines[0])
-    masterHTML.write(statusLines[1])
-    masterHTML.close()
+#    statusLines=['<a id="status" href="statusPage'+season+'.html"><font size="10">Status Page</font></a>','</body>','</html>']
+#    masterHTML=open('masterHTML'+season+'.html','a')
+#    masterHTML.write(statusLines[0])
+#    masterHTML.write(statusLines[1])
+#    masterHTML.close()
     
+#    os.system('scp masterHTML'+season+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+#    os.system('scp PostProc_statusPage'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+#    os.system('scp theProtoATC_'+str(season)+'*.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+
     return 'Functional'
