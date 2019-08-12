@@ -102,7 +102,7 @@ export SNANA_DIR=/data/des41.b/data/kessler/snana/snana
 export SNDATA_ROOT=/data/des41.b/data/SNDATA_ROOT
 
 ## use Ken's development version of the diffimg code:
-export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk
+export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel_May2019/trunk
 export PATH=$DIFFIMG_DIR/bin:$PATH
 
 #4-5-18 -- update for database access
