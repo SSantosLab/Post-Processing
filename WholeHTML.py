@@ -26,7 +26,8 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
 
     masterHTML=open('masterHTML'+season+'.html','a')
     
-    candInfoTableheaders=['<table id = "candidateTable" align="center"><caption>Click on the header by which you want to sort</caption>','<tr>','<th onclick="sortTable(0)">SNID</th>','<th onclick="sortTable(1)">RA and DEC</th>','<th onclick="sortTable(2)">max ML score</th>','<th onclick="sortTable(3)">First Mag</th>','<th onclick="sortTable(4)">Path to .fits</th>','</tr>']
+    #candInfoTableheaders=['<table id = "candidateTable" align="center"><caption>Click on the header by which you want to sort</caption>','<tr>','<th onclick="sortTable(0)">SNID</th>','<th onclick="sortTable(1)">RA and DEC</th>','<th onclick="sortTable(2)">max ML score</th>','<th onclick="sortTable(3)">First Mag</th>','<th onclick="sortTable(4)">Path to .fits</th>','</tr>']
+    candInfoTableheaders=['<table id = "candidateTable" align="center"><caption>Click on the header by which you want to sort</caption>','<tr>','<th onclick="sortTable(0)">SNID</th>','<th onclick="sortTable(1)">RA and DEC</th>','<th onclick="sortTable(2)">max ML score</th>','<th onclick="sortTable(3)">Path to .fits</th>','</tr>']
     
     for header in candInfoTableheaders:
         masterHTML.write(header)
@@ -61,10 +62,10 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo):
 
         ###Making a sortable Table
         if masterTableInfo != None:
-            
+
             RAandDEC=str(masterTableInfo[miniName][0])
             prob=str(masterTableInfo[miniName][1])
-            mag = str(masterTableInfo[miniName[2]])
+            mag = str(masterTableInfo[miniName][2])
             galDist=str(masterTableInfo[miniName][3])
             row=['<tr>','<td><a href='+html+'>'+name+'</a></td>','<td>'+RAandDEC+'</td>','<td>'+prob+'</td>','<td>'+ mag +'</td>','<td>'+galDist+'</td>']
 
