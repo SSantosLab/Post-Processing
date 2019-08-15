@@ -1137,7 +1137,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
             bestMag = -2.5*np.log10(fluxcal)+27.5
         else:
             highestPhotProb=max(photprob)
-            bestMag = -2.5*np.log10(fluxcal[photprob.index(highestPhotProb)])+27.5
+            bestMag = min(-2.5*np.log10(fluxcal[np.where(photprob == highestPhotProb)[0]])+27.5)
         if highestPhotProb >= 0.7:
             masterTableInfo[datInfo[0]]=[(float(datInfo[1]),float(datInfo[2])),float(highestPhotProb),float(bestMag),str(mypaths)]
 
