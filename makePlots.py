@@ -95,6 +95,9 @@ def MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_sco
         exepteff = masdf[['expnum','epoch','t_eff']].loc[masdf['hex'] == h]
         cut = exepteff[['expnum','epoch','t_eff']].loc[exepteff['epoch']==1]
         if len(cut)>1:
+            for icut in range(len(cut)):
+                if np.isnan(cut['t_eff'].values[icut]):
+                    cut['t_eff'].values[icut] = 0
             cut = cut.loc[cut['t_eff'] == cut['t_eff'].ix[cut['t_eff'].idxmax()]]
         try:
             hexex.append(cut['expnum'].values[0])
