@@ -376,7 +376,7 @@ else:
     print "No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY."
 print                                                                                    
 print "Run STEP 5b: Combine real datafiles"
-fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict, args.schema)
+fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict, args.schema,inifile)
 
 print("fitsname", fitsname)
 
