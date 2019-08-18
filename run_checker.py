@@ -43,13 +43,13 @@ def checker(season):
     
 
 #    os.system('mv PostProc_statusPage'+str(season)+'.html html_files/')
-    os.system('scp PostProc_statusPage'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp theProtoATC_'+str(season)+'*.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp masterHTML'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp LightCurve_des_real*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp fakemltest_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp fullmap_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp -r GifAndFitsstamps* codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a PostProc_statusPage'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a theProtoATC_'+str(season)+'*.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a masterHTML'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a LightCurve_des_real*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a fakemltest_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a fullmap_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a -r GifAndFitsstamps* codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
 
     print("copied html to codemanager")
 
@@ -63,13 +63,13 @@ def checker(season):
 
 def public(season):
     #candidate page
-    os.system('scp theProtoATC_'+str(season)+'*.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -aP theProtoATC_'+str(season)+'*.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
     
     #link to cand page
-    os.system('scp masterHTML'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -aP masterHTML'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
 
     #plots and things for cands
-    os.system('scp LightCurve_des_real*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp fakemltest_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp fullmap_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    os.system('scp -r GifAndFitsstamps* codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a LightCurve_des_real*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a fakemltest_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a fullmap_'+str(season)+'*.png codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
+    os.system('rsync -a -r GifAndFitsstamps* codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
