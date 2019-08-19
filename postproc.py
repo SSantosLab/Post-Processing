@@ -743,56 +743,138 @@ def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,sky
 
 
 
-def makeLightCurves(datFile,lines, skipheader):
-    
-    Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(4,5,1,15,18),unpack=True)
-    band=[]
-    Bands=[]
-    for line in lines:
-        if line.split(' ')[0]=='OBS:':
-            bandy=str(line.split(' ')[5])
-            band.append(bandy)
-            if bandy not in Bands:
-                Bands.append(bandy)
-    #Time=Mjd
+######### BEST
+def makeLightCurves(datFile,lines, skipheader,inifile,season):
+    triggermjd = config.get('general','triggermjd')
+    snid = lines[1].split()[1]
+    Filter,Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(2,4,5,1,15,18),unpack=True,dtype=str)
     try:
-        Time=Mjd-Mjd[0]
+        Flux = [float(flux) for flux in Flux]
+        FluxErr = [float(fluxerr) for fluxerr in FluxErr]
+        Mjd = [float(mjd) for mjd in Mjd]
+        Nite = [float(nite) for nite in Nite]
+        Objid = [float(objid) for objid in Objid]
+    
+    except:
+        Flux = float(Flux)
+        FluxErr = float(FluxErr)
+        Mjd = float(Mjd)
+        Nite = float(Nite)
+        Objid = float(Objid)
+
+    Mjd = np.asarray(Mjd)
+    triggermjd = float(triggermjd)
+    try:
+        Time = triggermjd-Mjd
     except:
         Time=0
-    bandDict={}
-    for b in Bands:
-        bandDict[b]=[[],[],[]] #mag,time,magerr
+
+    bd = {}
+    try:
+        for filter_ in Filter:
+             bd[filter_] = [[],[],[]]
+    except:
+        bd[Filter] = [[],[],[]]
+
     try:
         for i in range(len(Objid)):
             if Objid[i] != 0.0:
                 m=-2.5*np.log10(Flux[i])+27.5
                 magErr=ErrorMag(Flux[i],FluxErr[i])
-                bandDict[band[i]][0].append(m)
-                bandDict[band[i]][1].append(Time[i])
-                bandDict[band[i]][2].append(magErr)
+                bd[Filter[i]][0].append(m)
+                bd[Filter[i]][1].append(Time[i])
+                bd[Filter[i]][2].append(magErr)
+    except:
+        if Objid !=0.0:
+            m =-2.5*np.log10(Flux)+27.5
+            magErr=ErrorMag(Flux,FluxErr)
+            bd[Filter[0]][0].append(m)
+            bd[Filter[0]][1].append(Time)
+            bd[Filter[0]][2].append(magErr)
+
+    fig = plt.figure()
+    ax = fig.gca()
+    for b in bd.keys():
+        if not bd[b]==[[],[],[]]:
+            myyerr=np.asarray(bd[b][2])
+            plt.errorbar(bd[b][1],bd[b][0],yerr=myyerr, fmt='o', label=b+" band")               
+
+    ax.grid()
+    ax.invert_yaxis()
+    ax.legend(title="SNID: " + str(snid) + "\n Season: " + str(season),bbox_to_anchor=(1.1,.9), bbox_transform=plt.gcf().transFigure)
+    plt.xlabel('Days Since Merger')
+    plt.ylabel('Magnitude')
+
+    LightCurveName='LightCurve_'+datFile.split('.')[1].split('/')[-1]+'.png'
+    fig.savefig(LightCurveName,bbox_inches='tight')
+    return LightCurveName
+######### BEST
+
+
+
+
+def makeLightCurves(datFile,lines, skipheader,inifile,season):
+
+    triggermjd = config.get('general','triggermjd')
+    snid = lines[1].split()[1] 
+
+    Filter,Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(3,4,5,1,15,18),unpack=True)
+    #band=[]
+    #Bands=[]
+    #for line in lines:
+    #    if line.split(' ')[0]=='OBS:':
+    #        bandy=str(line.split(' ')[5])
+    #        band.append(bandy)
+    #        if bandy not in Bands:
+    #            Bands.append(bandy)
+
+    try:
+        Time = triggermjd-Mjd[0]
+    except:
+        Time=0
+
+    #bandDict={}
+    #for b in Bands:
+    #    bandDict[b]=[[],[],[]] #mag,time,magerr
+
+    bd = {}
+    try:
+        for filter_ in Filter:
+            bd[filter_] = [[],[],[]]
+    except:
+        bd[Filter] = [[],[],[]]
+
+
+    try:
+        for i in range(len(Objid)):
+            if Objid[i] != 0.0:
+                m=-2.5*np.log10(Flux[i])+27.5
+                magErr=ErrorMag(Flux[i],FluxErr[i])
+                bd[Filter[i]][0].append(m)
+                bd[Filter[i]][1].append(Time[i])
+                bd[Filter[i]][2].append(magErr)
             
     except:
         if Objid !=0.0:
             m=-2.5*np.log10(Flux)+27.5
             magErr=ErrorMag(Flux,FluxErr)
-            bandDict[band[0]][0].append(m)
-            bandDict[band[0]][1].append(Time)
-            bandDict[band[0]][2].append(magErr)
+            bd[Filter[0]][0].append(m)
+            bd[Filter[0]][1].append(Time)
+            bd[Filter[0]][2].append(magErr)
     
 
     fig = plt.figure()
     ax = fig.gca()    
     
-    for b in bandDict.keys():
-        if not bandDict[b]==[[],[],[]]:
-            myyerr=np.asarray(bandDict[b][2])
-            plt.errorbar(bandDict[b][1],bandDict[b][0],yerr=myyerr, fmt='o', label=b+" band")
-            #band skip po
+    for b in bd.keys():
+        if not bd[b]==[[],[],[]]:
+            myyerr=np.asarray(bd[b][2])
+            plt.errorbar(bd[b][1],bd[b][0],yerr=myyerr, fmt='o', label=b+" band")
     
     ax.grid()
     ax.invert_yaxis()
-    ax.legend()
-    plt.xlabel('Time (delta MJD)')
+    ax.legend(title="SNID: " + snid + "\n Season: " + season)
+    plt.xlabel('Days Since Merger')
     plt.ylabel('Magnitude')
     
     LightCurveName='LightCurve_'+datFile.split('.')[1].split('/')[-1]+'.png'
@@ -994,7 +1076,7 @@ def updateGTL(newTars):
 
 
  
-def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
+def combinedatafiles(season,master,fitsname,datadir,snidDict, schema,inifile):
     
     config = configparser.ConfigParser()
     config.read('postproc_'+season+'.ini')
@@ -1084,7 +1166,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema):
         objidDict=MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid,bands,fields)
 
         ###Make Light Curves
-        LightCurve=makeLightCurves(datfile,lines,myskipheader)
+        LightCurve=makeLightCurves(datfile,lines,myskipheader,inifile,season)
 
     
         GoodTarFiles=[]
