@@ -1087,7 +1087,7 @@ def combinedatafiles(season,master,fitsname,datadir,snidDict, schema,triggermjd)
         objidDict=MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,skysig_t,gain,xpix,ypix,nite,expnum,ccdnum,objid,bands,fields)
 
         ###Make Light Curves
-        LightCurve=makeLightCurves(datfile,lines,myskipheader,inifile,season)
+        LightCurve=makeLightCurves(datfile,lines,myskipheader,triggermjd,season)
 
     
         GoodTarFiles=[]
