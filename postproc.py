@@ -744,8 +744,8 @@ def MakeobjidDict(mjd,fluxcal,fluxcalerr,photflag,photprob,zpflux,psf,skysig,sky
 
 
 ######### BEST
-def makeLightCurves(datFile,lines, skipheader,inifile,season):
-    triggermjd = config.get('general','triggermjd')
+def makeLightCurves(datFile,lines, skipheader,triggermjd,season):
+    #triggermjd = config.get('general','triggermjd')
     snid = lines[1].split()[1]
     Filter,Flux,FluxErr,Mjd,Nite,Objid=np.genfromtxt(datFile,skip_header=skipheader,usecols=(2,4,5,1,15,18),unpack=True,dtype=str)
     try:
@@ -997,7 +997,7 @@ def updateGTL(newTars):
 
 
  
-def combinedatafiles(season,master,fitsname,datadir,snidDict, schema,inifile):
+def combinedatafiles(season,master,fitsname,datadir,snidDict, schema,triggermjd):
     
     config = configparser.ConfigParser()
     config.read('postproc_'+season+'.ini')
