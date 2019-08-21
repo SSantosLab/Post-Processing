@@ -765,7 +765,7 @@ def makeLightCurves(datFile,lines, skipheader,triggermjd,season):
     Mjd = np.asarray(Mjd)
     triggermjd = float(triggermjd)
     try:
-        Time = triggermjd-Mjd
+        Time = Mjd-triggermjd
     except:
         Time=0
 
