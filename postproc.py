@@ -765,7 +765,7 @@ def makeLightCurves(datFile,lines, skipheader,triggermjd,season):
     Mjd = np.asarray(Mjd)
     triggermjd = float(triggermjd)
     try:
-        Time = Mjd-triggermjd
+        Time = Mjd - triggermjd
     except:
         Time=0
 
@@ -779,15 +779,23 @@ def makeLightCurves(datFile,lines, skipheader,triggermjd,season):
     try:
         for i in range(len(Objid)):
             if Objid[i] != 0.0:
-                m=-2.5*np.log10(Flux[i])+27.5
-                magErr=ErrorMag(Flux[i],FluxErr[i])
+                if Flux[i] == 0.0:
+                    m = 99
+                    magErr = 0.0
+                else:
+                    m=-2.5*np.log10(Flux[i])+27.5
+                    magErr=ErrorMag(Flux[i],FluxErr[i])
                 bd[Filter[i]][0].append(m)
                 bd[Filter[i]][1].append(Time[i])
                 bd[Filter[i]][2].append(magErr)
     except:
         if Objid !=0.0:
-            m =-2.5*np.log10(Flux)+27.5
-            magErr=ErrorMag(Flux,FluxErr)
+            if Flux == 0.0:
+                m = 99
+                magErr = 0.0
+            else:
+                m =-2.5*np.log10(Flux)+27.5
+                magErr=ErrorMag(Flux,FluxErr)
             bd[Filter[0]][0].append(m)
             bd[Filter[0]][1].append(Time)
             bd[Filter[0]][2].append(magErr)
