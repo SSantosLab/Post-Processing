@@ -157,7 +157,7 @@ thisTime = strftime("%Y%m%d.%H%M%S")
 #OUTPUT_DIR = DIR + '/hostmatching/RUNLOGS/' + thisTime + '/'
 
 #Test an environmental change to employ new hostgal catalog
-TopHost='/data/des60.b/data/palmese/GW_reject_cat/v1.0.2' 
+TopHost='/data/des60.b/data/palmese/GW_reject_cat/GW_DES_Y3A2'
 os.environ['TOPDIR_HOSTMATCH']=TopHost
 INPUT_DIR = os.environ.get('TOPDIR_HOSTMATCH') + '/'
 OUTPUT_DIR = str(os.environ.get('OUTDIR_HOSTMATCH')) #+ '/hostmatch/'
