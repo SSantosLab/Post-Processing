@@ -14,7 +14,7 @@ import WholeHTML
 import datetime
 import time
 import run_checker
-
+#import cProfile
 
 ## Read command line options
 parser = argparse.ArgumentParser(description=__doc__, 
@@ -33,6 +33,8 @@ args = parser.parse_args()
 
 season=str(args.season)
 
+mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
+print("START TIME", mytime)
 ## Read config file                                                            
 config = ConfigParser.ConfigParser()
 if os.path.isfile('./postproc_'+str(season)+'.ini'):
@@ -114,7 +116,7 @@ if args.expnums == None:
             expnums.append(line.split('\n')[0])
             expnums = map(int,expnums)
     except:
-        print "WARNING: List of exposures file not found or empty."
+        print("WARNING: List of exposures file not found or empty.")
         expnums = []
         #sys.exit(1)
 else:
@@ -217,7 +219,7 @@ print(update)
 # STEP -1: Set up the environment
 #########
 
-print "Run STEP -1: Set up the environment"
+print("Run STEP -1: Set up the environment")
 status=postproc.prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema)
 print
 print(status,'status-1')
@@ -234,12 +236,12 @@ print('statusList',statusList)
 # STEP 0: Create initial master list, check processing outputs
 #########
 
-print "Run STEP 0: Create initial master list, check processing outputs"
+print("Run STEP 0: Create initial master list, check processing outputs")
 if len(expnums)>0:
     expniteband_df,master,sta = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands,expnums)
 
 else:
-    print "No exposures specified by user. All exposures taken under LIGO ID "+str(ligoid)+" / event ID "+str(triggerid)+" and prop ID "+str(propid)+" will be used for the initial master list and the checkoutputs step."
+    print("No exposures specified by user. All exposures taken under LIGO ID "+str(ligoid)+" / event ID "+str(triggerid)+" and prop ID "+str(propid)+" will be used for the initial master list and the checkoutputs step.")
     expniteband_df,master,sta = postproc.masterlist(masterfile_1,blacklist_file,ligoid,propid,bands)
 
 
@@ -253,15 +255,15 @@ if len(expniteband_df)>0:
 
 else:
     tus=False
-    print "ERROR: No exposures provided, and no exposures found matching the trigger id and prop id provided in the .ini file:"
-    print
-    print "TRIGGER ID: "+str(triggerid)
-    print "PROP ID: "+str(propid)
-    print
-    print "EXITING."
-    print
+    print("ERROR: No exposures provided, and no exposures found matching the trigger id and prop id provided in the .ini file:")
+    print("")
+    print("TRIGGER ID: "+str(triggerid))
+    print("PROP ID: "+str(propid))
+    print("")
+    print("EXITING.")
+    print("")
     sys.exit()
-print
+print("")
 print('step 0 status', sta+tus)
 if sta+tus==0 or sta+tus == 1:
     statusList[1]=False
@@ -280,10 +282,10 @@ print('statusList',statusList)
 # STEP 1: Create final master list
 #########
 
-print "Run STEP 1: Create final master list"
+print("Run STEP 1: Create final master list")
 
 expniteband_df,master,status = postproc.masterlist(masterfile_2,blacklist_file,ligoid,propid,bands,expnums,a_blacklist)
-print
+print("")
 
 if status !=None:
     statusList[2]=status
@@ -295,36 +297,33 @@ print(update)
 print('statusList',statusList)
 expnums = expniteband_df['expnum'].tolist()
 
+
 #########
 # STEP 2: Forcephoto
 #########
 
-print "Run STEP 2: Forcephoto"
+print("Run STEP 2: Forcephoto")
 postproc.forcephoto(season,ncore,numepochs_min_1,writeDB)
-print
+print("")
 ####Status update at a different time
 
 #########
 # STEP 3: Hostmatch
 #########
 
-print "Run STEP 3: Hostmatch"
+print("Run STEP 3: Hostmatch")
 import desHostMatch
 #print('We are *RUNNING HOSTMATCH!*')
-desHostMatch.main(season)
-#print
-#print('That... was not worth the hype.')
-#print
+##desHostMatch.main(season)
+
 print('Now making a galaxy match dictionary!')
 irksome='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt'
 irritation=open(irksome,'r')
 path=irritation.read()
 irritation.close()
-#print(path)
-##sys.exit('Ladies and gentlemen! We are debugging.')
+
 snidDict=findHostGala.findHostGala(path)
-#print(list(snidDict.keys()))
-#
+
 prestat=open('hostmatchstatus.txt','r')
 stat=prestat.read()
 if stat=='0':
@@ -346,13 +345,13 @@ print('statusList',statusList)
 #########
 
 if len(expnums)>0:
-    print "Run STEP 4: Make truth table"
+    print("Run STEP 4: Make truth table")
     truthplus,status = postproc.truthtable(season,expnums,filename,truthplusfile)
 
 else:
     status=False
-    print "WARNING: List of exposures is empty. Skipping STEP 4."
-print
+    print("WARNING: List of exposures is empty. Skipping STEP 4.")
+print("")
 
 if status == None:
     status=False
@@ -366,21 +365,23 @@ print('statusList',statusList)
 # STEP 5: Make datafiles
 #########
 
-print "Run STEP 5: Make datafiles"
+print("Run STEP 5: Make datafiles")
 postproc.makedatafiles(season,format,numepochs_min_2,two_nite_trigger,outFile_stdoutreal,outDir_datareal,ncore)
 
 if not fakeversion=='KBOMAG20ALLSKY':
     postproc.makedatafiles(season,format,numepochs_min_2,two_nite_trigger,outFile_stdoutfake,outDir_datafake,ncore,fakeversion)
     one=1
 else:
-    print "No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY."
-print                                                                                    
-print "Run STEP 5b: Combine real datafiles"
-fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outDir_datareal,snidDict, args.schema,triggermjd)
-
+    print("No datafiles made for fakes because fakeversion=KBOMAG20ALLSKY.")
+print("")                                                                                    
+print("Run STEP 5b: Combine real datafiles")
+mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
+print("START 5B TIME", mytime)
+#fitsname,status,masterTableInfo = AGpostprocpara.combinedatafiles(season,master,combined_fits,outDir_datareal, args.schema,triggermjd)
+fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outdir, outDir_datareal, args.schema,triggermjd, args.post)
 print("fitsname", fitsname)
 
-print
+print("")
 #if masterTableInfo != None:
 #    print(type(list(masterTableInfo.keys())[0]))
 #
@@ -399,19 +400,20 @@ if status == False:
     print(update)
     sys.exit()
 
+mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
+print("END 5B TIME", mytime)
+
 #########
 # STEP 6: Make plots
 #########
 
 
 skip=True
-print "Run STEP 6: Make plots"
-print
+print("Run STEP 6: Make plots")
+print("")
 stat6,MLScoreFake,RADEC=makePlots.MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
-#print(Words)
-print('It is possible this has run.')
+
 #statusList.append(status)
-    #print("Sorry, son. Step 6 doesn't quite work right here, so I'll just give you the associated .fits and .gifs for these exposures.They will be in your outdir directory and hard to miss.")
 
 if stat6==None:
     stat6=False
@@ -426,14 +428,10 @@ print('statusList',statusList)
 #########
 status=False
 #sys.exit()
-print "Run STEP 7: Make htmls/webpage"
-print "This is not Awesomely implemented. More coming soon..."
-#postproc.createhtml(fitsname,realdf,master,lcdir)
-print
-#print("HAHAH! Tricked you! The htmls were actually created in Step 5! Bwahaha!")
-#print('Also, here is a (possibly) working master HTML, from which you can access evvvverythiiiing.')
-word=WholeHTML.WholeHTML(MLScoreFake,RADEC,season,masterTableInfo)
-#print(word)
+print("Run STEP 7: Make htmls/webpage")
+
+word=WholeHTML.WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir)
+
 if word == "Functional":
     statusNew=True
     statusList[8]=statusNew
@@ -454,12 +452,18 @@ if args.post:
 # Move plots and htmls into      #
 # directories established above  #
 ##################################
-os.system('mv theProto*.html '+str(outdir)+'/htmls/')
-os.system('mv *.png '+str(outdir)+'/pngs/')
+#os.system('mv candidate*.html '+str(outdir)+'/htmls/')
+#os.system('mv *.png '+str(outdir)+'/pngs/')
 
-os.system('mv GiantTarList.txt '+str(outdir)+'/')
+#os.system('mkdir '+str(outdir)+'/gifs/')
+#os.system('mv *.gif '+str(outdir)+'/gifs/')
+
+#os.system('mv GiantTarList.txt '+str(outdir)+'/')
 
 runStatus='complete'
 statusList[9]=runStatus
 update=updateStatus.updateStatus(statusList,season)
 print(update)
+
+mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
+print("END END TIME", mytime)
