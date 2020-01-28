@@ -314,7 +314,7 @@ print("")
 print("Run STEP 3: Hostmatch")
 import desHostMatch
 #print('We are *RUNNING HOSTMATCH!*')
-##desHostMatch.main(season)
+desHostMatch.main(season)
 
 print('Now making a galaxy match dictionary!')
 irksome='/data/des40.b/data/nsherman/postprocBig/outputs/hostmatch/databaseLocation.txt'
@@ -444,9 +444,9 @@ print(update)
 print('statusList',statusList)
 
 #copy everything over to the event page area
-if args.post:
-    run_checker.checker(season)
-    print("args.post = True, posting htmls to event page")
+#if args.post:
+#    run_checker.checker(season)
+#    print("args.post = True, posting htmls to event page")
 
 ##################################
 # Move plots and htmls into      #
