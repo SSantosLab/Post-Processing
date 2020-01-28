@@ -1412,7 +1412,12 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
     except:
         bestMag = 99
 
-    highestPhotProb = max(dat_df['PHOTPROB'].values)
+    try:
+        highestPhotProb = max(dat_df['PHOTPROB'].values)
+    except:
+        print("no phot prob ", dat_df)
+        highestPhotProb = -999
+
     if highestPhotProb >= 0.7:
         masterTableInfo[md['snid'].values[0]]=[(float(md['raval'].values[0]),float(md['decval'].values[0])),float(highestPhotProb),float(bestMag),str(mypaths)]
 #        print('Writing to masterTableInfo for SNID ' + str(md['snid'].values[0]))
@@ -1504,7 +1509,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
     # Copy stamps, html and lightcurve directories if post == True
 
     if post == True:
-         try:
+        try:
             os.system("rsync -a " + outdir + "/pngs codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp" + str(season) +"/") 
         except:
             print("Error copying png directory to desweb. Please investigate.")
