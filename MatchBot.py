@@ -38,12 +38,15 @@ parser.add_argument('--radius', metavar='r',type=str, nargs='+', help= 'Radius a
 parser.add_argument('--time', metavar='t',type=str, nargs='+', help='The timestamp of the event.',default='')
 parser.add_argument('--file', metavar='f',type=str, nargs='+', help='The input file of the list of GW candidates.'
                                                                     ' (CSV format preferred).')
+parser.add_argument('--upload',metavar='u',type=bool, nargs='+', help='Whether or not to do bulk upload to TNS')
+
 args = parser.parse_args()
 #ra = args.ra[0]
 #dec = args.dec[0]
 radius = args.radius[0]
 time = args.time
 file = args.file[0]
+upload = args.upload[0]
 
 ############################# PARAMETERS #############################
 # API key for Bot                                                    #
@@ -58,7 +61,8 @@ get_obj = [("objname", ""), ("photometry", "0"), ("spectra", "1")]  #
 #############################    URL-s   #############################
 # url of TNS and TNS-sandbox api                                     #
 url_tns_api = "https://wis-tns.weizmann.ac.il/api/get"  #
-url_tns_sandbox_api = "https://sandbox-tns.weizmann.ac.il/api/get"  #
+url_tns_sandbox_api = "https://sandbox-tns.weizmann.ac.il/api/get"
+url_tns_sandbox_api_bulk = "https://sandbox-tns.weizmann.ac.il/api" #
 ######################################################################
 
 ############################# DIRECTORIES ############################
@@ -139,6 +143,59 @@ def get_file(url):  #
             print(response.status_code)  #
     except Exception as e:  #
         print('Error message : \n' + str(e))  #
+
+def BulkUpload(url,data):
+    #convert CandidateList from pd df to json file
+    if data.size == 0:
+        print("Nothing to convert, all data had matches!")
+        return
+
+    j_data = data.to_json()
+    print(j_data)
+    json_url=url+'/bulk-report'
+
+    json_data = [('api_key', (None, api_key)),  #
+                ('data', (None, j_data))]  #
+    print(json_data)
+    # send json report using request module                          #
+
+    response = requests.post(json_url, files=json_data)
+    print(response)
+    return response
+
+def send_report(url, data):                                        #
+    # sending report and checking response                           #
+    print ("Sending "+report+" to the TNS...")                       #
+
+    response=BulkUpload(url,data)                            #
+    response_check=check_response(response)                          #
+    # if report is sent                                              #
+    if response_check==True:                                         #
+        print ("The report was sent to the TNS.")                    #
+        # report response as json data                               #
+        json_data=response.json()                                    #
+        # taking report id                                           #
+        report_id=str(json_data['data']['report_id'])                #
+        print ("Report ID = "+report_id)                             #
+        print ("")                                                   #
+        # sending report id to get reply of the report               #
+        # and printing that reply                                    #
+        # waiting for report to arrive before sending reply          #
+        # for report id                                              #
+        blockPrint()                                                 #
+        counter = 0                                                  #
+        while True:                                                  #
+            time.sleep(SLEEP_SEC)                                    #
+            reply_response=reply(url,report_id)                      #
+            reply_res_check=check_response(reply_response)           #
+            if reply_res_check!=False or counter >= LOOP_COUNTER:    #
+                break                                                #
+            counter += 1                                             #
+        enablePrint()                                                #
+        print_reply(url,report_id)                                   #
+    else:                                                            #
+        print ("The report was not sent to the TNS.")
+
 
 
 ######################################################################
@@ -255,14 +312,14 @@ for i in CandidateList.index:
         MatchName.append(filler)
         MatchDate.append(filler)
         MatchMag.append(filler)
-
     try: print(FullDataFrame)
     except NameError:
         continue
+
 try:
-      MatchBox = pd.concat(MatchBoxList)
+    MatchBox = pd.concat(MatchBoxList)
 except ValueError:
-      print("No matches found!")
+    print("No matches found!")
 
 CandidateList['Matches'] = num_matches
 CandidateList['RA Match'] = MatchRA
@@ -271,6 +328,12 @@ CandidateList['Match Name'] = MatchName
 CandidateList['Match Date'] = MatchDate
 CandidateList['MatchMag'] = MatchMag
 print(CandidateList)
+
+if upload == True:
+    NewCandidateList = CandidateList.loc[CandidateList['Matches'] == 0] #double check syntax
+    BulkUpload(url_tns_sandbox_api_bulk,NewCandidateList) # using pd.to_csv(sep='\t')
+    #add a try-except here in case of an issue
+
 # Optionally, can print out the MatchBox, which stores all matches and their info
 # print(MatchBox)
 
