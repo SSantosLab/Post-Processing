@@ -1,7 +1,8 @@
 from glob import glob
 import ConfigParser
 import os
-
+import pandas as pd
+import sys
 ###Style sheet for this takes many cues from w3school
 ##'<link rel="stylesheet" type="text/css" href="masterHTMLCSS.css">'
 def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
@@ -36,9 +37,10 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
     
     # print masterTableInfo keys
     #1/23/20 ag: convert dict to pandas df to sort
-    masterdf = pd.DataFrame(masterTableInfo).transpose().rest_index()
-    masterdf.colunms = ['snid','radec', 'ml', 'mag', 'path']
-    masterdf = masterdf.sort_values('ml',ascending=False)
+    masterdf = pd.DataFrame(masterTableInfo).transpose().reset_index()
+    masterdf.columns = ['snid','radec', 'ml', 'mag', 'path']
+#    masterdf = masterdf.sort_values('ml',ascending=False)
+    masterdf = masterdf.sort(columns=['ml', 'snid'],ascending=False)
 
     print('Keys for masterTableInfo:')
 #    print(str(len(masterTableInfo.keys())))
@@ -46,18 +48,27 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
 
     masterHTML=open('masterHTML'+season+'.html','a')
  #   for html in htmls:
+    check = 0.
+    check2 = 0.
+    check3 = 0.
+    print("AG OUTDIR", outdir)
     for index, row in masterdf.iterrows():
-        snid = row['snid']
+        check += 1.0
+        snid = int(row['snid'])
         prob = row['ml']
         mag = row['mag']
         rawImagePath = row['path']
         RAandDEC = row['radec']
-
+        
         html = glob(outdir+'/htmls/candidate_'+str(snid)+'_dp'+str(season)+'.html')
         if not html:
+            name = "n/a"
+            forpathhtml = 'n/a'
+            miniName = 'n/a'
             continue
         else:
-            forpathhtml = html.split('/')[-1]
+            check2 += 1.
+            forpathhtml = html[0].split('/')[-1]
             name=forpathhtml.split('.')[0].split('_')[1]
             miniName=int(name[0:]) # snid, so treat as int
             #print("miniName ",miniName)
@@ -92,15 +103,15 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
             #mag = str(masterTableInfo[miniName][2])
             #galDist=str(masterTableInfo[miniName][3])                
         
-        row=['<tr>','<td><a href=htmls/'+str(forpathhtml)+'>'+name+'</a></td>','<td>'+RAandDEC+'</td>','<td>'+prob+'</td>','<td>'+ mag +'</td>','<td>'+rawImagePath+'</td>']
-
+        row=['<tr>','<td><a href=htmls/'+str(forpathhtml)+'>'+str(name)+'</a></td>','<td>'+str(RAandDEC)+'</td>','<td>'+str(prob)+'</td>','<td>'+ str(mag) +'</td>','<td>'+str(rawImagePath)+'</td>']
+        check3 += 1.
         for part in row:
             masterHTML.write(part)
         ###Done with a sortable Table
             
 #    if masterTableInfo != None:
     if not masterdf.empty:
-        link=['<li><a href='+html+'>'+name+'</a></li>']
+        link=['<li><a href='+str(html)+'>'+str(name)+'</a></li>']
         masterHTML.write(link[0])
         lilLine=['</table>','<div align="right"><p>Image credit: Dark Energy Survey</p></div>']
     else:
@@ -112,7 +123,7 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
     f=open('tableSortTest.html','r')
     lines=f.readlines()
     f.close()
-    masterHTML=open('masterHTML'+season+'.html','a')
+    masterHTML=open('masterHTML'+str(season)+'.html','a')
     for line in lines[1:]:
         masterHTML.write(line)
     masterHTML.close()
@@ -126,5 +137,7 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
 #    os.system('scp masterHTML'+season+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
 #    os.system('scp PostProc_statusPage'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
 #    os.system('scp theProtoATC_'+str(season)+'*.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-
+    print("check 1",check)
+    print("check 2", check2)
+    print("check 3", check3)
     return 'Functional'
