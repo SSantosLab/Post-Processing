@@ -695,10 +695,15 @@ def MakeDictforObjidsHere(stamps4file,ObjidList):
 
 
 
-def ErrorMag(flux,fluxerror):
-    dmdflux=1/(flux)
-    almostError=(dmdflux**2)*fluxerror
-    Error=almostError**(.5)
+#def ErrorMag(flux,fluxerror):
+#    dmdflux=1/(flux)
+#    almostError=(dmdflux**2)*fluxerror
+#    Error=almostError**(.5)
+#    return Error
+
+def ErrorMag(flux, fluxerror):
+    dmdflux = -2.5/(np.log(10)*flux)
+    Error = np.abs((dmdflux)*fluxerror)
     return Error
 
 
