@@ -21,6 +21,7 @@ import csv
 from joblib import Parallel, delayed
 import datetime
 import gc
+from subprocess import PIPE
 
 
 def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema):
@@ -413,7 +414,7 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
 
     return yesex,nonex,ccddf,True
             
-def forcephoto(season,ncore=4,numepochs_min=0,writeDB=False):    
+def forcephoto(season,maxnite,ncore=4,numepochs_min=0,writeDB=False):    
     #season = os.environ.get('SEASON')
     a = './forcePhoto_master.pl ' 
     a = a + ' -season ' + season 
@@ -421,6 +422,7 @@ def forcephoto(season,ncore=4,numepochs_min=0,writeDB=False):
     a = a + ' -ncore ' + str(ncore) 
     a = a + ' -noprompt '
     a = a + ' -SKIP_CORRUPTFILE '
+    a = a + ' -nite_max '+str(maxnite)
     if writeDB == True:
         a = a + ' -writeDB ' 
     print(a)
@@ -454,11 +456,14 @@ def truthtable(season,expnums,filename,truthplus):
     query = 'select SNFAKE_ID, EXPNUM, CCDNUM, RA, DEC, -2.5*log(10,FLUXCNT)+ZERO_POINT as MAG, MAGOBS_ERR as MAGERR, FLUXCNT, TRUEMAG, TRUEFLUXCNT, SNR_DIFFIM as SNR, REJECT, ML_SCORE, BAND, NITE, SEASON from '+ schema +'.SNFAKEMATCH where SEASON='+ season +' order by SNFAKE_ID'
 
     print(query)
+    try: #ag test
+        plus = connection.query_to_pandas(query)
+        connection.query_and_save(query,os.path.join(outdir,truthplus))
 
-    plus = connection.query_to_pandas(query)
-    connection.query_and_save(query,os.path.join(outdir,truthplus))
-
-    connection.close()
+        connection.close()
+    except:
+        print("query failed")
+        plus = 'plus'
     
     status=True
     
@@ -466,7 +471,7 @@ def truthtable(season,expnums,filename,truthplus):
 
 def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fakeversion=None):
 
-    print("gc is enabled %d" % int(gc.isenabled())) 
+    #print("gc is enabled %d" % int(gc.isenabled())) 
     #season = os.environ.get('SEASON')
     datafiles_dir = os.path.join(os.environ.get('ROOTDIR2'),'makedatafiles')
     db = os.environ.get('DB')
@@ -531,9 +536,15 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
             a = a + ' -fakeVersion ' + fakeversion
         a = '(source '+os.getenv('SETUPFILE')+'; cd '+datafiles_dir+ '; '+ a + '; cd -)&'
         print(a)
-        s = subprocess.Popen(a, shell=True)
+        s = subprocess.Popen(a, shell=True, stderr=PIPE, stdout=PIPE)
+        ### ag test
+        #stdout, stderr = s.communicate()
+        #f = open('agtestMakeDataFiles.out', 'w')
+        #f.write(stdout+'\n'+stderr)
+        #f.close()
+        ###
         procs.append(s)
-
+#    print("AG PROCS: ",procs) #AG TEST
     percand = 1 # max sec per cand; usually takes ~0.5 to 0.8 
     maxtime = (percand*numcands/float(ncore))+60 # in sec        
 #    print maxtime
@@ -1370,6 +1381,7 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
 #    stamps4file=[]##Stamps found for dat file
     filename = d.split('\n')[0]
     datfile = os.path.join(path,filename)
+    #print("AG DATFILE", datfile) #ag test
     f = open(datfile,'r+')
     lines = f.readlines()
     f.close()
@@ -1424,8 +1436,10 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
         highestPhotProb = -999
 
     if highestPhotProb >= 0.7:
+        #ag test
+        #print("AG HERE")
         masterTableInfo[md['snid'].values[0]]=[(float(md['raval'].values[0]),float(md['decval'].values[0])),float(highestPhotProb),float(bestMag),str(mypaths)]
-#        print('Writing to masterTableInfo for SNID ' + str(md['snid'].values[0]))
+        #print('Writing to masterTableInfo for SNID ' + str(md['snid'].values[0])) #ag test
 #    print('Keys after ' + str(d) + ': ' + str(masterTableInfo.keys()))
 #    writer = csv.writer(FollowupList)
 #    sequence = [[str(datInfo[0]), str(datInfo[1]), str(datInfo[2]), str(highestPhotProb),float(bestMag), str(mypaths)]]
@@ -1442,7 +1456,7 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
 
 def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, post=False):
 #    gc.set_debug(gc.DEBUG_LEAK)
-    gc.set_threshold(300,5,5)
+    #gc.set_threshold(300,5,5)
     config = configparser.ConfigParser()
     config.read('postproc_'+season+'.ini')
     #mySEASON=config.get('general','season')
@@ -1503,7 +1517,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
     nparallel = 16
     #Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d) for d in dats)
     masterTableInfo = Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d) for d in dats)
-    gc.collect()
+    #gc.collect()
     # Now joblib actually returns a list of single-key dictionaries above, rather than the singl many-key dict that we originally wanted. So convert back now
     masterTableInfo = {k: v for d in masterTableInfo for k, v in d.items()}
     print("PARALLEL DONE")
@@ -1527,8 +1541,8 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
         except:
             print("Error copying stamps directory to desweb. Please investigate.")
 
-    mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
-    print("END COPY TO desweb", mytime)
+        mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
+        print("END COPY TO desweb", mytime)
     mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
     print("START new for d in dates TIME", mytime)
     for d in dats:
@@ -1660,7 +1674,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
 
     status=True
     
-    gc.collect()
+    #gc.collect()
     return fitsname,status,masterTableInfo
 
 def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
