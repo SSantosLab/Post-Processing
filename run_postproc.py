@@ -76,6 +76,7 @@ else:
 ####### 
 
 thisTime = time.strftime("%Y%m%d.%H%M")
+maxnite = time.strftime("%Y%m%d") #ag add for forcephoto maxnite
 thisTime=thisTime.replace('.','_')
 seasonTime=open('seasonTime'+str(season)+'.txt','w+')
 seasonTime.write(season)
@@ -303,7 +304,7 @@ expnums = expniteband_df['expnum'].tolist()
 #########
 
 print("Run STEP 2: Forcephoto")
-postproc.forcephoto(season,ncore,numepochs_min_1,writeDB)
+postproc.forcephoto(season,maxnite,ncore,numepochs_min_1,writeDB) #ag added maxnite
 print("")
 ####Status update at a different time
 
