@@ -1415,7 +1415,7 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
     nites = dat_df['NITE'].values
     ccdnum = dat_df['CCDNUM'].values
     for i in range(len(nites)):
-        mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nites[i]))+'/'+str(int(expnums[i]))+'/D00'+str(int(expnums[i]))+'_*_'+str(int(ccdnum[i]))+'_r4p7_immask.fits.fz') #path to se proc. image
+        mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nites[i]))+'/'+str(int(expnums[i]))+'/D'+'{0:08d}'.format(expnums[i])+'_*_'+str(int(ccdnum[i]))+'_r4p7_immask.fits.fz') #path to se proc. image
 
         #only list candidates with at least one exposure whose ml score is >= 0.7
     fluxcal = dat_df['FLUXCAL'].values
