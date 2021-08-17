@@ -22,6 +22,7 @@ from joblib import Parallel, delayed
 import datetime
 import gc
 from subprocess import PIPE
+import runCNN
 
 
 def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema):
@@ -1068,6 +1069,12 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
     objidStampDict = {}
 #    MLcutoff = 0.7
 
+    SNOBJLS = []
+    PSFLS = []
+    FLUXCALLS = []
+    FLUXCALERRLS = []
+    
+    
     for mjdk,bandk,fieldk,fluxcalk,fluxcalerrk,photflagk,photprobk,zpfluxk,psfk,skysigk,skysig_tk,gaink,xpixk,ypixk,nitek,expnumk,ccdnumk,objidk in zip(dat_df['MJD'].values,dat_df['FLT'].values,dat_df['FIELD'].values,dat_df['FLUXCAL'].values,dat_df['FLUXCALERR'].values,dat_df['PHOTFLAG'].values,dat_df['PHOTPROB'].values,dat_df['ZPFLUX'].values,dat_df['PSF'].values,dat_df['SKYSIG'].values,dat_df['SKYSIG_T'].values,dat_df['GAIN'].values,dat_df['XPIX'].values,dat_df['YPIX'].values,dat_df['NITE'].values,dat_df['EXPNUM'].values,dat_df['CCDNUM'].values,dat_df['OBJID'].values):
 
         if float(objidk) != 0.0:
@@ -1102,6 +1109,10 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
                     #gifs = [gifs[2], gifs[1], gifs[0]]
                     gifs = ['./stamps/'+gifs[2].split('/')[-1], './stamps/'+gifs[1].split('/')[-1], './stamps/'+gifs[0].split('/')[-1]]
                     objidStampDict[objidk] = gifs
+                    SNOBJLS.append(objidk)
+                    PSFLS.append(float(psfk))
+                    FLUXCALLS.append(float(fluxcalk))
+                    FLUXCALERRLS.append(float(fluxcalerrk))
                     if post == True:
                         for gif in gifs:
                             #full = str(outdir)+'/stamps/'+str(gif)
@@ -1117,6 +1128,9 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
                 print("No tarball matching your criteria")
                 objidStampDict[objidk] = []
                 continue
+    CNNoutLS = runCNN.runNN(str(outdir)+'/stamps/', snobjidLS = SNOBJLS, psfLS = PSFLS, fluxcalLS = FLUXCALLS, fluxcalerrLS = FLUXCALERRLS)
+    for outset in CNNoutLS:
+        objidDict[str(outset[0])].append(str(outset[1]))
     return objidDict, objidStampDict
 
 def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, datfile, MLcutoff, outdir, post, c=0):
@@ -1132,7 +1146,7 @@ def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, d
           '<table align="center">\n','<caption>Candidate Info</caption>','<tr>','<th>RA</th>\n','<td>' + str(md['raval'].values[0]) + '</td>\n',
           '<th>DEC</th>\n','<td>' + str(md['decval'].values[0])  + '</td>\n','</tr>','<th>Host final_z</th>\n','<td>' + str(md['redshift_final'].values[0]) + '</td>\n','<th>Host final_z Error</th>\n','<td>' + str(md['redshift_finalerr'].values[0])  + '</td>\n','</tr>','<tr>','<th> Trigger MJD</th>','<td>'+str(triggermjd)+'</td>','<th>GWID</th>','<td> -- </td>','</tr>','<tr>','<th>AREA</th>','<td> -- </td>','<th>FAR</th>','<td> -- </td>','</tr>','</table>\n']
 
-    openingLines=['<p> Click any of OBJID, FLUXCAL, PHOTFLAG, SKYSIG, and NITE to expand the hidden columns. Hover mouse over each to reveal hidden options.</p>','<table id="mytable" width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th title="OBJID, MJD, BAND, FIELD" onclick="toggleColumn(1)">OBJID</th>','<th class="col1">MJD</th>','<th class="col1">FLT</th>','<th class="col1">FIELD</th>','<th title="FLUXCAL, FLUXCALERR, MAG, MAGERR" onclick="toggleColumn(2)">FLUXCAL</th>','<th class="col2">FLUXCALERR</th>','<th class="col2">MAG</th>','<th class="col2">MAGERR</th>','<th title="PHOTFLAG, PHOTPROB, ZPFLUX, PSF" onclick="toggleColumn(3)">PHOTFLAG</th>','<th class="col3">PHOTPROB</th>','<th class="col3">ZPFLUX</th>','<th class="col3">PSF</th>','<th title="SKYSIG, SKYSIG_T, GAIN, XPIX, YPIX"  onclick="toggleColumn(4)">SKYSIG</th>','<th class="col4">SKYSIG_T</th>','<th class="col4">GAIN</th>','<th class="col4">XPIX</th>','<th class="col4">YPIX</th>','<th title="NITE, EXPNUM, CCDNUM"  onclick="toggleColumn(5)">NITE</th>','<th class="col5">EXPNUM</th>','<th class="col5">CCDNUM</th>','</tr>\n']
+    openingLines=['<p> Click any of OBJID, FLUXCAL, PHOTFLAG, SKYSIG, and NITE to expand the hidden columns. Hover mouse over each to reveal hidden options.</p>','<table id="mytable" width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th title="OBJID, MJD, BAND, FIELD" onclick="toggleColumn(1)">OBJID</th>','<th class="col1">MJD</th>','<th class="col1">FLT</th>','<th class="col1">FIELD</th>','<th title="FLUXCAL, FLUXCALERR, MAG, MAGERR" onclick="toggleColumn(2)">FLUXCAL</th>','<th class="col2">FLUXCALERR</th>','<th class="col2">MAG</th>','<th class="col2">MAGERR</th>','<th title="PHOTFLAG, PHOTPROB, CNN, ZPFLUX, PSF" onclick="toggleColumn(3)">PHOTFLAG</th>','<th class="col3">PHOTPROB</th>','<th class="col3">CNN</th>','<th class="col3">ZPFLUX</th>','<th class="col3">PSF</th>','<th title="SKYSIG, SKYSIG_T, GAIN, XPIX, YPIX"  onclick="toggleColumn(4)">SKYSIG</th>','<th class="col4">SKYSIG_T</th>','<th class="col4">GAIN</th>','<th class="col4">XPIX</th>','<th class="col4">YPIX</th>','<th title="NITE, EXPNUM, CCDNUM"  onclick="toggleColumn(5)">NITE</th>','<th class="col5">EXPNUM</th>','<th class="col5">CCDNUM</th>','</tr>\n']
 
     infoTablines = []
     mjdDict = {}
@@ -1140,8 +1154,8 @@ def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, d
         mjdDict[mjds] = obs
 #    for obs in objidDict.keys():
     for imjd, obs in sorted(mjdDict.items()):
-        mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_ = objidDict[obs]
-        tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
+        mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_,cnnscore_ = objidDict[obs]
+        tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(cnnscore_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
         
         infoTablines += tableLines
     closingLines=['</table>']
