@@ -148,7 +148,7 @@ def runNN(stampDir, snobjidLS = [], psfLS = [], fluxcalLS = [], fluxcalerrLS = [
         fluxcalerrLS = np.array(fluxcalerrLS)
     # Run CNN on stamps.
     version = artifact_cnn.__version__
-    Eval = artifact_cnn.StampEvaluator(stampArray, model_dir = CNNDIR, psf_array = psfLS, flux_array = fluxcalLS, fluxerr_array = fluxcalerrLS)
+    Eval = artifact_cnn.StampEvaluator(stamps = stampArray, model_dir = CNNDIR, psf_array = psfLS, flux_array = fluxcalLS, fluxerr_array = fluxcalerrLS)
     scoreArray = Eval.run()
 #    print(idArray)
     returnArray = returnArray.tolist()
