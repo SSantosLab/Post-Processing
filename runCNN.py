@@ -2,15 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-<<<<<<< HEAD
 import os
 import sys
 import matplotlib.pyplot as plt
-=======
-from PIL import Image
 import os
 import sys
->>>>>>> d9ed1cc4ee758557d75c3b72dc466a2a00adf341
 
 import artifact_cnn
 
@@ -128,31 +124,15 @@ def runNN(stampDir, snobjidLS = [], psfLS = [], fluxcalLS = [], fluxcalerrLS = [
             value = n
             n += 1
         if stamp.startswith('srch'):
-<<<<<<< HEAD
             stampArray[value, 0, :, :] = plt.imread(os.path.join(stampDir,stamp))
-=======
-            img = Image.open(os.path.join(stampDir,stamp))
-            ary = np.asarray(img)
-            stampArray[value, 0, :, :] = ary
->>>>>>> d9ed1cc4ee758557d75c3b72dc466a2a00adf341
 #            print(stamp)
 #            print(str(int(stamp[4:-4])))
             idArray[value] = str(int(stamp[4:-4]))
 #            print(idArray)
         elif stamp.startswith('temp'):
-<<<<<<< HEAD
             stampArray[value, 1, :, :] = plt.imread(os.path.join(stampDir,stamp))
         else:
             stampArray[value, 2, :, :] = plt.imread(os.path.join(stampDir,stamp))
-=======
-            img = Image.open(os.path.join(stampDir,stamp))
-            ary = np.asarray(img)
-            stampArray[value, 1, :, :] = ary
-        else:
-            img = Image.open(os.path.join(stampDir,stamp))
-            ary = np.asarray(img)
-            stampArray[value, 2, :, :] = ary
->>>>>>> d9ed1cc4ee758557d75c3b72dc466a2a00adf341
 
     if psfLS == []:
         psfLS = None
