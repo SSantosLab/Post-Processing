@@ -5,7 +5,8 @@ export ROOTDIR2=$(pwd) #This should just be where you are running /data/des40.b/
 #export SEASON=416 
 #####
 
-source /cvmfs/des.opensciencegrid.org/eeups/startupcachejob21i.sh
+#source /cvmfs/des.opensciencegrid.org/eeups/startupcachejob21i.sh
+source /cvmfs/des.opensciencegrid.org/eeups/startupcachejob31i.sh
 #for IFDH
 export EXPERIMENT=des
 #export PATH=${PATH}:/cvmfs/fermilab.opensciencegrid.org/products/common/db/../prd/cpn/v1_7/NULL/bin:/cvmfs/fermilab.opensciencegrid.org/products/common/db/../prd/ifdhc/v2_1_0/Linux64bit-2-6-2-12/bin
@@ -103,6 +104,7 @@ export SNDATA_ROOT=/data/des41.b/data/SNDATA_ROOT
 
 ## use Ken's development version of the diffimg code:
 export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel_May2019/trunk
+#export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk/
 export PATH=$DIFFIMG_DIR/bin:$PATH
 
 #4-5-18 -- update for database access
