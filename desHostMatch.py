@@ -250,7 +250,7 @@ def main(season):
 
     start_time = time.time()
 
-    hostname   = 'desdb.ncsa.illinois.edu'
+    hostname   = 'desdb-sci.ncsa.illinois.edu'
     port       = 1521
 #    dbname     = args.dbname
     dbname = os.environ.get('DBNAME')
