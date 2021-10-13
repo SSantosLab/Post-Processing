@@ -38,7 +38,7 @@ def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,sche
     os.environ['SCHEMA'] = schema
     return True
 
-def masterlist(filename,blacklist_file,ligoid,propid,bands=None,expnums=None,a_blacklist=None):
+def masterlist(filename,blacklist_file,propid,bands=None,expnums=None,a_blacklist=None):
     indir = os.environ.get('INDIR')
     outdir = os.environ.get('ROOTDIR2')
     outdir = os.path.join(outdir,'masterlist')
@@ -67,52 +67,16 @@ where ra is not null and (program='des gw' or program='survey' or program='des n
 from exposure 
 where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE' or program='GROWTH DECam GW') and id="""+str(expnums[0])+""" order by id"""
 
-#         query_count = """select * from (
-# WITH objnights AS (
-# SELECT obstac.nightmjd(date), object, ra, declination
-# FROM exposure.exposure
-# WHERE delivered
-#       AND propid='"""+propid+"""'
-#       AND seqid="""+seqid+"""
-#       AND id IN """+str(tuple(expnums))+"""
-# GROUP BY obstac.nightmjd(date), object,ra,declination
-# )
-# SELECT COUNT(*), ra, declination as dec, object as hex
-# FROM objnights
-# GROUP BY object,ra,declination
-# ) as foo order by ra"""
-      
 
-    else:
-        query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
-from exposure 
-where propid='"""+propid+"""' and seqid='"""+ligoid+"""' and ra is not null and (program='des gw' or program='survey' or program='DESGW ER TEST EXPOSURE') 
-order by id"""
-#         query_count = """select * from (
-# WITH objnights AS (
-# SELECT obstac.nightmjd(date), object, ra, declination
-# FROM exposure.exposure
-# WHERE delivered
-#       AND propid='"""+propid+"""'
-#       AND seqid="""+seqid+"""
-# GROUP BY obstac.nightmjd(date), object, ra,declination
-# )
-# SELECT COUNT(*), ra, declination as dec, object as hex
-# FROM objnights
-# GROUP BY object,ra,declination
-# ) as foo order by ra"
     conn =  psycopg2.connect(database='decam_prd',
                                user='decam_reader',
                                host='des61.fnal.gov',
                                password='reader',
                                port=5443) 
 
-    print(query_exp)
+    print("MASTERLIST QUERY", query_exp)
 
     expdf = pd.read_sql(query_exp,conn)
-
-    #ctdf = pd.read_sql(query_count,conn)
-
     conn.close()
 
     expdf = expdf.loc[~expdf['expnum'].isin(blacklist)]
@@ -223,7 +187,7 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     t1 = time.time()
     os.fsync(lf)
 
-    d = OD()
+    d = OD() #ordered dict
     d['expnum'] = []
     chips = range(1,63)
     steps = range(1,29)
@@ -254,25 +218,6 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
 ### If this is not true, uncomment the 3 lines below and tab the append and break lines. 
 ### In that event, one must also consider how to deal with a RUN28 failure.
                 if os.path.isdir(p2):
-                #     #tb = time.time()
-                #     ldir = subprocess.check_output('ls '+p2, shell=True).splitlines()
-                #     ldir = os.listdir(p2)
-                #     #ta = time.time()
-                #     #print(ta-tb)
-                
-                # for fil in ldir:
-                #     if fnmatch.fnmatch(fil,'RUN*.FAIL'):
-                #         r = int((fil.split('RUN')[1]).split('_')[0])
-                #         d[c].append(r)
-                #         break
-                # else:
-                #     if stepnames[0] not in ldir:
-                #         d[c].append(-1)
-                #     elif (stepnames[27]+'.LOG') not in ldir:
-                #         d[c].append(-9)
-                #     else:
-                #         d[c].append(0)
-                #     #timeb = time.time()
                     for r in steps:
                         fail = stepnames[r-1]+'.FAIL'
                         gpfail = os.path.join(p2,fail)
@@ -347,7 +292,6 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
 
     listgood = df.loc[df.sum(axis=1) == 0].index
     print("")
-#    print("listgood", listgood)
     listgood = listgood.tolist()
     for l in listgood:
         if len(set(df.loc[l].values))!=1:
@@ -356,7 +300,6 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     np.savetxt(goodchecked,sorted(listgood),fmt='%d')
 
     df['unfinished']=(df<0).astype(int).sum(axis=1)
-#    print("unfinished", df['unfinished'])
     
     dfsuc = df.drop('unfinished',1)
     
@@ -406,16 +349,9 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     df.sort_index(inplace=True)
     df.to_csv(os.path.join(outdir,ccdfile))
 
-    #baddf = ccddf[ccddf.apply(lambda x: min(x) == max(x),1)]
-    #print(baddf)
-    #baddf = baddf[baddf.apply(lambda x: min(x) == -1,1)]
-    #print(baddf)
-    #print(baddf.index.values.tolist())
-
     return yesex,nonex,ccddf,True
             
 def forcephoto(season,maxnite,ncore=4,numepochs_min=0,writeDB=False):    
-    #season = os.environ.get('SEASON')
     a = './forcePhoto_master.pl ' 
     a = a + ' -season ' + season 
     a = a + ' -numepochs_min ' + numepochs_min 
@@ -426,11 +362,9 @@ def forcephoto(season,maxnite,ncore=4,numepochs_min=0,writeDB=False):
     if writeDB == True:
         a = a + ' -writeDB ' 
     print(a)
-    #a = 'source '+os.getenv('SETUPFILE')+'; '+a
     subprocess.call(a,shell=True)
  
 def truthtable(season,expnums,filename,truthplus):
-    #season = os.environ.get('SEASON')
     outdir = os.path.join(os.environ.get('ROOTDIR2'),'truthtable'+season)
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
@@ -451,16 +385,14 @@ def truthtable(season,expnums,filename,truthplus):
 
 ### Truth table plus
 
-    #query='select f.SNFAKE_ID, f.EXPNUM, f.CCDNUM, o.RA, o.DEC, o.MAG, o.FLUX, o.FLUX_ERR, f.TRUEMAG, f.TRUEFLUXCNT, o.FLUX, o.SEXFLAGS, f.BAND, f.NITE, f.MJD, f.SEASON from '+ schema +'.SNFAKEIMG f, '+ schema +'.SNOBS o where f.SNFAKE_ID=o.SNFAKE_ID and f.EXPNUM=o.EXPNUM and f.SEASON='+ season +' and f.SEASON=o.SEASON order by SNFAKE_ID'
-
     query = 'select SNFAKE_ID, EXPNUM, CCDNUM, RA, DEC, -2.5*log(10,FLUXCNT)+ZERO_POINT as MAG, MAGOBS_ERR as MAGERR, FLUXCNT, TRUEMAG, TRUEFLUXCNT, SNR_DIFFIM as SNR, REJECT, ML_SCORE, BAND, NITE, SEASON from '+ schema +'.SNFAKEMATCH where SEASON='+ season +' order by SNFAKE_ID'
 
     print(query)
     try: #ag test
         plus = connection.query_to_pandas(query)
         connection.query_and_save(query,os.path.join(outdir,truthplus))
-
         connection.close()
+        
     except:
         print("query failed")
         plus = 'plus'
@@ -471,8 +403,6 @@ def truthtable(season,expnums,filename,truthplus):
 
 def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,ncore,fakeversion=None):
 
-    #print("gc is enabled %d" % int(gc.isenabled())) 
-    #season = os.environ.get('SEASON')
     datafiles_dir = os.path.join(os.environ.get('ROOTDIR2'),'makedatafiles')
     db = os.environ.get('DB')
     schema = os.environ.get('SCHEMA')
@@ -491,29 +421,6 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
 
     if not os.path.isdir(datafiles_dir):
         os.mkdir(datafiles_dir)
-
-    # test = splcand[0][:1000]
-    # numtest = len(test)
-    
-    # if 1==1:
-    #     datdir = os.path.join(datafiles_dir,'LightCurvesReal')
-    #     a = 'makeDataFiles_fromSNforce' 
-    #     a = a + ' -format ' + format 
-    #     a = a + ' -season ' + season
-    #     a = a + ' -snid_min ' + str(min(test))
-    #     a = a + ' -snid_max ' + str(max(test))
-    #     a = a + ' -numepochs_min ' + numepochs_min  
-    #     a = a + ' -outFile_stdout ' + outfile+'_test2' 
-    #     a = a + ' -outDir_data ' + outdir
-    #     if not two_nite_trigger == 'null':
-    #         a = a + ' -2nite_trigger ' + trigger 
-    #     if not fakeversion == None: 
-    #         datdir = os.path.join(datafiles_dir,'LightCurvesFake')
-    #         a = a + ' -fakeVersion ' + fakeversion
-    #     a = '(source '+os.getenv('SETUPFILE')+'; cd '+datafiles_dir+ '; '+ a + '; cd -)&'
-    #     print(a)
-    #     subprocess.call(a, shell=True)
-
 
     procs = []
 
@@ -535,20 +442,12 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
         if not fakeversion == None: 
             a = a + ' -fakeVersion ' + fakeversion
         a = '(source '+os.getenv('SETUPFILE')+'; cd '+datafiles_dir+ '; '+ a + '; cd -)&'
-        print(a)
         s = subprocess.Popen(a, shell=True, stderr=PIPE, stdout=PIPE)
-        ### ag test
-        #stdout, stderr = s.communicate()
-        #f = open('agtestMakeDataFiles.out', 'w')
-        #f.write(stdout+'\n'+stderr)
-        #f.close()
-        ###
+
         procs.append(s)
-#    print("AG PROCS: ",procs) #AG TEST
-    percand = 1 # max sec per cand; usually takes ~0.5 to 0.8 
-    maxtime = (percand*numcands/float(ncore))+60 # in sec        
-#    print maxtime
-#    print maxtime/3600.
+
+    percand = 2 # max sec per cand; usually takes ~0.5 to 0.8 
+    maxtime = (percand*numcands/float(ncore))+60 # in sec  
 
     alltime = 0
     last = -1
@@ -556,7 +455,7 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
         length = len(os.listdir(datdir))
         if length == last and length>0:
             dats = os.listdir(datdir)
-            dats = [x for x in dats if '.dat' in x]
+            dats = [x for x in dats if x.endswith(".dat")]
             cs,nodat = [],[]
             for d in dats:
                 cand = int(filter(str.isdigit,d))
@@ -578,7 +477,13 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
         time.sleep(yawn)
         alltime += yawn
         if alltime>maxtime:
-            break
+            print("MAKEDATA FILES EXCEEDED MAXTIME")
+            if length==0:
+                print("NO DAT FILES, EXITING. TRY INVESTIGATING HUNG MAKEDATA FILES JOBS")
+                sys.exit()
+            else:
+                print("MOVING ON WITH "+str(length)+" DAT FILES")
+                break
 
 
 
@@ -1054,8 +959,6 @@ def makeLightCurves(dat_df,md,triggermjd,season, datfile, outdir, post):
     fig.savefig(str(outdir)+'/pngs/'+str(LightCurveName),bbox_inches='tight')
     full = str(outdir)+'/pngs/'+str(LightCurveName)
     plt.close(fig)
-#    if post == True:
-#        os.system("rsync -aR "+full+" codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp"+str(season)+"/")
 
     return LightCurveName
 
@@ -1085,10 +988,8 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
 
     # Extract stamps per objid and create dictionary with stamps per objid
             tarFiles = glob('/pnfs/des/persistent/'+schema+'/exp/'+str(int(nitek))+'/'+str(int(expnumk))+'/dp'+str(int(season))+'/'+str(bandk)+'_'+str(int(ccdnumk))+'/stamps_'+str(int(nitek))+'_*_'+str(bandk)+'_'+str(int(ccdnumk))+'/*.tar.gz')
- #           print(tarFiles)
             try:
                 if float(photprobk) < MLcutoff:
-                    #print("This observation has an ML score less than %f, so no stamps will be extracted." %MLcutoff)
                     objidStampDict[objidk] = []
                     continue
                 tarFile = tarFiles[0]
@@ -1096,17 +997,15 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
                 try:
                     for stamp in ['temp' + str(int(objidk)) + '.gif','srch' + str(int(objidk)) + '.gif','diff' + str(int(objidk)) + '.gif']:
                         tar.extract(stamp, path=str(outdir)+'/stamps/')
+                        
                     gifs = glob(str(outdir)+'/stamps/*'+str(int(objidk))+'.gif')
                     #os.system('mv *'+str(int(objidk))+'.gif '+str(datadir)+'/stamps/')
                     gifs = sorted(gifs)
-                    #gifs = [gifs[2], gifs[1], gifs[0]]
                     gifs = ['./stamps/'+gifs[2].split('/')[-1], './stamps/'+gifs[1].split('/')[-1], './stamps/'+gifs[0].split('/')[-1]]
                     objidStampDict[objidk] = gifs
                     if post == True:
                         for gif in gifs:
-                            #full = str(outdir)+'/stamps/'+str(gif)
                             full = str(outdir)+'/'+str(gif)
-#                            os.system("rsync -aR "+full+" codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp"+str(season)+"/")
 
                 except KeyError:
                     print("The stamps you are looking for are not here")
@@ -1119,10 +1018,14 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
                 continue
     return objidDict, objidStampDict
 
-def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, datfile, MLcutoff, outdir, post, c=0):
-#    lightCurve = makeLightCurves(datfile,band,fluxcal,fluxcalerr,mjd,nite,objid,snid,skipheader,triggermjd,season)
-    lightCurve = makeLightCurves(dat_df,md,triggermjd,season, datfile, outdir, post)
+def createHTML(
+        dat_df,season,triggermjd,schema, objidDict, objidStampDict, 
+        md, datfile, MLcutoff, outdir, post, skip_lightcurves, c=0):
 
+    lightCurve = "no_light_curves.png"
+    if not skip_lightcurves:
+        lightCurve = makeLightCurves(dat_df,md,triggermjd,season, datfile, outdir, post)
+    
     name = 'candidate_' + str(int(md['snid'].values[0])) + '_dp' + str(season) + '.html'
     
     topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>',
@@ -1138,7 +1041,7 @@ def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, d
     mjdDict = {}
     for obs,mjds in zip(dat_df['OBJID'].values,dat_df['MJD'].values):
         mjdDict[mjds] = obs
-#    for obs in objidDict.keys():
+
     for imjd, obs in sorted(mjdDict.items()):
         mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_ = objidDict[obs]
         tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
@@ -1148,27 +1051,23 @@ def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, d
     infoTablines += closingLines
 
     observations = []
-#    mjdDict = {}
-#    for obs,mjds in zip(dat_df['OBJID'].values,dat_df['MJD'].values):
-#        mjdDict[mjds] = obs
+
     mjds = list(mjdDict.keys())
     mjds.sort()
-    #orderedObs = []
-    #for MJD__ in mjds:
-    #    orderedObs.append(mjdDict[MJD__])
+
     for modifiedjliandate in mjds:
         obs = mjdDict[modifiedjliandate]
         if float(obs) == 0.0:
             continue
         if objidStampDict[obs] == []:
             continue
-#        indivObs = ['<h1>OBJID: '+str(obs)+'</h1><h2>MJD: '+str(modifiedjliandate)+'</h2>\n','<h2> Template, Search, Difference</h2>\n','<div id="gifs">','<span title=Temp>','<img src=\''+str(objidStampDict[obs][0])+'\' width="200" height="200"/></span>\n','<span title=Search>','<img src=\''+str(objidStampDict[obs][1])+'\' width="200" height="200"/></span>\n','<span title=Diff><img src=\''+str(objidStampDict[obs][2])+'\' width="200" height="200"/></span>','</div>\n']
+
         indivObs = ['<h1>OBJID: '+str(obs)+'</h1><h2>MJD: '+str(modifiedjliandate)+'</h2>\n','<h2> Template, Search, Difference</h2>\n','<div id="gifs">','<span title=Temp>','<img src=\'../'+str(objidStampDict[obs][0])+'\' width="200" height="200"/></span>\n','<span title=Search>','<img src=\'../'+str(objidStampDict[obs][1])+'\' width="200" height="200"/></span>\n','<span title=Diff><img src=\'../'+str(objidStampDict[obs][2])+'\' width="200" height="200"/></span>','</div>\n']
         observations += indivObs
 
     collectedObs = ['<h1>Collected Observations Ordered by MJD</h1>\n','<h2>Temp, Search, Diff</h2>\n']
     for mjd, obs in sorted(mjdDict.items()):
-        #mjdDict[mjds] = obs
+
         if float(obs) == 0.0:
             continue
         if objidStampDict[obs] == []:
@@ -1187,30 +1086,30 @@ def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, d
     # Host Data
     
     hosttable = ['<table align="center">\n','<caption>Host Galaxy Info</caption>\n']
-    content = ['<tr>\n','<td></td>']
-#    for hdlrrank in host_dlrrank:
-#        content += ['<th scope="col">'+hdlrrank+'</th>']
-    content += ['</tr>\n','<tr>\n','<th scope="row">HOSTGAL_OBJID</th>\n']
-    content += ['<td>'+str(md['host_id'].values[0])+'</td>']
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_PHOTOZ</th>']
-    content += ['<td>'+str(md['photo_z'].values[0])+'</td>']
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_SPECZ</th>']
-    content += ['<td>'+str(md['spec_z'].values[0])+'</td>']
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_RA</th>']
-    content += ['<td>'+str(md['host_ra'].values[0])+'</td>'] 
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_DEC</th>'] 
-    content += ['<td>'+str(md['host_dec'].values[0])+'</td>']
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_SNSEP</th>']
-    content += ['<td>'+str(md['host_sep'].values[0])+'</td>'] 
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_GMAG</th>']
-    content += ['<td>'+str(md['h_gmag'].values[0])+'</td>']
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_IMAG</th>']
-    content += ['<td>'+str(md['h_imag'].values[0])+'</td>']
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_RMAG</th>']
-    content += ['<td>'+str(md['h_rmag'].values[0])+'</td>']
-    content += ['</tr>\n','<tr>','<th scope="row">HOSTGAL_ZMAG</th>']
-    content += ['<td>'+str(md['h_zmag'].values[0])+'</td>']
-    content += ['</tr>\n','</table>\n'] 
+    content = [
+        '<tr>\n','<td></td>',
+        '</tr>\n','<tr>\n','<th scope="row">HOSTGAL_OBJID</th>\n',
+        '<td>'+str(md['host_id'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_PHOTOZ</th>',
+        '<td>'+str(md['photo_z'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_SPECZ</th>',
+        '<td>'+str(md['spec_z'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_RA</th>',
+        '<td>'+str(md['host_ra'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_DEC</th>', 
+        '<td>'+str(md['host_dec'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_SNSEP</th>',
+        '<td>'+str(md['host_sep'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_GMAG</th>',
+        '<td>'+str(md['h_gmag'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_IMAG</th>',
+        '<td>'+str(md['h_imag'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_RMAG</th>',
+        '<td>'+str(md['h_rmag'].values[0])+'</td>',
+        '</tr>\n','<tr>','<th scope="row">HOSTGAL_ZMAG</th>',
+        '<td>'+str(md['h_zmag'].values[0])+'</td>',
+        '</tr>\n','</table>\n',
+    ] 
 
     # Private Table
 
@@ -1240,18 +1139,6 @@ def createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, d
     del collectedObs
     del LightLines
 
-##    if post == True:
-##        try:
-### dont use        subprocess.Popen(['rsync','-a','*.html',' codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/'])
-##            full = str(outdir)+'/htmls/'+str(name)
-##            os.system("rsync -aR "+full+" codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp"+str(season)+"/")
-##
-##        except:
-##            print("Can't rsync right now. Try again once Post-Processing has finished.")
-    
-#    os.system('mv '+str(name)+' '+str(datadir)+'/htmls/')
-#    snid = md['snid'].values[0]
-#    print("html for "+str(snid)+" done.")
     return 
 
 def make_full_array(dat_df, md, datfile, c):
@@ -1321,56 +1208,63 @@ def get_dat_data(lines):
 
     return df
 
-def get_metadata(lines, hashost): 
-    survey = str([y for y in [x for x in lines if x[0:6] == 'SURVEY'][0].split(' ') if y != ''][1])
-    snid = float([val for val in [line for line in lines if line[0:4]=='SNID'][0].split(' ') if val !=''][1])
-    raval = float([y for y in [x for x in lines if x[0:2] == 'RA'][0].split(' ') if y != ''][1])
-    decval = float([y for y in [x for x in lines if x[0:3] == 'DEC'][0].split(' ') if y != ''][1])
-    redshift_final = float([y for y in [x for x in lines if x[0:14] == 'REDSHIFT_FINAL'][0].split(' ') if y != ''][1])
-    redshift_finalerr = float([y for y in [x for x in lines if x[0:14] == 'REDSHIFT_FINAL'][0].split(' ') if y != ''][3])
-    redshift_helio = float([y for y in [x for x in lines if x[0:14] == 'REDSHIFT_HELIO'][0].split(' ') if y != ''][1])
-    pixsize = float([y for y in [x for x in lines if x[0:7] == 'PIXSIZE'][0].split(' ') if y != ''][1])
-    mwebv = float([y for y in [x for x in lines if x[0:5] == 'MWEBV'][0].split(' ') if y != ''][1])
-    mwebv_err = float([y for y in [x for x in lines if x[0:9] == 'MWEBV_ERR'][0].split(' ') if y != ''][1])
-    if hashost:
-        host_id = float([y for y in [x for x in lines if x[0:13]=='HOSTGAL_OBJID'][0].split(' ') if y !=''][1])
-        photo_z = float([y for y in [x for x in lines if x[0:14]=='HOSTGAL_PHOTOZ'][0].split(' ') if y !=''][1])
-        photo_zerr = float([y for y in [x for x in lines if x[0:14]=='HOSTGAL_PHOTOZ'][0].split(' ') if y !=''][3])
-        spec_z = float([y for y in [x for x in lines if x[0:13]=='HOSTGAL_SPECZ'][0].split(' ') if y !=''][1])
-        spec_zerr = float([y for y in [x for x in lines if x[0:13]=='HOSTGAL_SPECZ'][0].split(' ') if y !=''][3])
-        host_sep = float([y for y in [x for x in lines if x[0:13]=='HOSTGAL_SNSEP'][0].split(' ') if y !=''][1])
-        h_gmag = float([y for y in [x for x in lines if x[0:11]=='HOSTGAL_MAG'][0].split(' ') if y !=''][1])
-        h_rmag = float([y for y in [x for x in lines if x[0:11]=='HOSTGAL_MAG'][0].split(' ') if y !=''][2])
-        h_imag = float([y for y in [x for x in lines if x[0:11]=='HOSTGAL_MAG'][0].split(' ') if y !=''][3])
-        h_zmag = float([y for y in [x for x in lines if x[0:11]=='HOSTGAL_MAG'][0].split(' ') if y !=''][4])
-        host_ra = float([y for y in [x for x in lines if x[0:10]=='HOSTGAL_RA'][0].split(' ') if y !=''][1])
-        host_dec = float([y for y in [x for x in lines if x[0:11]=='HOSTGAL_DEC'][0].split(' ') if y !=''][1])
-    else:
-        host_id = -9
-        photo_z = -9.0
-        photo_zerr = -9.0
-        spec_z = -9.0
-        spec_zerr = -9.0
-        host_sep = 999.0
-        h_gmag = 888.0
-        h_rmag = 888.0
-        h_imag = 888.0
-        h_zmag = 888.0
-        host_ra = 999.0
-        host_dec = 999.0
-        
-    
-    mddict = {'snid':[snid],'raval':[raval],'decval':[decval],'host_id':[host_id],'photo_z':[photo_z],'photo_zerr':[photo_zerr],'spec_z':[spec_z],'spec_zerr':[spec_zerr],'host_sep':[host_sep],'h_gmag':[h_gmag],'h_rmag':[h_rmag],'h_imag':[h_imag],'h_zmag':[h_zmag], 'survey':[survey], 'redshift_final':[redshift_final], 'redshift_finalerr':[redshift_finalerr], 'pixsize':[pixsize], 'redshift_helio':[redshift_helio], 'mwebv':[mwebv], 'mwebv_err':[mwebv_err], 'host_ra':[host_ra], 'host_dec':[host_dec]}
-    md = pd.DataFrame(mddict)
+def get_metadata(lines, hashost):
+    md_dict = {
+        'SURVEY:':'NA', 'SNID:':'NA', 'RA:':'NA', 'DECL:':'NA', 'REDSHIFT_FINAL:':'NA', 
+        'REDSHIFT_HELIO:':'NA', 'PIXSIZE:':'NA', 'MWEBV:':'NA', 'MWEBV_ERR:':'NA', 
+        'HOSTGAL_OBJID:':-9, 'HOSTGAL_PHOTOZ:':-9., 'HOSTGAL_PHOTOZ_ERR:':-9.,
+        'HOSTGAL_SPECZ:':-9., 'HOSTGAL_SPECZ_ERR:':-9., 'HOSTGAL_SNSEP:':999., 
+        'HOSTGAL_MAG_g:':888., 'HOSTGAL_MAG_r:':888., 'HOSTGAL_MAG_i:':888., 
+        'HOSTGAL_MAG_z:':888., 'HOSTGAL_RA:':999., 'HOSTGAL_DEC:':999.,
+    }
+    map_dict = {
+        'SURVEY:':'survey', 'SNID:':'snid', 'RA:':'raval', 'DECL:':'decval', 'REDSHIFT_FINAL:': 'redshift_final',
+        'REDSHIFT_FINAL_ERR:': 'redshift_finalerr', 'REDSHIFT_HELIO:': 'redshift_helio', 'PIXSIZE:': 'pixsize',
+        'MWEBV:': 'mwebv', 'MWEBV_ERR:':'mwebv_err', 'HOSTGAL_RA:': 'host_ra', 'HOSTGAL_DEC:': 'host_dec',
+        'HOSTGAL_SPECZ:': 'spec_z', 'HOSTGAL_SPECZ_ERR:': 'spec_zerr', 'HOSTGAL_SNSEP:': 'host_sep', 
+        'HOSTGAL_MAG_g:': 'h_gmag', 'HOSTGAL_MAG_r:': 'h_rmag', 'HOSTGAL_MAG_i:': 'h_imag', 'HOSTGAL_MAG_z:': 'h_zmag',
+        'HOSTGAL_OBJID:': 'host_id', 'HOSTGAL_PHOTOZ:': 'photo_z', 'HOSTGAL_PHOTOZ_ERR:': 'photo_zerr',
+    }
 
-    del snid, raval, decval, host_id, photo_z, photo_zerr, spec_z, spec_zerr, host_sep, h_gmag, h_rmag, h_imag, h_zmag, survey, redshift_final, redshift_finalerr, pixsize, redshift_helio, mwebv, mwebv_err,host_ra,host_dec
+    for line in lines:
+
+        split_line = line.split()
+        if len(split_line) == 0:
+            continue
+
+        if split_line[0] in md_dict:
+            # Special cases for lines in the dat files.
+            if split_line[0] == 'REDSHIFT_FINAL:':
+                md_dict[split_line[0]] = float(split_line[1])
+                md_dict['REDSHIFT_FINAL_ERR:'] = float(split_line[3])
+                continue
+
+            if split_line[0] == 'HOSTGAL_MAG:':
+                md_dict['HOSTGAL_MAG_g:'] = float(split_line[1])
+                md_dict['HOSTGAL_MAG_r:'] = float(split_line[2])
+                md_dict['HOSTGAL_MAG_i:'] = float(split_line[3])
+                md_dict['HOSTGAL_MAG_z:'] = float(split_line[4])
+                continue
+
+            if split_line[0] == 'SURVEY:':  
+                md_dict[split_line[0]] = split_line[1]
+                continue
+            
+            md_dict[split_line[0]] = float(split_line[1])
+
+    md_dict_for_df = {}
+    for key in md_dict:
+        md_dict_for_df[map_dict[key]] = [md_dict[key]]
+    md = pd.DataFrame(md_dict_for_df)
+
     return md
     
 
 ### END NS NEW FUNCTIONS
  
 ############ doALL #############
-def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d):
+def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves):
+
 
 #    c=c+1
 #    print(c)
@@ -1387,14 +1281,7 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
     f.close()
     del f
 
-    hashost = False
-    for myline in lines:
-        if myline == '\n':
-            continue
-        splitline=myline.split()
-        if splitline[0] == "HOSTGAL_NMATCH2:":
-            hashost = True
-    del splitline
+    hashost = any([x.startswith("HOSTGAL_NMATCH2:") for x in lines])
     
     dat_df = get_dat_data(lines)
     md = get_metadata(lines, hashost)
@@ -1403,21 +1290,20 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
     ##ag test
     schema = 'gw'
     MLcutoff = 0.7
-    ##
-#    MJD_1,BAND_1,FIELD_1,FLUXCAL_1,FLUXCALERR_1,PHOTFLAG_1,PHOTPROB_1,ZPFLUX_1,PSF_1,SKYSIG_1,SKYSIG_T_1,GAIN_1,XPIX_1,YPIX_1,NITE_1,EXPNUM_1,CCDNUM_1,OBJID_1,RA_1,DEC_1,CAND_ID_1,DATAFILE_1,SN_ID_1,HOSTID_1,PHOTOZ_1,PHOTOZERR_1,SPECZ_1,SPECZERR_1,HOSTSEP_1,HOST_GMAG_1,HOST_RMAG_1,HOST_IMAG_1,HOST_ZMAG_1 = createHTML(datfile,myskipheader,str(season),str(triggermjd),str(schema),c)
-    
+
     objidDict, objidStampDict = make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff)
-    createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, datfile,MLcutoff, outdir, post, c)
+    createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, datfile,MLcutoff, outdir, post, skip_lightcurves, c)
 
     ##----------- alyssa hack to make csv and event table-------------------
     mypaths=[]
     expnums = dat_df['EXPNUM'].values
     nites = dat_df['NITE'].values
     ccdnum = dat_df['CCDNUM'].values
-    for i in range(len(nites)):
-        mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nites[i]))+'/'+str(int(expnums[i]))+'/D'+'{0:08d}'.format(expnums[i])+'_*_'+str(int(ccdnum[i]))+'_r4p7_immask.fits.fz') #path to se proc. image
 
-        #only list candidates with at least one exposure whose ml score is >= 0.7
+    for i in range(len(nites)):
+        mypaths.append('/pnfs/des/persistent/gw/exp/'+str(int(nites[i]))+'/'+str(int(expnums[i]))+'/D'+'{0:08d}'.format(int(expnums[i]))+'_*_'+str(int(ccdnum[i]))+'_r4p7_immask.fits.fz') #path to se proc. image
+
+    #only list candidates with at least one exposure whose ml score is >= 0.7
     fluxcal = dat_df['FLUXCAL'].values
     m = []    
     try:
@@ -1436,37 +1322,25 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
         highestPhotProb = -999
 
     if highestPhotProb >= 0.7:
-        #ag test
-        #print("AG HERE")
         masterTableInfo[md['snid'].values[0]]=[(float(md['raval'].values[0]),float(md['decval'].values[0])),float(highestPhotProb),float(bestMag),str(mypaths)]
-        #print('Writing to masterTableInfo for SNID ' + str(md['snid'].values[0])) #ag test
-#    print('Keys after ' + str(d) + ': ' + str(masterTableInfo.keys()))
-#    writer = csv.writer(FollowupList)
-#    sequence = [[str(datInfo[0]), str(datInfo[1]), str(datInfo[2]), str(highestPhotProb),float(bestMag), str(mypaths)]]
-#    writer.writerows(sequence)
-        
-#    if all([int(x)==12288 for x in PHOTFLAG_1]):
+
     allgood+=1
 
     return masterTableInfo
+
 #MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG
 
 ################################
 
 
-def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, post=False):
-#    gc.set_debug(gc.DEBUG_LEAK)
-    #gc.set_threshold(300,5,5)
+def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, GoodSNIDs, skip_lightcurves, post=False):
+    
     config = configparser.ConfigParser()
     config.read('postproc_'+season+'.ini')
-    #mySEASON=config.get('general','season')
     mySEASON=season
 
-    #season = os.environ.get('SEASON')
     season = str(season)
     print('Starting combinedatafiles')
-    #mlist = Table.read(master)
-    #masdf = mlist.to_pandas()
     mlist = fitsio.read(master)
     mlist = mlist.byteswap().newbyteorder()
     masdf = pd.DataFrame.from_records(mlist)
@@ -1491,7 +1365,11 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
         os.system('ssh codemanager@desweb.fnal.gov "mkdir -p /des_web/www/html/desgw/post-processing-all/dp' + str(season) + '/"')
 
     dats = os.listdir(path)
-    dats = [x for x in dats if '.dat' in x]
+    if os.path.exists(GoodSNIDs):
+        with open(GoodSNIDs, 'r') as f:
+           dats = [x.strip() for x in f.readlines()]
+    else:
+        dats = [x for x in dats if x.endswith('.dat')]
 
     hostlist = []
 
@@ -1510,23 +1388,22 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
 
     # GTL=getGTL()##List of tar files already extracted
     
+
 #    FollowupList=open('FollowupList'+str(season)+'.csv','w')
     mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
     print("START DO ALL TIME", mytime)
 
     nparallel = 16
     #Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d) for d in dats)
-    masterTableInfo = Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d) for d in dats)
+    masterTableInfo = Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves) for d in dats)
     #gc.collect()
     # Now joblib actually returns a list of single-key dictionaries above, rather than the singl many-key dict that we originally wanted. So convert back now
     masterTableInfo = {k: v for d in masterTableInfo for k, v in d.items()}
     print("PARALLEL DONE")
     mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
     print("END DO ALL TIME", mytime)
-    print('masterTableInfo keys:')
-    print(str(masterTableInfo.keys()))
-    # Copy stamps, html and lightcurve directories if post == True
 
+    # Copy stamps, html and lightcurve directories if post == True
     if post == True:
         try:
             os.system("rsync -a " + outdir + "/pngs codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp" + str(season) +"/") 
@@ -1543,6 +1420,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
 
         mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
         print("END COPY TO desweb", mytime)
+    
     mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
     print("START new for d in dates TIME", mytime)
     for d in dats:
@@ -1556,13 +1434,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
         lines = f.readlines()
         f.close()
 
-        hashost = False
-        for myline in lines:
-            if myline == '\n':
-                continue
-            splitline=myline.split()
-            if splitline[0] == "HOSTGAL_NMATCH2:":
-                hashost = True
+        hashost = any([x.startswith("HOSTGAL_NMATCH2:") for x in lines])
 
         dat_df = get_dat_data(lines)
         md = get_metadata(lines, hashost)
@@ -1629,6 +1501,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
         np.asarray(SPECZ),np.asarray(SPECZERR),np.asarray(HOSTSEP),np.asarray(HOST_GMAG),\
         np.asarray(HOST_RMAG),np.asarray(HOST_IMAG),np.asarray(HOST_ZMAG)
 
+
     print("check full array: len(CAND_ID)", len(CAND_ID))
     tbhdu1 = fits.BinTableHDU.from_columns(
         [fits.Column(name='cand_ID', format='K', array=CAND_ID.astype(float)),
@@ -1673,7 +1546,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
     print("")
 
     status=True
-    
+
     #gc.collect()
     return fitsname,status,masterTableInfo
 
@@ -2024,105 +1897,5 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
         plt.clf()
     return rdf,lcdir
 
-def createhtml(fitsname,realdf,master,lcdir): 
-    rootdir = os.environ.get('ROOTDIR')
-    expdir = os.path.join(rootdir,'exp')
-    season = os.environ.get('SEASON')
-    skip = False
-
-    if os.path.isfile(master):
-        #mlist = Table.read(master)
-        #masdf = mlist.to_pandas()
-        mlist = fitsio.read(master)
-        mlist = mlist.byteswap().newbyteorder()
-        masdf = pd.DataFrame.from_records(mlist)
-    else:
-        skip = True
-        print("No master list found with filename",master+'.')
-        print("This step will run more slowly because it will require the use of glob.")
-    
-    spl = fitsname.split('.fits')
-    newfits = spl[0]+'stamps.fits'
-
-    if not os.path.isfile(newfits):
-
-        rdf = realdf.reset_index(drop=True)
-
-        ### GET STAMPS ###
-        lenr = len(rdf)
-        srcharray = ['' for x in range(lenr)]
-        temparray = ['' for x in range(lenr)]
-        diffarray = ['' for x in range(lenr)]
-        aaa = 0
-        aaalen = len(rdf['EXPNUM'].unique())
-        #time1 = time.time()
-        for e in sorted(rdf['EXPNUM'].unique()):
-            aaa += 1
-            bb = 0
-            edf = rdf[['EXPNUM','NITE','CCDNUM','BAND','OBJID','HEX']].loc[rdf['EXPNUM'] == e]
-            bblen = len(edf['CCDNUM'].unique())
-            #time2 = time.time()
-            for c in sorted(edf['CCDNUM'].unique()):
-                bb += 1
-                cdf = edf.loc[edf['CCDNUM'] == c]
-                nite = str(cdf['NITE'].values[0])
-                hhex = str(cdf['HEX'].values[0])
-                exp = str(e)
-                dp = 'dp'+str(season)
-                band = str(cdf['BAND'].values[0])
-                ccd = '%02d' % c
-                stampname = 'stamps_'+nite+'_'+hhex+'_'+band+'_'+ccd
-                stampstar = os.path.join(expdir,nite+'/'+exp+'/'+dp+'/'+band+'_'+ccd+'/'+stampname)
-                #time3 = time.time()
-                #gstamp = glob(stampstar)
-                #time4 = time.time()
-                #if len(gstamp)==1:
-                if os.path.isdir(stampstar):
-                    stampdir = stampstar
-                    for i in list(cdf.index.values):
-                        #time5 = time.time()
-                        obj = str(int(cdf.ix[i,'OBJID']))
-                        srch = os.path.join(stampdir,'srch'+obj+'.gif')
-                        temp = os.path.join(stampdir,'temp'+obj+'.gif')
-                        diff = os.path.join(stampdir,'diff'+obj+'.gif')
-                        #time6 = time.time()
-                    
-                        srcharray[i] = srch
-                    
-                        temparray[i] = temp
-                    
-                        diffarray[i] = diff
-    
-        rdf['srchstamp'] = srcharray
-        rdf['tempstamp'] = temparray
-        rdf['diffstamp'] = diffarray
-
-        rdf['cutflag'] = rdf['cutflag'].astype(int)
-
-        newfile = fitsio.FITS(newfits,'rw')
-        newfile.write(rdf.to_records(index=False),clobber=True)
-        newfile.close()
-
-        sdf = rdf.copy()
-
-    else:    
-        print('A combined .fits file for all real candidates containing stamp information already exists:')
-        print("")
-        print(newfits)
-        print("")
-        print('If you want to recreate the file, simply delete or rename the existing one.')
-
-        #stable = Table.read(newfits)
-        #sdf = stable.to_pandas()
-        stable = fitsio.read(newfits)
-        stable = stable.byteswap().newbyteorder()
-        sdf = pd.DataFrame.from_records(stable)
-
-    ### HTML CREATION ###
-    
-    sdf = sdf.loc[sdf['cutflag']==1]
-
-    for c in sdf['SNID']:
-        cdf = sdf.loc[sdf['SNID']==c]
         
 

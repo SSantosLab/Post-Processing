@@ -20,7 +20,7 @@ import psycopg2
 import fnmatch
 import configparser
 
-def MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
+def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
 
     config = ConfigParser.ConfigParser()
     if os.path.isfile('./postproc_'+str(season)+'.ini'):
@@ -32,7 +32,6 @@ def MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_sco
     statMLS=0
     statRADEC=0
     
-    #season = os.environ.get('SEASON')
     season = str(season)
 
     rootdir = os.environ.get('ROOTDIR')
@@ -50,9 +49,8 @@ def MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_sco
 
     df1 = truthplus
 
-    outdir = os.path.join(os.environ.get('ROOTDIR2'),'plots')
-    if not os.path.isdir(outdir):
-        os.mkdir(outdir)
+    if not os.path.isdir(str(outdir)+'/plots'):
+        os.mkdir(outdir+'/plots')
 
     rtable = fitsio.read(fitsname)
     rtable = rtable.byteswap().newbyteorder()
@@ -214,9 +212,5 @@ def MakeDaPlots(season,ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_sco
     eff=EffName.split('/')[-1]
     shutil.copy(EffName,'./'+eff)
     print("You have and efficiency plot!")
-
-    
-    
-
     
     return stat6,mls,radec

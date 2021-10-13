@@ -9,9 +9,8 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
     config = ConfigParser.ConfigParser()
     if os.path.isfile('./postproc_'+season+'.ini'):
         inifile = config.read('./postproc_'+season+'.ini')[0]
-    triggerid=config.get('general','triggerid')
 
-    MajorPlots=['<!DOCTYPE HTML>\n','<html>\n','<link rel="stylesheet" type="text/css" href="../masterHTMLCSS.css">','<body>','<button onclick="topFunction()" id="myBtn" title="Go to top"><img id ="button" src="Arrow.png"></button>','<h1>Season '+season+'</h1>','<p><a id = "Dillion" href="http://des-ops.fnal.gov:8080/desgw/Triggers/'+triggerid+'/'+triggerid+'_trigger.html"><p></p>LIGO GW Triggers<p>DESGW EM Followup</p></a></p>','<div id="majorPlots">','<span title="Fakes: ML Score">','<img src='+MLScoreFake+' width="583" height="350"></span>','<span title="RA and DEC Plot">','<img src ='+RADEC+' width"583" height="350"></span></div>','<ul>']
+    MajorPlots=['<!DOCTYPE HTML>\n','<html>\n','<link rel="stylesheet" type="text/css" href="../masterHTMLCSS.css">','<body>','<button onclick="topFunction()" id="myBtn" title="Go to top"><img id ="button" src="Arrow.png"></button>','<h1>Season '+season+'</h1>','<div id="majorPlots">','<span title="Fakes: ML Score">','<img src='+MLScoreFake+' width="583" height="350"></span>','<span title="RA and DEC Plot">','<img src ='+RADEC+' width"583" height="350"></span></div>','<ul>']
     masterHTML=open('masterHTML'+season+'.html','w+')
     for line in MajorPlots:
         masterHTML.write(line)
@@ -51,7 +50,6 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
     check = 0.
     check2 = 0.
     check3 = 0.
-    print("AG OUTDIR", outdir)
     for index, row in masterdf.iterrows():
         check += 1.0
         snid = int(row['snid'])
@@ -128,16 +126,4 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
         masterHTML.write(line)
     masterHTML.close()
 
-#    statusLines=['<a id="status" href="statusPage'+season+'.html"><font size="10">Status Page</font></a>','</body>','</html>']
-#    masterHTML=open('masterHTML'+season+'.html','a')
-#    masterHTML.write(statusLines[0])
-#    masterHTML.write(statusLines[1])
-#    masterHTML.close()
-    
-#    os.system('scp masterHTML'+season+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-#    os.system('scp PostProc_statusPage'+str(season)+'.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-#    os.system('scp theProtoATC_'+str(season)+'*.html codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/')
-    print("check 1",check)
-    print("check 2", check2)
-    print("check 3", check3)
     return 'Functional'
