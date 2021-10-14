@@ -9,7 +9,6 @@ from glob import glob
 import pandas as pd
 from collections import OrderedDict as OD
 import easyaccess
-import ConfigParser
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
@@ -18,14 +17,12 @@ from astropy.table import Table
 import fitsio
 import psycopg2
 import fnmatch
-import configparser
 
-def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.,skip=False):
 
-    config = ConfigParser.ConfigParser()
-    if os.path.isfile('./postproc_'+str(season)+'.ini'):
-        inifile = config.read('./postproc_'+str(season)+'.ini')[0]
-    outdir = config.get('general','outdir')
+class EmptyPlotError(Exception):
+    pass
+
+def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,outdir, ml_score_cut=0.,skip=False):
 
     plt.clf()
 
@@ -58,6 +55,9 @@ def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut
     df = df1.loc[df1['REJECT'] == 0]
     rdf = rdf1.loc[rdf1['PHOTFLAG'].isin([4096,12288])]
 
+    if len(rdf) == 0:
+        print("No candidates with photflag = 4096,12288 in combined fits")
+        raise EmptyPlotError
 
     ### ML_SCORE HISTOGRAM - FAKES ###                                         
 
@@ -82,6 +82,11 @@ def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut
 
     radecdf = radecdf.drop_duplicates('cand_ID')
     radecdf = radecdf.loc[radecdf['PHOTPROB'] > ml_score_cut]
+
+    if len(radecdf) == 0:
+        print("No candidates with photflag = 4096,12288 and photprob > ml_score_cut combined fits")
+        raise EmptyPlotError
+
     mapdir = os.path.join(outdir,'maps')
     if not os.path.isdir(mapdir):
         os.mkdir(mapdir)
@@ -104,6 +109,10 @@ def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut
 
     radecdf = radecdf.loc[radecdf['EXPNUM'].isin(hexex)]
 
+    if len(radecdf) == 0:
+        print("No candidates remaining, possibly in masterlist df")
+        raise EmptyPlotError
+
     ### overall map                                                            
     plt.figure(figsize=(16,9))
     plt.scatter(radecdf['RA'],radecdf['DEC'],c=radecdf['PHOTPROB'],edgecolor='',s=10)
@@ -124,9 +133,7 @@ def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut
     shutil.copy(RADECName,'./'+radec)
     print('A img was made!','./'+radec)
     
-
-
-    if not skip:
+    if not skip and len(masdf) != 0:
         for e in hexex:
             print e
             out = ''
@@ -191,7 +198,9 @@ def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut
     else:
         stat6=False
 
-        
+    if len(df1) == 0 or len(df) == 0:
+        print("No candidates remaining")
+        raise EmptyPlotError
 
     bins = np.arange(17,25,1)
 

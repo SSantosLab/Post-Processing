@@ -451,6 +451,7 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
 
     alltime = 0
     last = -1
+    timeout_warned = False
     while len(os.listdir(datdir)) < (numcands+3):
         length = len(os.listdir(datdir))
         if length == last and length>0:
@@ -477,14 +478,20 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
         time.sleep(yawn)
         alltime += yawn
         if alltime>maxtime:
-            print("MAKEDATA FILES EXCEEDED MAXTIME")
+            if not timeout_warned:
+                print("MAKEDATA FILES EXCEEDED MAXTIME")
+
             if length==0:
-                print("NO DAT FILES, EXITING. TRY INVESTIGATING HUNG MAKEDATA FILES JOBS")
-                sys.exit()
+                if not timeout_warned:
+                    print("I'll wait here for dat files. In the meantime, check the output of ps -u. "
+                          "If there are no makedatafile jobs still running, then you should kill this process.")
+                    timeout_warned = True
+                continue
             else:
                 print("MOVING ON WITH "+str(length)+" DAT FILES")
                 break
 
+        print("All dat files accounted for, moving on normally")
 
 
 ###The following two functions are heavily based on a tutorial

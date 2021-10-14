@@ -16,6 +16,8 @@ import time
 import run_checker
 #import cProfile
 
+from makePlots import EmptyPlotError
+
 ## Read command line options
 parser = argparse.ArgumentParser(description=__doc__, 
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -386,7 +388,7 @@ else:
     print("STEP 5")
     print("USING SKIPTO FLAG, SKIPPING TO STEP ", args.SKIPTO)
     print("STEP 5B")
-    fitsname = combined_fits
+    fitsname = outdir+'/makedatafiles/'+combined_fits
     status = False
     masterTableInfo = np.load(outdir+'/mastertableinfo.npy')
 
@@ -415,19 +417,14 @@ print("")
 
 #make fake ml and ra dec map plots
 try:
-    stat6,MLScoreFake,RADEC=makePlots.MakeDaPlots(season,master,truthplus,fitsname,expnums,triggermjd,mlscore_cut,skip)
-except:
-    raise OSError("STEP 6 (makePlots.MakeDaPlots) FAILED")
-
-#statusList.append(status)
-
-if stat6==None:
-    stat6=False
-print('step 6 status', stat6)
-statusList[7]=stat6
-update=updateStatus.updateStatus(statusList,season)
-print(update)
-print('statusList',statusList)
+    _, MLScoreFake, RADEC = makePlots.MakeDaPlots(
+        season,master,truthplus,fitsname,expnums,triggermjd,outdir,mlscore_cut,skip)
+except EmptyPlotError as err:
+    print(err.message)
+    print("Step 6 failed due to empty candidate dfs. Ending PostProc.")
+    mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
+    print("END END TIME", mytime)
+    sys.exit()
 
 #########
 # STEP 7: Make htmls/webpage
