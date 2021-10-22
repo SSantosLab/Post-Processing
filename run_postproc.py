@@ -2,7 +2,7 @@ import os
 from glob import glob
 import tarfile
 import argparse
-import ConfigParser
+import configparser
 import sys
 import updateStatus
 import postproc
@@ -42,7 +42,7 @@ mytime = datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S')
 print("START TIME", mytime)
 
 ## Read config file                                                            
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 if os.path.isfile('./postproc_'+str(season)+'.ini'):
     inifile = config.read('./postproc_'+str(season)+'.ini')[0]
 
@@ -105,12 +105,13 @@ if args.expnums == None:
     indir = config.get('general','indir')
     expnums_listfile = config.get('general','exposures_listfile')
     expnums_listfile = os.path.join(indir,expnums_listfile)
+
     try:
         explist = open(expnums_listfile,'r')
         expnums1 = explist.readlines()
         for line in expnums1:
             expnums.append(line.split('\n')[0])
-            expnums = map(int,expnums)
+            expnums = list(map(int,expnums)) #Made 'list' since 'map' object has no append attribute.
     except:
         print("WARNING: List of exposures file not found or empty.")
         expnums = []
@@ -130,7 +131,7 @@ if bands=='all':
     bands = None
 else:
     bands = bands.split(',')
-    bands = map(str.strip, bands)
+    #bands = map(str.strip, bands) #If bands is supposed to be an array (e.g. ['i','z']), this is unnecessary
 
 setupfile = config.get('general','env_setup_file')
 
@@ -236,7 +237,7 @@ print('statusList',statusList)
 if args.SKIPTO > 0:
 
     expniteband_df =pd.read_csv(outdir+'/masterlist/expniteband_df.csv')
-    master = pd.read_csv(outdir+'/masterlist/'+masterfile_1)
+    master = pd.read_csv(outdir+'/masterlist/'+masterfile_1, encoding='latin-1') #Added encoding
 
     with open(outdir+'/checkoutputs/step0_expnums.txt', 'r') as f:
         expnums = [int(x.strip()) for x in f.readlines()]
@@ -274,7 +275,6 @@ if checkonly:
     print( 'You gave the --checkonly option. Stopping Now.')
     sys.exit(0)
 
-
 #########
 # STEP 1: Create final master list
 #########
@@ -292,6 +292,7 @@ print('step 1 staus:', status)
 update=updateStatus.updateStatus(statusList,season)
 print(update)
 print('statusList',statusList)
+
 expnums = expniteband_df['expnum'].tolist()
 
 
@@ -383,6 +384,10 @@ if args.SKIPTO <= 5:
 
     fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outdir, outDir_datareal, args.schema,triggermjd, GoodSNIDs, args.skip_lightcurves, args.post)
     np.save(outdir+'/mastertableinfo.npy', masterTableInfo)
+
+#    print("=== TESTING testingCNN function ===") #Testing
+#    postproc.testingCNN()
+#    print("======")
     
 else:
     print("STEP 5")

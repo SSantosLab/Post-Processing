@@ -22,6 +22,7 @@ from joblib import Parallel, delayed
 import datetime
 import gc
 from subprocess import PIPE
+import runCNN
 
 
 def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema):
@@ -162,7 +163,7 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     stepnames = f.readlines()
     f.close()
 
-    stepnames = map(lambda x: x.strip(), stepnames)
+    stepnames = list(map(lambda x: x.strip(), stepnames))  #Python 3 map returns an iterable object of type map, not a subscriptible list
 
     goodchecked = os.path.join(outdir,goodchecked)
     if os.path.isfile(goodchecked):
@@ -189,7 +190,7 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
 
     d = OD() #ordered dict
     d['expnum'] = []
-    chips = range(1,63)
+    chips = list(range(1,63))  #Python 3 range returns a range object instead of a list
     steps = range(1,29)
     chips.remove(2),chips.remove(31),chips.remove(61)
     for ch in chips:
@@ -308,9 +309,9 @@ def checkoutputs(expdf,logfile,ccdfile,goodchecked,steplist):
     
     df['fraction'] = ""
     for exp in list(df.index.values):
-        frac = float(df.get_value(exp,'successes'))/59.
+        frac = float(df._get_value(exp,'successes'))/59. #Changed get_value to _get_value
         frac = round(frac,3)
-        df.set_value(exp,'fraction',frac)
+        df._set_value(exp,'fraction',frac) #Changed set_value to _set_value
     
     lf.write('TOTAL CCDS CHECKED: ')
     ccdtot = 59*len(df['successes'])
@@ -413,7 +414,7 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
     cursor = connection.cursor()
     QQ = cursor.execute(query)
     rows = cursor.fetchall()
-    cols = np.array(zip(*rows))
+    cols = np.array(tuple(zip(*rows))) #Zip returns a tuple
     allcand = cols[0]
     numcands = len(allcand)
 
@@ -428,6 +429,7 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
         datdir = os.path.join(datafiles_dir,outdir)
         if not os.path.isdir(datdir):
             os.mkdir(datdir)
+
         a = 'makeDataFiles_fromSNforce' 
         a = a + ' -format ' + format 
         a = a + ' -season ' + season
@@ -441,7 +443,8 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
             a = a + ' -2nite_trigger ' + trigger 
         if not fakeversion == None: 
             a = a + ' -fakeVersion ' + fakeversion
-        a = '(source '+os.getenv('SETUPFILE')+'; cd '+datafiles_dir+ '; '+ a + '; cd -)&'
+        a = '(cd '+datafiles_dir+ '; '+ a + '; cd -)&' #Removed sourcing diffimg_setup.sh
+        print(a) #Testing: Want to see what it does in the subprocess
         s = subprocess.Popen(a, shell=True, stderr=PIPE, stdout=PIPE)
 
         procs.append(s)
@@ -459,7 +462,7 @@ def makedatafiles(season,format,numepochs_min,two_nite_trigger,outfile,outdir,nc
             dats = [x for x in dats if x.endswith(".dat")]
             cs,nodat = [],[]
             for d in dats:
-                cand = int(filter(str.isdigit,d))
+                cand = int(''.join(filter(str.isdigit,d))) #Filter yields a tuple, I'm guessing this wants the number in each filename
                 cs.append(cand)
             for c in allcand:
                 if c not in cs:
@@ -994,11 +997,15 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
             objidDict[objidk] = [mjdk,bandk,fieldk,fluxcalk,fluxcalerrk,mk,merrk,photflagk,photprobk,zpfluxk,psfk,skysigk,skysig_tk,gaink,xpixk,ypixk,nitek,expnumk,ccdnumk]
 
     # Extract stamps per objid and create dictionary with stamps per objid
-            tarFiles = glob('/pnfs/des/persistent/'+schema+'/exp/'+str(int(nitek))+'/'+str(int(expnumk))+'/dp'+str(int(season))+'/'+str(bandk)+'_'+str(int(ccdnumk))+'/stamps_'+str(int(nitek))+'_*_'+str(bandk)+'_'+str(int(ccdnumk))+'/*.tar.gz')
+            if ccdnumk < 10:
+                ccdnumk1 = '0' + str(int(ccdnumk))
+            else:
+                ccdnumk1 = str(int(ccdnumk))
+            tarFiles = glob('/pnfs/des/persistent/'+schema+'/exp/'+str(int(nitek))+'/'+str(int(expnumk))+'/dp'+str(int(season))+'/'+str(bandk)+'_'+ccdnumk1+'/stamps_'+str(int(nitek))+'_*_'+str(bandk)+'_'+ccdnumk1+'/*.tar.gz') #Turned ccdnumk into str so that I can add leading zeros as str
             try:
-                if float(photprobk) < MLcutoff:
-                    objidStampDict[objidk] = []
-                    continue
+#                if float(photprobk) < MLcutoff:
+#                    objidStampDict[objidk] = []
+#                    continue
                 tarFile = tarFiles[0]
                 tar = tarfile.open(tarFile)
                 try:
@@ -1038,11 +1045,12 @@ def createHTML(
     topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>',
           '<link rel="stylesheet" type="text/css" href="../../theProtoATCStyleSheet.css">', '<script src = "candJava.js" type = "text/javascript"/></script>',
           '<title> SNID ' + str(md['snid'].values[0]) + ' Data </title>\n','<h1> SNID ' + str(md['snid'].values[0]) + ' Data </h1>','\n','</head>\n',
-          '<body>','<p> Stamps from observations with ML scores less than ' + str(MLcutoff) + ' are not displayed. </p>',
+          '<body>','<p> Stamps from observations with ML scores less than ' + str(MLcutoff) + ' are not displayed. (Disabled for the moment) </p>',
           '<table align="center">\n','<caption>Candidate Info</caption>','<tr>','<th>RA</th>\n','<td>' + str(md['raval'].values[0]) + '</td>\n',
           '<th>DEC</th>\n','<td>' + str(md['decval'].values[0])  + '</td>\n','</tr>','<th>Host final_z</th>\n','<td>' + str(md['redshift_final'].values[0]) + '</td>\n','<th>Host final_z Error</th>\n','<td>' + str(md['redshift_finalerr'].values[0])  + '</td>\n','</tr>','<tr>','<th> Trigger MJD</th>','<td>'+str(triggermjd)+'</td>','<th>GWID</th>','<td> -- </td>','</tr>','<tr>','<th>AREA</th>','<td> -- </td>','<th>FAR</th>','<td> -- </td>','</tr>','</table>\n']
 
-    openingLines=['<p> Click any of OBJID, FLUXCAL, PHOTFLAG, SKYSIG, and NITE to expand the hidden columns. Hover mouse over each to reveal hidden options.</p>','<table id="mytable" width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th title="OBJID, MJD, BAND, FIELD" onclick="toggleColumn(1)">OBJID</th>','<th class="col1">MJD</th>','<th class="col1">FLT</th>','<th class="col1">FIELD</th>','<th title="FLUXCAL, FLUXCALERR, MAG, MAGERR" onclick="toggleColumn(2)">FLUXCAL</th>','<th class="col2">FLUXCALERR</th>','<th class="col2">MAG</th>','<th class="col2">MAGERR</th>','<th title="PHOTFLAG, PHOTPROB, ZPFLUX, PSF" onclick="toggleColumn(3)">PHOTFLAG</th>','<th class="col3">PHOTPROB</th>','<th class="col3">ZPFLUX</th>','<th class="col3">PSF</th>','<th title="SKYSIG, SKYSIG_T, GAIN, XPIX, YPIX"  onclick="toggleColumn(4)">SKYSIG</th>','<th class="col4">SKYSIG_T</th>','<th class="col4">GAIN</th>','<th class="col4">XPIX</th>','<th class="col4">YPIX</th>','<th title="NITE, EXPNUM, CCDNUM"  onclick="toggleColumn(5)">NITE</th>','<th class="col5">EXPNUM</th>','<th class="col5">CCDNUM</th>','</tr>\n']
+    openingLines=['<p> Click any of OBJID, FLUXCAL, PHOTFLAG, SKYSIG, and NITE to expand the hidden columns. Hover mouse over each to reveal hidden options.</p>','<table id="mytable" width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th title="OBJID, MJD, BAND, FIELD" onclick="toggleColumn(1)">OBJID</th>','<th class="col1">MJD</th>','<th class="col1">FLT</th>','<th class="col1">FIELD</th>','<th title="FLUXCAL, FLUXCALERR, MAG, MAGERR" onclick="toggleColumn(2)">FLUXCAL</th>','<th class="col2">FLUXCALERR</th>','<th class="col2">MAG</th>','<th class="col2">MAGERR</th>','<th title="PHOTFLAG, PHOTPROB, CNN, ZPFLUX, PSF" onclick="toggleColumn(3)">PHOTFLAG</th>','<th class="col3">PHOTPROB</th>','<th class="col3">CNN</th>','<th class="col3">ZPFLUX</th>','<th class="col3">PSF</th>','<th title="SKYSIG, SKYSIG_T, GAIN, XPIX, YPIX"  onclick="toggleColumn(4)">SKYSIG</th>','<th class="col4">SKYSIG_T</th>','<th class="col4">GAIN</th>','<th class="col4">XPIX</th>','<th class="col4">YPIX</th>','<th title="NITE, EXPNUM, CCDNUM"  onclick="toggleColumn(5)">NITE</th>','<th class="col5">EXPNUM</th>','<th class="col5">CCDNUM</th>','</tr>\n'] #Testing
+#    openingLines=['<p> Click any of OBJID, FLUXCAL, PHOTFLAG, SKYSIG, and NITE to expand the hidden columns. Hover mouse over each to reveal hidden options.</p>','<table id="mytable" width="750" align="center">','<caption>Observation Info</caption>','<tr>','<th title="OBJID, MJD, BAND, FIELD" onclick="toggleColumn(1)">OBJID</th>','<th class="col1">MJD</th>','<th class="col1">FLT</th>','<th class="col1">FIELD</th>','<th title="FLUXCAL, FLUXCALERR, MAG, MAGERR" onclick="toggleColumn(2)">FLUXCAL</th>','<th class="col2">FLUXCALERR</th>','<th class="col2">MAG</th>','<th class="col2">MAGERR</th>','<th title="PHOTFLAG, PHOTPROB, ZPFLUX, PSF" onclick="toggleColumn(3)">PHOTFLAG</th>','<th class="col3">PHOTPROB</th>','<th class="col3">ZPFLUX</th>','<th class="col3">PSF</th>','<th title="SKYSIG, SKYSIG_T, GAIN, XPIX, YPIX"  onclick="toggleColumn(4)">SKYSIG</th>','<th class="col4">SKYSIG_T</th>','<th class="col4">GAIN</th>','<th class="col4">XPIX</th>','<th class="col4">YPIX</th>','<th title="NITE, EXPNUM, CCDNUM"  onclick="toggleColumn(5)">NITE</th>','<th class="col5">EXPNUM</th>','<th class="col5">CCDNUM</th>','</tr>\n']
 
     infoTablines = []
     mjdDict = {}
@@ -1050,8 +1058,10 @@ def createHTML(
         mjdDict[mjds] = obs
 
     for imjd, obs in sorted(mjdDict.items()):
-        mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_ = objidDict[obs]
-        tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
+        mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_,cnnscore_ = objidDict[obs] #Testing
+        tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(cnnscore_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n'] #Testing
+#        mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_ = objidDict[obs]
+#        tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
         
         infoTablines += tableLines
     closingLines=['</table>']
@@ -1269,8 +1279,8 @@ def get_metadata(lines, hashost):
 
 ### END NS NEW FUNCTIONS
  
-############ doALL #############
-def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves):
+############ doALL ############# Testing idea: pass the runCNN array as an argument, to be provided by combinedatafiles as it onlyu runs once
+def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves,cnn_dict):
 
 
 #    c=c+1
@@ -1299,6 +1309,13 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
     MLcutoff = 0.7
 
     objidDict, objidStampDict = make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff)
+    print(objidDict) #Testing
+    for objid in objidDict: #Testing
+        print(objid) #Testing
+        cnnscore = cnn_dict[str(int(objid))]
+        print(cnnscore) #Testing
+        objidDict[objid].append(cnnscore)
+    print(objidDict) #Testing
     createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, datfile,MLcutoff, outdir, post, skip_lightcurves, c)
 
     ##----------- alyssa hack to make csv and event table-------------------
@@ -1401,8 +1418,12 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
     print("START DO ALL TIME", mytime)
 
     nparallel = 16
-    #Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d) for d in dats)
-    masterTableInfo = Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves) for d in dats)
+    cnn_array = runCNN.runNN(str(outdir)+'/stamps') #Testing
+    idlist = [i[0] for i in cnn_array] #Testing
+    scorelist = [i[1] for i in cnn_array] #Testing
+    cnn_dict = dict(zip(idlist, scorelist)) #Testing
+    #Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,cnn_dict) for d in dats)
+    masterTableInfo = Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves,cnn_dict) for d in dats)
     #gc.collect()
     # Now joblib actually returns a list of single-key dictionaries above, rather than the singl many-key dict that we originally wanted. So convert back now
     masterTableInfo = {k: v for d in masterTableInfo for k, v in d.items()}
@@ -1903,6 +1924,3 @@ def makeplots(ccddf,master,truthplus,fitsname,expnums,mjdtrigger,ml_score_cut=0.
         plt.savefig(os.path.join(lcdir,'SNID'+str(sn)+'.png'))
         plt.clf()
     return rdf,lcdir
-
-        
-

@@ -41,8 +41,8 @@ def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,outdir, ml_s
         masdf = pd.DataFrame.from_records(mlist)
     else:
         skip = True
-        print "No master list found with filename",master+'.'
-        print "Plots requiring a master list (SNR, RA/DEC hex maps) will not be created."
+        print("No master list found with filename",master+'.')
+        print("Plots requiring a master list (SNR, RA/DEC hex maps) will not be created.")
 
     df1 = truthplus
 
@@ -135,7 +135,7 @@ def MakeDaPlots(season,master,truthplus,fitsname,expnums,mjdtrigger,outdir, ml_s
     
     if not skip and len(masdf) != 0:
         for e in hexex:
-            print e
+            print(e)
             out = ''
             out = os.path.join(rootdir,str(masdf['nite'].loc[masdf['expnum']==e].values[0]))
             out = os.path.join(out,str(e))

@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -9,7 +9,7 @@ parser.add_argument('--recycler_mjd', type=float, help="recycler mjd")
 parser.add_argument('--propid', type=str, default='2017B-0110', help="propid 20##B-####")
 args = parser.parse_args()
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 
 config.add_section('general')
 config.set('general', 'season', args.season) #416/417 

@@ -75,7 +75,7 @@ from math import pi
 
 #from   atc_tools.ext import helpers as atcfuncs
 import HostMatchAlgorithms_Ravi as hma # RRG
-import ConfigParser
+#import configparser
 
 #config = ConfigParser.ConfigParser()
 #if os.path.isfile('./postproc_'+str(season)+'.ini'):
@@ -168,7 +168,7 @@ print('OUTDIR_HOSTMATCH='+OUTPUT_DIR)
 #OUTPUT_DIR = OUTPUT_DIR + thisTime + '/'
 
 if not os.path.isdir(OUTPUT_DIR):
-    os.makedirs(OUTPUT_DIR,0755)
+    os.makedirs(OUTPUT_DIR,0o755) #Changed 0755 to 0o755
 
 #try:
 #    os.mkdir(OUTPUT_DIR, 0755)
@@ -277,17 +277,26 @@ def main(season):
                "and g.SNGALID is NULL " )
 
     query_new  = ( "SELECT c.transient_name, c.SNID, c.ra, c.dec "
-               #"c.FIELD as field "
                "from SNCAND c LEFT JOIN "+sngals_file+" g on c.SNID=g.SNID "
-               #TO BE PUT BACK LATER! "where c.numepochs_ml>=1 and c.numobs_ml>=2 "
                "where (c.transient_status is NULL or c.transient_status >=0) "
                "and c.snfake_id=0 and c.cand_type >=0 "
-	       "and g.SNGALID is NULL "
+               "and g.SNGALID is NULL "
+               "and c.season="+str(my_season))
+
+
+
+#    query_new  = ( "SELECT c.transient_name, c.SNID, c.ra, c.dec "
+               #"c.FIELD as field "
+#               "from SNCAND c LEFT JOIN "+sngals_file+" g on c.SNID=g.SNID "
+               #TO BE PUT BACK LATER! "where c.numepochs_ml>=1 and c.numobs_ml>=2 "
+#               "where (c.transient_status is NULL or c.transient_status >=0) "
+#               "and c.snfake_id=0 and c.cand_type >=0 "
+#	       "and g.SNGALID is NULL "
                #"and g.SNGALID is NULL and c.FIELD is not NULL ") 
                #"and c.season="+str(args2.season)+" ")
-               "and c.season="+str(my_season)+" ")
+#               "and c.season="+str(my_season)+" ")
     print("test 2")
-    print query_new
+    print(query_new)
     cursor.execute(query_new)
     data=cursor.fetchall()
 
@@ -303,18 +312,18 @@ def main(season):
         hostms=open('hostmatchstatus.txt','w')
         hostms.write(status)
         hostms.close()
-        print
-        print "WARNING:"
-        print "The list of galaxies to host match is empty."
-        print "The query below has failed:"
-        print
-        print query_new
-        print
-        print "This could be due to a previous successful run."
-        print "If you wish to rerun, please clear the database using the following command:"
-        print
+        print()
+        print("WARNING:")
+        print("The list of galaxies to host match is empty.")
+        print("The query below has failed:")
+        print()
+        print(query_new)
+        print()
+        print("This could be due to a previous successful run.")
+        print("If you wish to rerun, please clear the database using the following command:")
+        print()
         #print "delete from SNGALS where season="+str(args.season)+';'
-        print
+        print()
         print('update SNGALS SET sngalid=NULL where season=416;')
         print('(Maybe)')
         return 
@@ -841,7 +850,7 @@ def main(season):
                         #db_flag   += 1                                                                            
 		    #### I have added this line as it was giving error (didn't know what to put as db_status in logfile_db.write)
 		    ##if args2.test:
-		    db_status = 1 
+                    db_status = 1 #Fixed indentation
 
                     logfile_db.write( dbstring.format(SNID, transient_name,'N/A',
                                                       'N/A','N/A',0,db_status) )
@@ -850,16 +859,16 @@ def main(season):
     #------------------------------------------------------------------------------
     #------------------- Summarize and close log files; Post to ATC ---------------
     #------------------------------------------------------------------------------
-    print 'db_flag ',db_flag
+    print('db_flag ',db_flag)
 
     if db_flag == 0:
         logfile_db.write('#HostMatch Database Update:  SUCCESS\n')
-        print 'HostMatch Database Update:  SUCCESS'
+        print('HostMatch Database Update:  SUCCESS')
     else:
         logfile_db.write('#HostMatch Database Update:  FAILURE '
                          'on {} uploads\n'.format(db_flag))
         logfile_db.write('#Re-run HostMatch.  No input files needed.\n')    
-        print 'HostMatch Database Update:  FAILURE '
+        print('HostMatch Database Update:  FAILURE ')
 
     #if (args.atc and atc_flag == 0):
     #    logfile_atc.write('#HostMatch ATC Posting & Tagging:  SUCCESS\n')
@@ -872,15 +881,15 @@ def main(season):
     #    else:
     logfile_atc.write('#HostMatchATC Posting & Tagging:  SKIPPED '
                       'on ALL posts\n')
-    print 'HostMatch ATC Posting & Tagging:  SKIPPED'
+    print('HostMatch ATC Posting & Tagging:  SKIPPED')
         
     logfile_atc.write('#Re-run with --input flag set and input file:\n')
     logfile_atc.write('#{0}'.format(logfile_name_atc))
-    print 'Run with desHostMatchFix with input file set as {0}'.format(logfile_name_atc)
+    print('Run with desHostMatchFix with input file set as {0}'.format(logfile_name_atc))
     
     #if args2.test:
     logfile_atc.write('#...Except this was only a TEST, so nothing has REALLY happened!\n')
-    print '...Except this was only a TEST, so nothing has REALLY happened!'
+    print('...Except this was only a TEST, so nothing has REALLY happened!')
 
     file_dlr.close()
     file_sep.close()

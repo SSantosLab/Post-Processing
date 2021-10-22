@@ -1,12 +1,12 @@
 from glob import glob
-import ConfigParser
+import configparser
 import os
 import pandas as pd
 import sys
 ###Style sheet for this takes many cues from w3school
 ##'<link rel="stylesheet" type="text/css" href="masterHTMLCSS.css">'
 def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     if os.path.isfile('./postproc_'+season+'.ini'):
         inifile = config.read('./postproc_'+season+'.ini')[0]
 
@@ -38,8 +38,8 @@ def WholeHTML(MLScoreFake,RADEC,season,masterTableInfo, outdir):
     #1/23/20 ag: convert dict to pandas df to sort
     masterdf = pd.DataFrame(masterTableInfo).transpose().reset_index()
     masterdf.columns = ['snid','radec', 'ml', 'mag', 'path']
-#    masterdf = masterdf.sort_values('ml',ascending=False)
-    masterdf = masterdf.sort(columns=['ml', 'snid'],ascending=False)
+    masterdf = masterdf.sort_values('ml',ascending=False) #sort() was deprecated
+#    masterdf = masterdf.sort(columns=['ml', 'snid'],ascending=False)
 
     print('Keys for masterTableInfo:')
 #    print(str(len(masterTableInfo.keys())))

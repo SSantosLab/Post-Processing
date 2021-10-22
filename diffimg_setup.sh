@@ -134,3 +134,5 @@ fi
 # 	done
 #     fi%%%
 # fi
+
+export PYTHONPATH='/data/des91.b/data/julianbg/Post-Processing/packages/lib/python3.7/site-packages'
