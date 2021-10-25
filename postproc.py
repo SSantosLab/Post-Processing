@@ -1279,7 +1279,7 @@ def get_metadata(lines, hashost):
 
 ### END NS NEW FUNCTIONS
  
-############ doALL ############# Testing idea: pass the runCNN array as an argument, to be provided by combinedatafiles as it onlyu runs once
+############ doALL ############# Testing idea: pass the runCNN array as an argument, to be provided by combinedatafiles as it only runs once
 def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves,cnn_dict):
 
 
@@ -1309,13 +1309,13 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
     MLcutoff = 0.7
 
     objidDict, objidStampDict = make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff)
-    print(objidDict) #Testing
+#    print(objidDict) #Testing
     for objid in objidDict: #Testing
-        print(objid) #Testing
+#        print(objid) #Testing
         cnnscore = cnn_dict[str(int(objid))]
-        print(cnnscore) #Testing
+#        print(cnnscore) #Testing
         objidDict[objid].append(cnnscore)
-    print(objidDict) #Testing
+#    print(objidDict) #Testing
     createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, datfile,MLcutoff, outdir, post, skip_lightcurves, c)
 
     ##----------- alyssa hack to make csv and event table-------------------
