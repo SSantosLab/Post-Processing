@@ -934,7 +934,7 @@ sub run_IJOB_range {
 
     print "\n" ;
     print "# ----------------------------------------------------- \n";
-    print " Launch $NJOB $JOBNAME jobs interactivley: \n";
+    print " Launch $NJOB $JOBNAME jobs interactively: \n";
     $idone = 0 ;
 
     for($IJOB=$IJOB_MIN; $IJOB <= $IJOB_MAX; $IJOB++ ) {
