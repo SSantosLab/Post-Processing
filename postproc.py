@@ -1032,7 +1032,7 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
                 continue
 
             cnnarrayk = runCNN.runNN(str(outdir)+'/stamps', snobjidLS = [int(objidk)])
-            cnnscorek = cnnarrayk[0][1]
+            cnnscorek = round(cnnarrayk[0][1],4)
             objidDict[objidk].append(cnnscorek)
 
     return objidDict, objidStampDict
@@ -1563,6 +1563,23 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
 
     print("number of candidates where all detections had ml_score>0.5 :",allgood)
     print("")
+
+    stampdir = os.path.join(os.environ.get('ROOTDIR2'), 'stamps')
+    datpath = os.path.join(os.environ.get('ROOTDIR2'), 'makedatafiles/LightCurvesReal/')
+    for datfile in dats:
+        with open(datpath+datfile, 'r') as f:
+            lines = f.readlines()
+            f.close()
+        objids = [int(lines[48][-11:][:-3]),int(lines[49][-11:][:-3])]
+        cnn = runCNN.runNN(stampdir, snobjidLS = objids)
+        cnn_scores = [round(i[1], 4) for i in cnn]
+        lines[44] = lines[44][0:63]+'CNN '+lines[44][63:]
+        lines[48] = lines[48][0:64]+str(cnn_scores[0])+lines[48][64:]
+        lines[49] = lines[49][0:64]+str(cnn_scores[1])+lines[49][64:]
+        with open(datpath+datfile, 'w') as f:
+            f_content = "".join(lines)
+            f.write(f_content)
+            f.close()
 
     status=True
 
