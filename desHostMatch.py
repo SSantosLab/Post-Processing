@@ -398,13 +398,14 @@ def main(season):
     #------------- and writing results to the database --------------------------------------------
     #----------------------------------------------------------------------------------------------
 
-    for thisField in fields:
+    for thisField in fields: #There seem to be two elements in the fields array
         #if args2.verbose > 0:
         #    print "Starting field = ",thisField
 
         # Find all candidates in this field ...                                                                              
         NCands = 0
         if len(data) > 0:
+#            print("===Testing 1===") #Testing: it enters here
             index  = np.where(pix == thisField)
             index  = [s for s in data[index]]  
             NCands = len(index) 
@@ -414,11 +415,13 @@ def main(season):
 #            print "\t",NCands," entries to match in this field"
 
         if NCands > 0:
+            print("===Testing 2===") #Testing: it enters here
             # Read in field catalog using 'loadtxt' and store relevant data to an array
             if thisField < 10000:
               filename  = INPUT_DIR + "GW_cat_hpx_0" + str(thisField) + ".fits"
             else:
               filename  = INPUT_DIR + "GW_cat_hpx_" + str(thisField) + ".fits"
+            print(filename) #Testing
             #if args2.verbose > 0:
             #    print "\tReading in catalog from file . . . . \n"
             #    print filename+'\n'
@@ -460,6 +463,7 @@ def main(season):
             #Begin Loop...
             for i,entry in enumerate(index):  #this will not work
 
+                print("===Testing 3===") #Testing: it enters here
                 transient_name = entry[0]
                 if transient_name is None:
                     transient_name = 'NULL'
@@ -486,15 +490,34 @@ def main(season):
                     (cat['RA'] < ra + farc/math.cos(dec*rad) ) & \
                     (cat['DEC'] > dec - farc) & (cat['DEC'] < dec + farc)
             
+                print("===Testing jndex===") #Testing
+                print(jndex) #Testing
+                print("======") #Testing
+                print("===Testing len(jndex)===") #Testing
+                print(len(jndex)) #Testing
+                print("======") #Testing
                 # store all catalog objects within tolerance in a temporary array
+                print("===Testing cat===") #Testing
+                print(cat) #Testing
+                print("======") #Testing
+                print("===Testing len(cat)===") #Testing
+                print(len(cat)) #Testing
+                print("======") #Testing
+                print("===Testing cat[0]===") #Testing
+                print(cat[0]) #Testing
+                print("======") #Testing
+
                 array = cat[jndex]  
                 #Keep track of whether a host has been assigned for this object.
                 #If not, mark as hostless in SNGALS to prevent repeated searches
                 #for this candidate on subsequent runs.
                 hostlessFlag = 1 
 
+                print("===Testing array===") #Testing
+                print(array) #Testing
+                print("======") #Testing
                 if len(array) > 0: 
-                
+                    print("===Testing 4===") #Testing                
                     # distance to SN in arcsec
                     dist = 3600. * np.sqrt( ( np.cos( dec*rad ) * ( array['RA'] - ra ) )**2 + \
                                                 ( array['DEC'] - dec )**2 ) 
@@ -503,6 +526,7 @@ def main(season):
                     circle = dist < search 
 
                     if np.sum(circle) > 0: 
+                        print("===Testing 5===") #Testing
                         # define structured array containing potential host info
                         #hostinfo = np.zeros(np.sum(circle), \
                         #                        dtype={'names':['transient_name','SNID','SNGALID', \
@@ -636,6 +660,7 @@ def main(season):
                             ### KRH debug 2019-03-14
 
                         for k in range(0,len(hostinfo)):
+                            print("===Testing 6===") #Testing
                             # rank ordered galaxies
                             if hostinfo['DLR'][k] < DLR_cut:
                                 hostinfo['rank'][k] = k+1
@@ -665,6 +690,7 @@ def main(season):
                             
                             # Only write top 3 ranked galaxies to file/DB
                             if k < 3:
+                                print("===Testing 7===") #Testing
                                 # ---------------- Write to File --------------------------------------
                                 file_dlr.write(s)
                             
@@ -746,7 +772,9 @@ def main(season):
                                 print(query)
                                 try:
 #                                    if not args2.test:
+                                    print("===Testing query execution 1===") #Testing
                                     cursor.execute(query)
+                                    print("===Testing query execution 2===") #Testing
                                     connection.commit()
                                     db_status  = 0
                                 except:

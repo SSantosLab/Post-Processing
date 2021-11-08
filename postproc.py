@@ -1573,6 +1573,8 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
         objids = [int(lines[48][-11:][:-3]),int(lines[49][-11:][:-3])]
         cnn = runCNN.runNN(stampdir, snobjidLS = objids)
         cnn_scores = [round(i[1], 4) for i in cnn]
+        nvars = int(lines[43][-4:][:-2])
+        lines[43] = lines[43][0:6]+str(nvars+1)+lines[43][8:]
         lines[44] = lines[44][0:63]+'CNN '+lines[44][63:]
         lines[48] = lines[48][0:64]+str(cnn_scores[0])+lines[48][64:]
         lines[49] = lines[49][0:64]+str(cnn_scores[1])+lines[49][64:]
