@@ -994,7 +994,7 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
             mk = str(mk)
             merrk = str(merrk)
         
-            objidDict[objidk] = [mjdk,bandk,fieldk,fluxcalk,fluxcalerrk,mk,merrk,photflagk,photprobk,zpfluxk,psfk,skysigk,skysig_tk,gaink,xpixk,ypixk,nitek,expnumk,ccdnumk]
+            #objidDict[objidk] = [mjdk,bandk,fieldk,fluxcalk,fluxcalerrk,mk,merrk,photflagk,photprobk,zpfluxk,psfk,skysigk,skysig_tk,gaink,xpixk,ypixk,nitek,expnumk,ccdnumk]
 
     # Extract stamps per objid and create dictionary with stamps per objid
             if ccdnumk < 10:
@@ -1033,7 +1033,8 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
 
             cnnarrayk = runCNN.runNN(str(outdir)+'/stamps', snobjidLS = [int(objidk)])
             cnnscorek = round(cnnarrayk[0][1],4)
-            objidDict[objidk].append(cnnscorek)
+            #objidDict[objidk].append(cnnscorek)
+            objidDict[objidk] = [mjdk,bandk,fieldk,fluxcalk,fluxcalerrk,mk,merrk,photflagk,photprobk,zpfluxk,psfk,skysigk,skysig_tk,gaink,xpixk,ypixk,nitek,expnumk,ccdnumk,cnnscorek] #Testing
 
     return objidDict, objidStampDict
 
@@ -1064,8 +1065,8 @@ def createHTML(
     for imjd, obs in sorted(mjdDict.items()):
         mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_,cnnscore_ = objidDict[obs]
         tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(cnnscore_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
-        
         infoTablines += tableLines
+
     closingLines=['</table>']
     infoTablines += closingLines
 
