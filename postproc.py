@@ -1003,9 +1003,9 @@ def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
                 ccdnumk1 = str(int(ccdnumk))
             tarFiles = glob('/pnfs/des/persistent/'+schema+'/exp/'+str(int(nitek))+'/'+str(int(expnumk))+'/dp'+str(int(season))+'/'+str(bandk)+'_'+ccdnumk1+'/stamps_'+str(int(nitek))+'_*_'+str(bandk)+'_'+ccdnumk1+'/*.tar.gz') #Turned ccdnumk into str so that I can add leading zeros as str
             try:
-#                if float(photprobk) < MLcutoff:
-#                    objidStampDict[objidk] = []
-#                    continue
+                if float(photprobk) < MLcutoff:
+                    objidStampDict[objidk] = []
+                    continue
                 tarFile = tarFiles[0]
                 tar = tarfile.open(tarFile)
                 try:
@@ -1051,7 +1051,7 @@ def createHTML(
     topLines=['<!DOCTYPE HTML>\n','<html>\n','<head>',
           '<link rel="stylesheet" type="text/css" href="../../theProtoATCStyleSheet.css">', '<script src = "candJava.js" type = "text/javascript"/></script>',
           '<title> SNID ' + str(md['snid'].values[0]) + ' Data </title>\n','<h1> SNID ' + str(md['snid'].values[0]) + ' Data </h1>','\n','</head>\n',
-#          '<body>','<p> Stamps from observations with ML scores less than ' + str(MLcutoff) + ' are not displayed. </p>',
+          '<body>','<p> Stamps from observations with ML scores less than ' + str(MLcutoff) + ' are not displayed. </p>',
           '<table align="center">\n','<caption>Candidate Info</caption>','<tr>','<th>RA</th>\n','<td>' + str(md['raval'].values[0]) + '</td>\n',
           '<th>DEC</th>\n','<td>' + str(md['decval'].values[0])  + '</td>\n','</tr>','<th>Host final_z</th>\n','<td>' + str(md['redshift_final'].values[0]) + '</td>\n','<th>Host final_z Error</th>\n','<td>' + str(md['redshift_finalerr'].values[0])  + '</td>\n','</tr>','<tr>','<th> Trigger MJD</th>','<td>'+str(triggermjd)+'</td>','<th>GWID</th>','<td> -- </td>','</tr>','<tr>','<th>AREA</th>','<td> -- </td>','<th>FAR</th>','<td> -- </td>','</tr>','</table>\n']
 
