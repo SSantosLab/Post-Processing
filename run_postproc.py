@@ -179,6 +179,8 @@ fakeversion = config.get('GWmakeDataFiles-fake', 'version')
 
 GoodSNIDs = config.get('general','GoodSNIDs')
 
+MLcutoff = config.get('plots','mlscore_cut')
+
 ## Make directory structure
 
 if not os.path.isdir(outdir):
@@ -382,12 +384,8 @@ if args.SKIPTO <= 5:
         print("REMOVING COMBINED DATA FILE")
         os.system('rm '+outdir+'/makedatafiles/'+combined_fits)
 
-    fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outdir, outDir_datareal, args.schema,triggermjd, GoodSNIDs, args.skip_lightcurves, args.post)
+    fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outdir, outDir_datareal, args.schema,triggermjd, GoodSNIDs, args.skip_lightcurves, args.post, MLcutoff)
     np.save(outdir+'/mastertableinfo.npy', masterTableInfo)
-
-#    print("=== TESTING testingCNN function ===") #Testing
-#    postproc.testingCNN()
-#    print("======")
     
 else:
     print("STEP 5")

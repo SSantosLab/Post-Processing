@@ -974,7 +974,7 @@ def makeLightCurves(dat_df,md,triggermjd,season, datfile, outdir, post):
 
 
 
-def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff=0.7):
+def make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff):
     # Create dictionary with datfile data per objid
     objidDict = {}
     
@@ -1283,7 +1283,7 @@ def get_metadata(lines, hashost):
 ### END NS NEW FUNCTIONS
  
 ############ doALL #############
-def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves):
+def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves,MLcutoff):
 
 
 #    c=c+1
@@ -1309,7 +1309,7 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
 
     ##ag test
     schema = 'gw'
-    MLcutoff = 0.7
+#    MLcutoff = 0.7
 
     objidDict, objidStampDict = make_obj_and_stamp_dict(dat_df,season,schema, outdir, post, MLcutoff)
     createHTML(dat_df,season,triggermjd,schema, objidDict, objidStampDict, md, datfile,MLcutoff, outdir, post, skip_lightcurves, c)
@@ -1353,7 +1353,7 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
 ################################
 
 
-def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, GoodSNIDs, skip_lightcurves, post=False):
+def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, GoodSNIDs, skip_lightcurves, post=False, MLcutoff):
     
     config = configparser.ConfigParser()
     config.read('postproc_'+season+'.ini')
@@ -1415,7 +1415,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
 
     nparallel = 16
     #Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d) for d in dats)
-    masterTableInfo = Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves) for d in dats)
+    masterTableInfo = Parallel(n_jobs=nparallel)(delayed(doAll)(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,GAIN,XPIX,YPIX,NITE,EXPNUM,CCDNUM,OBJID,RA,DEC,CAND_ID,DATAFILE,SN_ID,HOSTID,PHOTOZ,PHOTOZERR,SPECZ,SPECZERR,HOSTSEP,HOST_GMAG,HOST_RMAG,HOST_IMAG,HOST_ZMAG,post,d,skip_lightcurves,MLcutoff) for d in dats)
     #gc.collect()
     # Now joblib actually returns a list of single-key dictionaries above, rather than the singl many-key dict that we originally wanted. So convert back now
     masterTableInfo = {k: v for d in masterTableInfo for k, v in d.items()}
