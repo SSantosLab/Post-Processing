@@ -1086,7 +1086,8 @@ def createHTML(
             add_candidate_object['diff_img'] = str(objidStampDict[obs][2])
 
 	json_cand_obj = json.dumps(add_candidate_object)
-	f = open("candidate_objects_11_7.txt","a")
+    cand_obj_path = os.path.join(outdir, "candidate_objects.txt")
+	f = open(cand_obj_path,"a")
 	f.write(json_cand_obj)
 	f.write('\n')
 	f.close()
@@ -1173,7 +1174,8 @@ def createHTML(
     
     if add_galaxy['galaxy_id'][0] != '-':
         json_galaxy = json.dumps(add_galaxy)
-    	f = open("galaxies_11_7.txt","a")
+        galaxies_path = os.path.join(outdir, "galaxies.txt")
+	    f = open(galaxies_path,"a")
     	f.write(json_galaxy)
         f.write('\n')
     	f.close()
@@ -1229,7 +1231,8 @@ def createHTML(
     add_candidate['host_galaxy_id'] = str(md['host_id'].values[0])
 
     json_cand = json.dumps(add_candidate)
-    f = open("candidates_11_7.txt","a")
+    candidates_path = os.path.join(outdir, "candidates.txt")
+	f = open(candidates_path,"a")
     f.write(json_cand)
     f.write('\n')
     f.close()
