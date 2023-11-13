@@ -22,6 +22,7 @@ from joblib import Parallel, delayed
 import datetime
 import gc
 from subprocess import PIPE
+import json
 
 
 def prep_environ(rootdir,indir,outdir,season,setupfile,version_hostmatch,db,schema):
@@ -61,17 +62,17 @@ def masterlist(filename,blacklist_file,propid,bands=None,expnums=None,a_blacklis
         if len(expnums)>1:
             query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
-where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE' or program='GROWTH DECam GW') and id IN """+str(tuple(expnums))+""" order by id"""
+where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE' or program='GROWTH DECam GW' or program='GW-MMADS') and id IN """+str(tuple(expnums))+""" order by id"""
         else:
             query_exp = """select id as expnum, ra, declination as dec, filter, exptime, airmass, seeing, qc_teff, seqnum, program, object as hex, EXTRACT(EPOCH FROM date - '1858-11-17T00:00:00Z')/(24*60*60) as mjd, TO_CHAR(date - '12 hours'::INTERVAL, 'YYYYMMDD') AS nite 
 from exposure 
-where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE' or program='GROWTH DECam GW') and id="""+str(expnums[0])+""" order by id"""
+where ra is not null and (program='des gw' or program='survey' or program='des nu' or program='DESGW ER TEST EXPOSURE' or program='GROWTH DECam GW' or program='GW-MMADS') and id="""+str(expnums[0])+""" order by id"""
 
 
     conn =  psycopg2.connect(database='decam_prd',
                                user='decam_reader',
                                host='des61.fnal.gov',
-                               password='reader',
+                               #password='reader',
                                port=5443) 
 
     print("MASTERLIST QUERY", query_exp)
@@ -1051,9 +1052,49 @@ def createHTML(
 
     for imjd, obs in sorted(mjdDict.items()):
         mjd_,band_,field_,fluxcal_,fluxcalerr_,m_,merr_,photflag_,photprob_,zpflux_,psf_,skysig_,skysig_t_,gain_,xpix_,ypix_,nite_,expnum_,ccdnum_ = objidDict[obs]
-        tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
+
+
+        add_candidate_object = {}
+        add_candidate_object['obj_id'] = str(obs)
+        add_candidate_object['candidate_label'] = str(md['snid'].values[0])
+        add_candidate_object['mjd'] =str(mjd_)
+        add_candidate_object['flt'] = str(band_)
+        add_candidate_object['field'] = str(field_)
+        add_candidate_object['fluxcal'] = str(fluxcal_)
+        add_candidate_object['fluxcal_error'] = str(fluxcalerr_)
+        add_candidate_object['mag'] = str(m_)
+        add_candidate_object['mag_error'] = str(merr_)
+        add_candidate_object['photflag'] = str(photflag_)
+        add_candidate_object['photprob'] = str(photprob_)
+        add_candidate_object['zpflux'] = str(zpflux_)
+        add_candidate_object['psf'] = str(psf_)
+        add_candidate_object['skysig'] = str(skysig_)
+        add_candidate_object['skysig_t'] = str(skysig_t_)
+        add_candidate_object['gain'] = str(gain_)
+        add_candidate_object['xpix'] = str(xpix_)
+        add_candidate_object['ypix'] = str(ypix_)
+        add_candidate_object['nite'] = str(nite_)
+        add_candidate_object['expnum'] = str(expnum_)
+        add_candidate_object['ccdnum'] = str(ccdnum_)
+        if float(obs) == 0.0 or objidStampDict[obs] == []:
+            add_candidate_object['temp_img'] = ''
+            add_candidate_object['search_img'] = ''
+            add_candidate_object['diff_img'] = ''
+        else:
+            add_candidate_object['temp_img'] = str(objidStampDict[obs][0])
+            add_candidate_object['search_img'] = str(objidStampDict[obs][1])
+            add_candidate_object['diff_img'] = str(objidStampDict[obs][2])
+
+	json_cand_obj = json.dumps(add_candidate_object)
+	f = open("candidate_objects_11_7.txt","a")
+	f.write(json_cand_obj)
+	f.write('\n')
+	f.close()
+
+
+    tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
         
-        infoTablines += tableLines
+    infoTablines += tableLines
     closingLines=['</table>']
     infoTablines += closingLines
 
@@ -1118,6 +1159,26 @@ def createHTML(
         '</tr>\n','</table>\n',
     ] 
 
+    add_galaxy = {}
+    add_galaxy['galaxy_id'] =str(md['host_id'].values[0])
+    add_galaxy['photoz'] = str(md['photo_z'].values[0])
+    add_galaxy['specz'] = str(md['spec_z'].values[0])
+    add_galaxy['ra'] = str(md['host_ra'].values[0])
+    add_galaxy['dec'] = str(md['host_dec'].values[0])
+    add_galaxy['snsep'] = str(md['host_sep'].values[0])
+    add_galaxy['gmag'] = str(md['h_gmag'].values[0])
+    add_galaxy['imag'] = str(md['h_imag'].values[0])
+    add_galaxy['rmag'] = str(md['h_rmag'].values[0])
+    add_galaxy['zmag'] = str(md['h_zmag'].values[0])
+    
+    if add_galaxy['galaxy_id'][0] != '-':
+        json_galaxy = json.dumps(add_galaxy)
+    	f = open("galaxies_11_7.txt","a")
+    	f.write(json_galaxy)
+        f.write('\n')
+    	f.close()
+
+
     # Private Table
 
 #    privatetable = ['<table align="center">\n','<caption>Private Data</caption>\n',]
@@ -1136,6 +1197,42 @@ def createHTML(
     for tag in allLines:
         candPage.write(tag)
     candPage.close()
+
+    add_candidate = {}
+
+    config = configparser.ConfigParser()
+    config.read('postproc_'+season+'.ini')
+
+    add_candidate['candidate_label'] = str(md['snid'].values[0])
+    add_candidate['event_datetime'] = str(datetime.datetime.now()) #Will need to fix this
+    add_candidate['trigger_label'] = str(config.get('general','triggerid'))
+    add_candidate['ra'] = str(md['raval'].values[0])
+    add_candidate['dec'] = str(md['decval'].values[0])
+    add_candidate['max_ml_score'] = str(max(dat_df['PHOTPROB'].values))
+    add_candidate['cnn_score'] = str(0.0)
+    add_candidate['first_mag'] = str(round(float(objidDict[dat_df['OBJID'].values[0]][5]),2))
+    add_candidate['path_to_fits'] = 'path_to_fits'
+    add_candidate['host_final_z'] = str(md['redshift_final'].values[0])
+    add_candidate['host_final_z_error'] = str(md['redshift_finalerr'].values[0])
+    add_candidate['trigger_mjd'] = str(triggermjd)
+    add_candidate['area'] = str(0.0)
+    add_candidate['gwid'] = str(0)
+    add_candidate['far'] = str(0.0)
+    add_candidate['light_curve_img'] = str(lightCurve)
+    add_candidate['survey'] = str(md['survey'].values[0])
+    add_candidate['pixsize'] = str(md['pixsize'].values[0])
+    add_candidate['mwebv'] = str(md['mwebv'].values[0])
+    add_candidate['mwebv_error'] = str(md['mwebv_err'].values[0])
+    add_candidate['redshift_helio'] = str(md['redshift_helio'].values[0])
+    add_candidate['redshift_final'] = str(md['redshift_final'].values[0])
+    add_candidate['redshift_final_error'] = str(md['redshift_finalerr'].values[0])
+    add_candidate['host_galaxy_id'] = str(md['host_id'].values[0])
+
+    json_cand = json.dumps(add_candidate)
+    f = open("candidates_11_7.txt","a")
+    f.write(json_cand)
+    f.write('\n')
+    f.close()
 
     del allLines
     del bottomLines
@@ -1348,14 +1445,18 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
 
     season = str(season)
     print('Starting combinedatafiles')
-    mlist = fitsio.read(master)
-    mlist = mlist.byteswap().newbyteorder()
-    masdf = pd.DataFrame.from_records(mlist)
+    try:
+        mlist = fitsio.read(master)
+        mlist = mlist.byteswap().newbyteorder()
+        masdf = pd.DataFrame.from_records(mlist)
+    except:
+        mlist = []
+        masdf = {}
 
     path = os.path.join(os.environ.get('ROOTDIR2'), 'makedatafiles')
     fitsname= os.path.join(path,fitsname)
     path = os.path.join(path,datadir)
-    
+
     if os.path.isfile(fitsname):
         print('A combined .fits file for all real candidates already exists in the specified outdir with the specified name:')
         print("")
@@ -1491,8 +1592,11 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
     HEX = []
 
     for h in EXPNUM:
-        if len(masdf['hex'].loc[masdf['expnum']==h].values)>0:
-            HEX.append(masdf['hex'].loc[masdf['expnum']==h].values[0])
+        try:
+            if len(masdf['hex'].loc[masdf['expnum']==h].values)>0:
+                HEX.append(masdf['hex'].loc[masdf['expnum']==h].values[0])
+        except KeyError:
+            print("You've probably set sispi_down to 1, but if this is not the case, please investigate.")
         else:
             print('No hex in table for %d. Investigate.' % h)
     MJD,FIELD,FLUXCAL,FLUXCALERR,PHOTFLAG,PHOTPROB,ZPFLUX,PSF,SKYSIG,SKYSIG_T,\
