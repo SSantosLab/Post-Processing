@@ -30,7 +30,7 @@ if __name__ == "__main__":
     season = options.season
     current_directory = os.getcwd()
 
-    dirpath = os.path.join(current_directory,event_name, alert_type, season)
+    dirpath = os.path.join(current_directory, 'OUTPUT', event_name, alert_type, season)
     if not os.path.exists(dirpath):
         print(dirpath)
         os.makedirs(dirpath)
