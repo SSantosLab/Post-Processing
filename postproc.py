@@ -1087,10 +1087,10 @@ def createHTML(
 
 	json_cand_obj = json.dumps(add_candidate_object)
     cand_obj_path = os.path.join(outdir, "candidate_objects.txt")
-	f = open(cand_obj_path,"a")
-	f.write(json_cand_obj)
-	f.write('\n')
-	f.close()
+    f = open(cand_obj_path,"a")
+    f.write(json_cand_obj)
+    f.write('\n')
+    f.close()
 
 
     tableLines=['<tr>','<td>' + str(obs) + '</td>','<td class="col1">'+str(mjd_)+'</td>','<td class="col1">'+str(band_)+'</td>','<td class="col1">'+str(field_)+'</td>','<td>'+str(fluxcal_)+'</td>','<td class="col2">'+str(fluxcalerr_)+'</td class="col2">','<td class="col2">'+str(m_)+'</td>','<td class="col2">'+str(merr_)+'</td>','<td>'+str(photflag_)+'</td >','<td class="col3">'+str(photprob_)+'</td>','<td class="col3">'+str(zpflux_)+'</td>','<td class="col3">'+str(psf_)+'</td>','<td>'+str(skysig_)+'</td>','<td class="col4">'+str(skysig_t_)+'</td>','<td class="col4">'+str(gain_)+'</td>','<td class="col4">'+str(xpix_)+'</td>','<td class="col4">'+str(ypix_)+'</td>','<td>'+str(nite_)+'</td>','<td class="col5">'+str(expnum_)+'</td>','<td class="col5">'+str(ccdnum_)+'</td>','</tr>\n']
@@ -1175,10 +1175,10 @@ def createHTML(
     if add_galaxy['galaxy_id'][0] != '-':
         json_galaxy = json.dumps(add_galaxy)
         galaxies_path = os.path.join(outdir, "galaxies.txt")
-	    f = open(galaxies_path,"a")
-    	f.write(json_galaxy)
+        f = open(galaxies_path,"a")
+        f.write(json_galaxy)
         f.write('\n')
-    	f.close()
+        f.close()
 
 
     # Private Table
@@ -1232,7 +1232,7 @@ def createHTML(
 
     json_cand = json.dumps(add_candidate)
     candidates_path = os.path.join(outdir, "candidates.txt")
-	f = open(candidates_path,"a")
+    f = open(candidates_path,"a")
     f.write(json_cand)
     f.write('\n')
     f.close()
@@ -1440,7 +1440,7 @@ def doAll(outdir, season,triggermjd,path,c,allgood,masterTableInfo,MJD,BAND,FIEL
 ################################
 
 
-def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, GoodSNIDs, skip_lightcurves, post=False):
+def combinedatafiles(season,event_name,alert_type,master,fitsname,outdir, datadir, schema,triggermjd, GoodSNIDs, skip_lightcurves, post=False):
     
     config = configparser.ConfigParser()
     config.read('postproc_'+season+'.ini')
@@ -1473,7 +1473,7 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
         return fitsname, status, None
 
     if post == True:
-        os.system('ssh codemanager@desweb.fnal.gov "mkdir -p /des_web/www/html/desgw/post-processing-all/dp' + str(season) + '/"')
+        os.system('ssh codemanager@desweb.fnal.gov "mkdir -p /des_web/www/html/desgw-new/' + str(event_name) + '/' + str(alert_type) + '/Post-Processing/dp' + str(season) + '/"')
 
     dats = os.listdir(path)
     if os.path.exists(GoodSNIDs):
@@ -1517,15 +1517,15 @@ def combinedatafiles(season,master,fitsname,outdir, datadir, schema,triggermjd, 
     # Copy stamps, html and lightcurve directories if post == True
     if post == True:
         try:
-            os.system("rsync -a " + outdir + "/pngs codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp" + str(season) +"/") 
+            os.system("rsync -a " + outdir + "/pngs codemanager@desweb.fnal.gov:/des_web/www/html/desgw-new/" + str(event_name) + "/" + str(alert_type) + "/Post-Processing/dp" + str(season) +"/") 
         except:
             print("Error copying png directory to desweb. Please investigate.")
+        #try:
+            #os.system("rsync -a " + outdir + "/htmls codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp" + str(season) +"/") 
+        #except:
+            #print("Error copying htmls directory to desweb. Please investigate.")
         try:
-            os.system("rsync -a " + outdir + "/htmls codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp" + str(season) +"/") 
-        except:
-            print("Error copying htmls directory to desweb. Please investigate.")
-        try:
-            os.system("rsync -a " + outdir + "/stamps codemanager@desweb.fnal.gov:/des_web/www/html/desgw/post-processing-all/dp" + str(season) +"/") 
+            os.system("rsync -a " + outdir + "/stamps codemanager@desweb.fnal.gov:/des_web/www/html/desgw-new/" + str(event_name) + "/" + str(alert_type) + "/Post-Processing/dp" + str(season) +"/")
         except:
             print("Error copying stamps directory to desweb. Please investigate.")
 

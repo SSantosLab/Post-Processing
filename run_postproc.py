@@ -124,6 +124,10 @@ rootdir = config.get('general','rootdir')
 indir = config.get('general','indir')
 expdir = os.path.join(rootdir,'exp')
 forcedir = os.path.join(rootdir,'forcephoto')+'/images/dp'+season+'/*'
+
+## Add for populating the website
+alert_type = config.get('general', 'alert_type')
+event_name = config.get('general', 'ligoid')
  
 bands = config.get('general','bands')
 if bands=='all':
@@ -381,7 +385,7 @@ if args.SKIPTO <= 5:
         print("REMOVING COMBINED DATA FILE")
         os.system('rm '+outdir+'/makedatafiles/'+combined_fits)
 
-    fitsname,status,masterTableInfo = postproc.combinedatafiles(season,master,combined_fits,outdir, outDir_datareal, args.schema,triggermjd, GoodSNIDs, args.skip_lightcurves, args.post)
+    fitsname,status,masterTableInfo = postproc.combinedatafiles(season,event_name,alert_type,master,combined_fits,outdir, outDir_datareal, args.schema,triggermjd, GoodSNIDs, args.skip_lightcurves, args.post)
     np.save(outdir+'/mastertableinfo.npy', masterTableInfo)
     
 else:

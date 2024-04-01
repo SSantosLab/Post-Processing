@@ -9,9 +9,10 @@ import configparser
 from sys import exit
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-from astropy import units as u
+from astropy import units as u 
 
 # You can write this once at the top of the script and use the same instance throughout
+
 db_writer = DESGWApi()
 
 #ranking_df = pd.read_csv('./S230922g.csv')
