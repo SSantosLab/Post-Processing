@@ -4,9 +4,8 @@ export ROOTDIR=/pnfs/des/persistent/gw
 export ROOTDIR2=$(pwd) #This should just be where you are running /data/des40.b/data/nsherman/postprocBig 
 #export SEASON=416 
 #####
-
-#source /cvmfs/des.opensciencegrid.org/eeups/startupcachejob21i.sh
 source /cvmfs/des.opensciencegrid.org/eeups/startupcachejob31i.sh
+#source /cvmfs/des.opensciencegrid.org/ncsa/centos7/finalcut/Y6A1+2/eups/desdm_eups_setup.sh 
 #for IFDH
 export EXPERIMENT=des
 #export PATH=${PATH}:/cvmfs/fermilab.opensciencegrid.org/products/common/db/../prd/cpn/v1_7/NULL/bin:/cvmfs/fermilab.opensciencegrid.org/products/common/db/../prd/ifdhc/v2_1_0/Linux64bit-2-6-2-12/bin
@@ -21,18 +20,18 @@ export EUPS_PATH=/cvmfs/des.opensciencegrid.org/eeups/fnaleups:$EUPS_PATH
 
 #other setups
 setup perl 5.18.1+6 # || exit 134
-setup Y2Nstack 1.0.6+18
-setup diffimg
+setup finalcut Y6A1+2
+#setup Y2Nstack 1.0.6+18
+setup diffimg gw8
 setup ftools v6.17 
 export HEADAS=$FTOOLS_DIR
 setup autoscan
 setup easyaccess
-setup extralibs 1.0
+setup extralibs 1.1
 setup astropy 0.4.2+6
 setup psycopg2 2.4.6+8
 setup -j healpy 1.8.1+3
 setup -j pandas 0.15.2+3
-
 #setup html
 #echo "EUPS setup complete"
 
@@ -103,7 +102,7 @@ export SNANA_DIR=/data/des41.b/data/kessler/snana/snana
 export SNDATA_ROOT=/data/des41.b/data/SNDATA_ROOT
 
 ## use Ken's development version of the diffimg code:
-export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel_May2019/trunk
+export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel_Sep2021/trunk
 #export DIFFIMG_DIR=/data/des40.b/data/kherner/Diffimg-devel/diffimg-trunk/
 export PATH=$DIFFIMG_DIR/bin:$PATH
 
