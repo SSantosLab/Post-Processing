@@ -70,9 +70,9 @@ where ra is not null and (program='des gw' or program='survey' or program='des n
 
     conn =  psycopg2.connect(database='decam_prd',
                                user='decam_reader',
-                               host='des61.fnal.gov',
+                               host='des90.fnal.gov',
                                password='reader',
-                               port=5443) 
+                               port=5442) 
 
     print("MASTERLIST QUERY", query_exp)
 
